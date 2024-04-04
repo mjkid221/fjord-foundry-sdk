@@ -13,3 +13,5 @@ tests/temp.spec.ts
 
 # Lerna
 .nx/cache
+
+.env

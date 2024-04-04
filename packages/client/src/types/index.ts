@@ -1,3 +1,1 @@
-export type HelloWorld = {
-  message: string;
-};
+export * from './client';
