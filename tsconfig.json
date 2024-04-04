@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@fjord-foundry/solana-sdk-*": ["packages/*/src"]
+    }
+  }
+}

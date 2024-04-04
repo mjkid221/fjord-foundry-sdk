@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "target": "esnext",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["packages/"],
+  "exclude": ["node_modules", "dist", "package"]
+}
