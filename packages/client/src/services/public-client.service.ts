@@ -7,6 +7,7 @@ import { mainnet } from 'viem/chains';
 export class PublicClientService {
   // This is the EVM implementation of the public client. It exists for testing purposes until the Solana implementation is complete.
   private client: ReturnType<typeof createPublicClient>;
+
   constructor() {
     this.client = createPublicClient({
       chain: mainnet,
