@@ -40,6 +40,42 @@ export class FjordClientSdk {
     })) as GetContractArgsResponse;
   }
 
+  /**
+   *  **This is a scaffold for the Solana implementation.**
+   */
+  // public async getContractArgs(contractPublicKey: string) {
+  //   const connection = this.publicClient.getConnection();
+  //   const contract = await connection.getAccountInfoAndContext(new PublicKey(contractPublicKey));
+
+  //   if (!contract) {
+  //     throw new Error('Contract not found');
+  //   }
+
+  // }
+
+  /**
+   * Retrieves the manager address for a specified contract.
+   *
+   * This method queries the blockchain for the manager address of a specific contract,
+   * using the contract's address and ABI to make the request. The manager address is
+   * typically the account that deployed or manages the contract, holding permissions
+   * for administrative actions on the contract.
+   *
+   * @param {ReadContractRequest} request An object containing the contract address and ABI.
+   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
+   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
+   *
+   * @returns {Promise<GetContractManagerAddressResponse>} A promise that resolves to the blockchain address of the
+   * contract's manager. The address is a string that starts with '0x'.
+   *
+   * @example
+   * const sdk = new FjordClientSdk();
+   * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
+   * const abi = [...]; // ABI for the contract
+   * sdk.getContractManagerAddress({ contractAddress, abi })
+   *    .then(managerAddress => console.log(managerAddress))
+   *    .catch(error => console.error(error));
+   */
   public async getContractManagerAddress({
     contractAddress,
     abi,
@@ -51,4 +87,17 @@ export class FjordClientSdk {
       args: [], // No arguments needed for this function
     })) as GetContractManagerAddressResponse;
   }
+
+  /**
+   *  **This is a scaffold for the Solana implementation.**
+   */
+  // public async getContractManagerAddress(contractPublicKey: string) {
+  //   const connection = this.publicClient.getConnection();
+  //   const contract = await connection.getAccountInfoAndContext(new PublicKey(contractPublicKey));
+
+  //   if (!contract) {
+  //     throw new Error('Contract not found');
+  //   }
+
+  // }
 }
