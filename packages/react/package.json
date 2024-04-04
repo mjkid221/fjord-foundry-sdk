@@ -1,19 +1,23 @@
 {
-  "name": "react",
+  "name": "@fjord-foundry/solana-sdk-react",
   "version": "0.0.0",
-  "description": "> TODO: description",
+  "description": "Fjord Foundry Solana SDK react",
   "author": "Simon Tanna <92503409+simon-tanna@users.noreply.github.com>",
-  "homepage": "",
+  "keywords": [],
   "license": "ISC",
-  "main": "lib/react.js",
+  "repository": {
+    "type": "git",
+    "directory": "packages/react",
+    "url": "git+https://github.com/Labrys-Group/fjord-foundry-sdk.git"
+  },
+  "main": "src/react.ts",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "src"
   },
   "files": [
-    "lib"
+    "src"
   ],
-  "scripts": {
-    "test": "node ./__tests__/react.test.js"
+  "dependencies": {
+    "@fjord-foundry/solana-sdk-client": "^0.0.0"
   }
 }
