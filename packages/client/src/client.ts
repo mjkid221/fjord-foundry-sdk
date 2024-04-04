@@ -1,6 +1,6 @@
 import { ReadFunction } from './enums';
 import { PublicClientService } from './services/public-client.service';
-import { GetContractArgsRequest, GetContractArgsResponse } from './types';
+import { ReadContractRequest, GetContractArgsResponse, GetContractManagerAddressResponse } from './types';
 
 export class FjordClientSdk {
   private publicClient: PublicClientService;
@@ -16,7 +16,7 @@ export class FjordClientSdk {
    * used for fetching contract details that are essential for interacting with the contract,
    * such as asset information, shares, and other financial or ownership details.
    *
-   * @param {GetContractArgsRequest} request An object containing the contract address and ABI needed for the query.
+   * @param {ReadContractRequest} request An object containing the contract address and ABI needed for the query.
    * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
    * @param {any} request.abi The Application Binary Interface of the contract which defines how to interact with it.
    *
@@ -31,12 +31,24 @@ export class FjordClientSdk {
    *    .then(response => console.log(response))
    *    .catch(error => console.error(error));
    */
-  public async getContractArgs({ contractAddress, abi }: GetContractArgsRequest): Promise<GetContractArgsResponse> {
+  public async getContractArgs({ contractAddress, abi }: ReadContractRequest): Promise<GetContractArgsResponse> {
     return (await this.publicClient.getPublicClient().readContract({
       address: contractAddress,
       abi,
       functionName: ReadFunction.GetContractArgs,
       args: [], // No arguments needed for this function
     })) as GetContractArgsResponse;
+  }
+
+  public async getContractManagerAddress({
+    contractAddress,
+    abi,
+  }: ReadContractRequest): Promise<GetContractManagerAddressResponse> {
+    return (await this.publicClient.getPublicClient().readContract({
+      address: contractAddress,
+      abi,
+      functionName: ReadFunction.GetContractManager,
+      args: [], // No arguments needed for this function
+    })) as GetContractManagerAddressResponse;
   }
 }

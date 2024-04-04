@@ -3,12 +3,12 @@ import { z } from 'zod';
 export type ContractAddress = `0x${string}`;
 
 /**
- * TODO: Define the schema for the request and response of the `getContractArgsRequestSchema` method using Solana requirements.
+ * TODO: Refactor `ReadContractRequest` to use Solana requirements.
  */
-
-export type GetContractArgsRequest = {
+export type ReadContractRequest = {
   contractAddress: ContractAddress;
   abi: any;
+  args?: any[];
 };
 /**
  * TODO: Define the schema for the response of the `getContractArgsResponseSchema` method using Solana requirements.
@@ -28,3 +28,8 @@ export const getContractArgsResponseSchema = z.object({
   maxSharePrice: z.bigint(),
 });
 export type GetContractArgsResponse = z.infer<typeof getContractArgsResponseSchema>;
+
+export const getContractManagerAddressResponseSchema = z.string().refine((value) => value.startsWith('0x'), {
+  message: 'Contract address must start with 0x',
+});
+export type GetContractManagerAddressResponse = z.infer<typeof getContractManagerAddressResponseSchema>;
