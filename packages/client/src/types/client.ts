@@ -33,3 +33,11 @@ export const getContractManagerAddressResponseSchema = z.string().refine((value)
   message: 'Contract address must start with 0x',
 });
 export type GetContractManagerAddressResponse = z.infer<typeof getContractManagerAddressResponseSchema>;
+
+export const getVestingStateResponseSchema = z.object({
+  isVestingSharesEnabled: z.boolean(),
+  vestCliffTimestamp: z.number().optional(),
+  vestEndTimestamp: z.number().optional(),
+});
+
+export type GetVestingStateResponse = z.infer<typeof getVestingStateResponseSchema>;

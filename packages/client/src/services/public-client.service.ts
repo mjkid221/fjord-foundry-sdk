@@ -10,12 +10,25 @@ export class PublicClientService implements PublicClientServiceInterface {
   // This is the EVM implementation of the public client. It exists for testing purposes until the Solana implementation is complete.
   private client: ReturnType<typeof createPublicClient>;
 
-  constructor() {
-    this.client = createPublicClient({
-      chain: mainnet,
-      transport: http(),
-    });
+  constructor(client?: ReturnType<typeof createPublicClient>) {
+    this.client =
+      client ??
+      createPublicClient({
+        chain: mainnet,
+        transport: http(),
+      });
   }
+
+  static async create(): Promise<PublicClientService> {
+    const client = await Promise.resolve(
+      createPublicClient({
+        chain: mainnet,
+        transport: http(),
+      }),
+    );
+    return new PublicClientService(client);
+  }
+
   getPublicClient() {
     return this.client;
   }
