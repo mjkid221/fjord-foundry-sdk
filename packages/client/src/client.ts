@@ -6,6 +6,7 @@ import {
   GetContractManagerAddressResponse,
   ClientSdkInterface,
   GetVestingStateResponse,
+  GetReservesAndWeightsResponse,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -68,6 +69,27 @@ export class FjordClientSdk implements ClientSdkInterface {
       isVestingSharesEnabled,
       vestCliffTimestamp,
       vestEndTimestamp,
+    };
+  }
+
+  public async getTotalSharesPurchased(request: ReadContractRequest): Promise<bigint> {
+    return await this.readContract<bigint>(request, ReadFunction.GetTotalSharePurchased);
+  }
+
+  public async getReservesAndWeights(request: ReadContractRequest): Promise<GetReservesAndWeightsResponse> {
+    /**
+     * The reserves and weights array is structured as follows:
+     * `[assetReserve, shareReserve, assetWeight, shareWeight]`
+     */
+    const reservesAndWeightsArray: [bigint, bigint, bigint, bigint] = await this.readContract<
+      [bigint, bigint, bigint, bigint]
+    >(request, ReadFunction.GetReservesAndWeights);
+
+    return {
+      assetReserve: reservesAndWeightsArray[0],
+      shareReserve: reservesAndWeightsArray[1],
+      assetWeight: reservesAndWeightsArray[2],
+      shareWeight: reservesAndWeightsArray[3],
     };
   }
 

@@ -3,11 +3,13 @@ import {
   PublicClientService,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
+  getReservesAndWeightsResponseSchema,
+  getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
 
 import { abi } from '../mocks/abi';
 
-const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
+const contractAddress = '0xC17374e2C8FebaBf509F2671F5fB8Aaac3236031';
 const tooLongContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBdbbbbbb';
 const incorrectContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBa';
 
@@ -153,7 +155,10 @@ describe('FjordClientSdk Read Functions', () => {
   describe('getVestingState tests', () => {
     it('calls readContract with correct parameters and returns the correct response', async () => {
       const response = await sdk.getVestingState({ contractAddress, abi });
-      console.log(response);
+
+      // Check if the response is valid
+      expect(() => getVestingStateResponseSchema.parse(response)).not.toThrow();
+
       expect(response).toBeDefined();
       expect(response).toBeInstanceOf(Object);
       expect(response).toHaveProperty('isVestingSharesEnabled');
@@ -170,6 +175,45 @@ describe('FjordClientSdk Read Functions', () => {
 
     it('throws an error if contract address is incorrect', async () => {
       await expect(sdk.getVestingState({ contractAddress: incorrectContractAddress, abi })).rejects.toThrow();
+    });
+  });
+
+  describe('getTotalSharesPurchased tests', () => {
+    it('calls readContract with correct parameters and returns the correct response', async () => {
+      const response = await sdk.getTotalSharesPurchased({ contractAddress, abi });
+      expect(response).toBeDefined();
+      expect(typeof response).toBe('bigint');
+    });
+
+    it('throws an error if contract address is too long', async () => {
+      await expect(sdk.getTotalSharesPurchased({ contractAddress: tooLongContractAddress, abi })).rejects.toThrow();
+    });
+
+    it('throws an error if contract address is incorrect', async () => {
+      await expect(sdk.getTotalSharesPurchased({ contractAddress: incorrectContractAddress, abi })).rejects.toThrow();
+    });
+  });
+
+  describe('getReservesAndWeights tests', () => {
+    it('calls readContract with correct parameters and returns the correct response', async () => {
+      const response = await sdk.getReservesAndWeights({ contractAddress, abi });
+      console.log(response);
+      expect(() => getReservesAndWeightsResponseSchema.parse(response)).not.toThrow();
+
+      expect(response).toBeDefined();
+      expect(response).toBeInstanceOf(Object);
+      expect(response).toHaveProperty('assetReserve');
+      expect(response).toHaveProperty('shareReserve');
+      expect(response).toHaveProperty('assetWeight');
+      expect(response).toHaveProperty('shareWeight');
+    });
+
+    it('throws an error if contract address is too long', async () => {
+      await expect(sdk.getReservesAndWeights({ contractAddress: tooLongContractAddress, abi })).rejects.toThrow();
+    });
+
+    it('throws an error if contract address is incorrect', async () => {
+      await expect(sdk.getReservesAndWeights({ contractAddress: incorrectContractAddress, abi })).rejects.toThrow();
     });
   });
 });

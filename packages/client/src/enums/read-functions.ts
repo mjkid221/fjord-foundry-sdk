@@ -8,4 +8,6 @@ export enum ReadFunction {
   IsVestingSharesEnabled = 'vestShares',
   GetVestingCliffTimestamp = 'vestCliff',
   GetVestingEndTimestamp = 'vestEnd',
+  GetTotalSharePurchased = 'totalPurchased',
+  GetReservesAndWeights = 'reservesAndWeights',
 }

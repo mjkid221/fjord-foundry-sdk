@@ -19,6 +19,28 @@ export class PublicClientService implements PublicClientServiceInterface {
       });
   }
 
+  /**
+   * Asynchronously creates an instance of `PublicClientService`.
+   * This method abstracts the instantiation process, allowing for asynchronous operations,
+   * such as fetching configuration or initializing network connections, to be completed
+   * before the service is fully instantiated.
+   *
+   * The method currently initializes a public client with predefined configurations for
+   * the mainnet chain using the HTTP transport layer. This setup is intended for the EVM
+   * (Ethereum Virtual Machine) implementation and will be adjusted to accommodate Solana
+   * requirements in the future.
+   *
+   * @returns {Promise<PublicClientService>} A promise that resolves to an instance of `PublicClientService`
+   *         with a pre-configured client ready for interaction with the blockchain.
+   * @example
+   * // Example usage:
+   * let publicClientService: PublicClientService;
+   *
+   * async function initService() {
+   *   publicClientService = await PublicClientService.create();
+   *   // Now publicClientService is ready to use.
+   * }
+   */
   static async create(): Promise<PublicClientService> {
     const client = await Promise.resolve(
       createPublicClient({

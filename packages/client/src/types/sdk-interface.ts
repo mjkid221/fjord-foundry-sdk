@@ -3,6 +3,7 @@ import { createPublicClient } from 'viem';
 import {
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
+  GetReservesAndWeightsResponse,
   GetVestingStateResponse,
   ReadContractRequest,
 } from './client';
@@ -164,6 +165,47 @@ export interface ClientSdkInterface {
    *
    */
   getVestingState({ contractAddress, abi }: ReadContractRequest): Promise<GetVestingStateResponse>;
+
+  /**
+   * Retrieves the total shares purchased for a given LBP.
+   *
+   * @param {ReadContractRequest} request An object containing the contract address and ABI.
+   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
+   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
+   *
+   * @returns {Promise<bigint>} A promise that resolves to the total shares purchased for the LBP.
+   *
+   * @example
+   * const publicClient = new PublicClientService();
+   * const sdk = new FjordClientSdk(publicClient);
+   * const contractAddress = '0xa2d8f923'
+   *
+   * sdk.getTotalSharesPurchased({ contractAddress, abi })
+   * .then(totalShares => console.log(totalShares))
+   * .catch(error => console.error(error));
+   *
+   */
+  getTotalSharesPurchased({ contractAddress, abi }: ReadContractRequest): Promise<bigint>;
+
+  /**
+   * Retrieves the reserves and weights for a given LBP.
+   * @param {ReadContractRequest} request An object containing the contract address and ABI.
+   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
+   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
+   *
+   * @returns {Promise<GetReservesAndWeightsResponse>} A promise that resolves to an object containing the reserves and weights
+   *
+   * @example
+   * const publicClient = new PublicClientService();
+   * const sdk = new FjordClientSdk(publicClient);
+   * const contractAddress = '0xa2d8f923'
+   * const abi = [...]; // ABI for the contract
+   *
+   * sdk.getReservesAndWeights({ contractAddress, abi })
+   * .then(reservesAndWeights => console.log(reservesAndWeights))
+   * .catch(error => console.error(error));
+   */
+  getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
 
 export interface PublicClientServiceInterface {

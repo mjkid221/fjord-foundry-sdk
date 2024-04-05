@@ -41,3 +41,12 @@ export const getVestingStateResponseSchema = z.object({
 });
 
 export type GetVestingStateResponse = z.infer<typeof getVestingStateResponseSchema>;
+
+export const getReservesAndWeightsResponseSchema = z.object({
+  assetReserve: z.bigint(),
+  shareReserve: z.bigint(),
+  assetWeight: z.bigint(),
+  shareWeight: z.bigint(),
+});
+
+export type GetReservesAndWeightsResponse = z.infer<typeof getReservesAndWeightsResponseSchema>;
