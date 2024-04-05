@@ -1,5 +1,5 @@
 import { ReadFunction } from './enums';
-import { PublicClientService } from './services/public-client.service';
+import { PublicClientService } from './services';
 import {
   ReadContractRequest,
   GetContractArgsResponse,
@@ -9,8 +9,8 @@ import {
 
 export class FjordClientSdk implements ClientSdkInterface {
   private publicClient: PublicClientService;
-  constructor() {
-    this.publicClient = new PublicClientService();
+  constructor(publicClientService: PublicClientService) {
+    this.publicClient = publicClientService;
   }
 
   public async getContractArgs({ contractAddress, abi }: ReadContractRequest): Promise<GetContractArgsResponse> {

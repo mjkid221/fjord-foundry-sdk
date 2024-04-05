@@ -1,5 +1,6 @@
 import {
   FjordClientSdk,
+  PublicClientService,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
@@ -12,9 +13,11 @@ const incorrectContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBa';
 
 describe('FjordClientSdk', () => {
   let sdk: FjordClientSdk;
+  let publicClientService: PublicClientService;
 
   beforeEach(() => {
-    sdk = new FjordClientSdk();
+    publicClientService = new PublicClientService();
+    sdk = new FjordClientSdk(publicClientService);
   });
 
   afterEach(() => {

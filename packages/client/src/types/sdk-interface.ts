@@ -1,3 +1,5 @@
+import { createPublicClient } from 'viem';
+
 import { GetContractArgsResponse, GetContractManagerAddressResponse, ReadContractRequest } from './client';
 
 export interface ClientSdkInterface {
@@ -17,7 +19,8 @@ export interface ClientSdkInterface {
    * contract's arguments, such as asset, share, assets, shares, virtual assets, and others.
    *
    * @example
-   * const sdk = new FjordClientSdk();
+   * const publicClient = new PublicClientService();
+   * const sdk = new FjordClientSdk(publicClient);
    * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
    * const abi = [...]; // ABI for the contract
    * sdk.getContractArgs({ contractAddress, abi })
@@ -42,7 +45,8 @@ export interface ClientSdkInterface {
    * contract's manager. The address is a string that starts with '0x'.
    *
    * @example
-   * const sdk = new FjordClientSdk();
+   * const publicClient = new PublicClientService();
+   * const sdk = new FjordClientSdk(publicClient);
    * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
    * const abi = [...]; // ABI for the contract
    * sdk.getContractManagerAddress({ contractAddress, abi })
@@ -50,4 +54,12 @@ export interface ClientSdkInterface {
    *    .catch(error => console.error(error));
    */
   getContractManagerAddress({ contractAddress, abi }: ReadContractRequest): Promise<GetContractManagerAddressResponse>;
+}
+
+export interface PublicClientServiceInterface {
+  /**
+   * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
+   * @returns {ReturnType<typeof createPublicClient>} The public client instance.
+   */
+  getPublicClient(): ReturnType<typeof createPublicClient>;
 }
