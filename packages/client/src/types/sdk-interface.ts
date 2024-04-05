@@ -63,7 +63,7 @@ export interface ClientSdkInterface {
   getContractManagerAddress({ contractAddress, abi }: ReadContractRequest): Promise<GetContractManagerAddressResponse>;
 
   /**
-   * Checks if a pool is closed.
+   * Checks if an LBP is closed.
    * @param {ReadContractRequest} request An object containing the contract address and ABI.
    * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
    * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
@@ -167,7 +167,7 @@ export interface ClientSdkInterface {
   getVestingState({ contractAddress, abi }: ReadContractRequest): Promise<GetVestingStateResponse>;
 
   /**
-   * Retrieves the total shares purchased for a given LBP.
+   * Retrieves the total number of shares purchased for a given LBP.
    *
    * @param {ReadContractRequest} request An object containing the contract address and ABI.
    * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.

@@ -17,6 +17,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.publicClient = publicClientService;
   }
 
+  /**
+   * Reads data from a smart contract.
+   *
+   * @template T - The type of data to be returned.
+   * @param {ReadContractRequest} request - The request object containing contract address, ABI, and arguments.
+   * @param {ReadFunction} functionName - The name of the function to be called.
+   * @returns {Promise<T>} - A promise that resolves to the data returned by the smart contract.
+   */
   private async readContract<T>(request: ReadContractRequest, functionName: ReadFunction): Promise<T> {
     const { contractAddress, abi, args } = request;
     return (await this.publicClient.getPublicClient().readContract({
@@ -54,6 +62,7 @@ export class FjordClientSdk implements ClientSdkInterface {
   public async getVestingState(request: ReadContractRequest): Promise<GetVestingStateResponse> {
     const isVestingSharesEnabled = await this.readContract<boolean>(request, ReadFunction.IsVestingSharesEnabled);
 
+    // We only need to read the vesting timestamps if vesting is enabled.
     if (!isVestingSharesEnabled) {
       return {
         isVestingSharesEnabled,
