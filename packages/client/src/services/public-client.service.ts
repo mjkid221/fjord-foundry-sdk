@@ -42,7 +42,7 @@ export class PublicClientService implements PublicClientServiceInterface {
    * }
    */
   static async create(): Promise<PublicClientService> {
-    // This will function has been implemented as an synchronous function to prepare for the Solana implementation.
+    // This has been implemented as an synchronous function to prepare for the pending Solana implementation.
     const client = await Promise.resolve(
       createPublicClient({
         chain: mainnet,

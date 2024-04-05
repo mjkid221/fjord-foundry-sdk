@@ -159,7 +159,7 @@ All read methods require the following arguments:
 - Fetches the total number of shares purchased in a specific LBP.
 - **Returns:** Total shares as a `bigint`.
 
-### Get Reserves And Weights**
+### Get Reserves And Weights
 
 #### `async getReservesAndWeights(request: ReadContractRequest): Promise<GetReservesAndWeightsResponse>`
 
