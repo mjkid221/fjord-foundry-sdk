@@ -1,9 +1,11 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { Container, CssBaseline, ThemeProvider } from '@mui/material';
 import { AppCacheProvider } from '@mui/material-nextjs/v14-pagesRouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import Link from 'next/link';
 
+import PoolAddress from '@/components/PoolAddressInput';
 import theme from '@/styles/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -19,7 +21,11 @@ export default function App({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Component {...pageProps} />
+          <Container maxWidth="md" sx={{ paddingY: '30px' }}>
+            <PoolAddress />
+            <Component {...pageProps} />
+            <Link href="/">Home</Link>
+          </Container>
         </ThemeProvider>
       </QueryClientProvider>
     </AppCacheProvider>
