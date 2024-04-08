@@ -19,7 +19,7 @@ const ContractManager = () => {
   });
   return (
     <>
-      <Typography variant="h3">Contract Arguments</Typography>
+      <Typography variant="h3">Contract Manager</Typography>
       {data ? <Typography>{data}</Typography> : <Typography>Loading...</Typography>}
     </>
   );
