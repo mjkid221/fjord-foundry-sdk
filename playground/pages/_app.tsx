@@ -16,7 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
         <title>Playground App</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/solana.ico" />
       </Head>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
