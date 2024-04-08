@@ -25,5 +25,10 @@
     "build:web": "microbundle --tsconfig tsconfig.build.json --format modern --output dist/browser.js",
     "package": "clean-publish",
     "clean": "rimraf dist package"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.91.4",
+    "viem": "^2.9.9",
+    "zod": "^3.22.4"
   }
 }
