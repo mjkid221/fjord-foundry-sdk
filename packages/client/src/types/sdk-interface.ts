@@ -52,7 +52,7 @@ export interface ClientSdkInterfaceBeta {
   readAddress(address: PublicKey): Promise<any>;
 }
 
-export interface ClientSdkInterface {
+export interface ClientSdkInterfaceEvm {
   /**
    * Retrieves arguments for a specified LBP contract on the blockchain.
    *
@@ -251,3 +251,5 @@ export interface ClientSdkInterface {
    */
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
+
+export interface ClientSdkInterface extends ClientSdkInterfaceBeta, ClientSdkInterfaceEvm {}
