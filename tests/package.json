@@ -9,7 +9,10 @@
     "ts-jest": "^29.1.1"
   },
   "peerDependencies": {
-    "tsconfig-paths": "*"
+    "tsconfig-paths": "*",
+    "@solana/web3.js": "^1.91.4",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-phantom": "^0.9.24"
   },
   "scripts": {
     "test": "jest",

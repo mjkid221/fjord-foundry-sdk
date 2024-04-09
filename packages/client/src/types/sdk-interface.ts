@@ -1,4 +1,5 @@
-import { createPublicClient } from 'viem';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { PublicKey, Transaction } from '@solana/web3.js';
 
 import {
   GetContractArgsResponse,
@@ -7,6 +8,49 @@ import {
   GetVestingStateResponse,
   ReadContractRequest,
 } from './client';
+
+export interface ClientSdkInterfaceBeta {
+  /**
+   * Connects the wallet to the specified network.
+   * @param {WalletAdapterNetwork} network - The network to connect to.
+   * @returns {Promise<PublicKey | null>} - A promise that resolves with the public key of the connected wallet, or null if connection fails.
+   * @throws {Error} If the connection to the wallet fails.
+   * @example
+   * const publicClient = new SolanaConnectionService();
+   * const sdk = new FjordClientSdk(publicClient);
+   * const network = WalletAdapterNetwork.Mainnet;
+   * sdk.connectWallet(network)
+   *    .then(publicKey => console.log(publicKey))
+   *    .catch(error => console.error(error));
+   */
+  connectWallet(network: WalletAdapterNetwork): Promise<PublicKey | null>;
+
+  /**
+   * Signs a transaction using the connected wallet.
+   * @param {Transaction} transaction - The transaction to be signed.
+   * @returns {Promise<Transaction | null>} - A promise that resolves with the signed transaction, or null if signing fails.
+   * @throws {Error} If signing the transaction fails.
+   * @example
+   * const transaction = new Transaction(...);
+   * sdk.signTransaction(transaction)
+   *    .then(signedTransaction => console.log(signedTransaction))
+   *    .catch(error => console.error(error));
+   */
+  signTransaction(transaction: Transaction): Promise<Transaction | null>;
+
+  /**
+   * Reads information about an account on the blockchain.
+   * @param {PublicKey} address - The public key of the account to read.
+   * @returns {Promise<any>} - A promise that resolves with the account information and context, or null if the account does not exist.
+   * @throws {Error} If reading the account information fails.
+   * @example
+   * const address = new PublicKey('...');
+   * sdk.readAddress(address)
+   *    .then(accountInfo => console.log(accountInfo))
+   *    .catch(error => console.error(error));
+   */
+  readAddress(address: PublicKey): Promise<any>;
+}
 
 export interface ClientSdkInterface {
   /**
@@ -206,12 +250,4 @@ export interface ClientSdkInterface {
    * .catch(error => console.error(error));
    */
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
-}
-
-export interface PublicClientServiceInterface {
-  /**
-   * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
-   * @returns {ReturnType<typeof createPublicClient>} The public client instance.
-   */
-  getPublicClient(): ReturnType<typeof createPublicClient>;
 }
