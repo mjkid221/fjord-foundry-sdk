@@ -9,7 +9,7 @@ import {
   ReadContractRequest,
 } from './client';
 
-export interface ClientSdkInterfaceBeta {
+export interface ClientSdkInterfaceSolana {
   /**
    * Connects the wallet to the specified network.
    * @param {WalletAdapterNetwork} network - The network to connect to.
@@ -252,4 +252,4 @@ export interface ClientSdkInterfaceEvm {
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
 
-export interface ClientSdkInterface extends ClientSdkInterfaceBeta, ClientSdkInterfaceEvm {}
+export interface ClientSdkInterface extends ClientSdkInterfaceSolana, ClientSdkInterfaceEvm {}

@@ -1,6 +1,5 @@
 import {
   FjordClientSdk,
-  SolanaConnectionService,
   createSdk,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
@@ -21,7 +20,7 @@ const solAddress = 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
 describe('FjordClientSdk Solana Functions', () => {
   let sdk: FjordClientSdk;
   let mockConnectWallet: jest.Mock;
-  // let mockReadAddress: jest.Mock;
+
   beforeEach(async () => {
     sdk = await createSdk(true, WalletAdapterNetwork.Mainnet);
     mockConnectWallet = jest.fn();
@@ -64,9 +63,7 @@ describe('FjordClientSdk Solana Functions', () => {
 
 describe('FjordClientSdk EVM Read Functions', () => {
   let sdk: FjordClientSdk;
-  // let publicClientService: PublicClientService;
   beforeEach(async () => {
-    // publicClientService = await PublicClientService.create();
     sdk = await createSdk(false);
   });
   afterEach(() => {
@@ -211,6 +208,12 @@ describe('FjordClientSdk EVM Read Functions', () => {
   });
   describe('getReservesAndWeights tests', () => {
     it('calls readContract with correct parameters and returns the correct response', async () => {
+      const { saleEnd } = await sdk.getContractArgs({ contractAddress, abi });
+
+      if (new Date(Number(saleEnd)) < new Date()) {
+        console.log('Sale has ended');
+        return;
+      }
       const response = await sdk.getReservesAndWeights({ contractAddress, abi });
       console.log(response);
       expect(() => getReservesAndWeightsResponseSchema.parse(response)).not.toThrow();
