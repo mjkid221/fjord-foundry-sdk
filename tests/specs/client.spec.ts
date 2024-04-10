@@ -7,7 +7,7 @@ import {
   getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 
 import { abi } from '../mocks/abi';
 
@@ -20,16 +20,24 @@ const solAddress = 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
 describe('FjordClientSdk Solana Functions', () => {
   let sdk: FjordClientSdk;
   let mockConnectWallet: jest.Mock;
+  // let mockSignTransaction: jest.Mock;
 
   beforeEach(async () => {
     sdk = await createSdk(true, WalletAdapterNetwork.Mainnet);
     mockConnectWallet = jest.fn();
+    // mockSignTransaction = jest.fn();
+    jest.mock('@fjord-foundry/solana-sdk-client', () => ({
+      FjordClientSdk: jest.fn().mockImplementation(() => ({
+        connectWallet: mockConnectWallet,
+      })),
+    }));
 
     sdk.connectWallet = mockConnectWallet;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
   });
 
   it('should create instances of FjordClientSdk and SolanaConnectionService', () => {
@@ -37,9 +45,8 @@ describe('FjordClientSdk Solana Functions', () => {
   });
 
   it('calls connection.getConnection with correct parameters and returns the correct response', async () => {
-    const { value: response, context } = await sdk.readAddress(new PublicKey(solAddress));
-    console.log(response);
-    console.log(context);
+    const { value: response } = await sdk.readAddress(new PublicKey(solAddress));
+
     expect(response).toBeDefined();
     expect(response).toBeInstanceOf(Object);
     expect(response).toHaveProperty('lamports');
@@ -52,6 +59,8 @@ describe('FjordClientSdk Solana Functions', () => {
     const keypair = Keypair.generate();
     const mockPublicKey = new PublicKey(keypair.publicKey);
     mockConnectWallet.mockResolvedValue(mockPublicKey);
+
+    console.log(mockPublicKey);
 
     const network = WalletAdapterNetwork.Mainnet;
     const publicKey = await sdk.connectWallet(network);
