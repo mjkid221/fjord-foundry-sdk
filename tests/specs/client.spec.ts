@@ -1,13 +1,12 @@
 import {
   FjordClientSdk,
-  createSdk,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
   getReservesAndWeightsResponseSchema,
   getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 import { abi } from '../mocks/abi';
 
@@ -23,11 +22,11 @@ describe('FjordClientSdk Solana Functions', () => {
   // let mockSignTransaction: jest.Mock;
 
   beforeEach(async () => {
-    sdk = await createSdk(true, WalletAdapterNetwork.Mainnet);
+    sdk = await FjordClientSdk.create(true, WalletAdapterNetwork.Mainnet);
     mockConnectWallet = jest.fn();
     // mockSignTransaction = jest.fn();
     jest.mock('@fjord-foundry/solana-sdk-client', () => ({
-      FjordClientSdk: jest.fn().mockImplementation(() => ({
+      FjordClientSdk: jest.fn().mockImplementation(async () => ({
         connectWallet: mockConnectWallet,
       })),
     }));
@@ -60,8 +59,6 @@ describe('FjordClientSdk Solana Functions', () => {
     const mockPublicKey = new PublicKey(keypair.publicKey);
     mockConnectWallet.mockResolvedValue(mockPublicKey);
 
-    console.log(mockPublicKey);
-
     const network = WalletAdapterNetwork.Mainnet;
     const publicKey = await sdk.connectWallet(network);
 
@@ -73,7 +70,7 @@ describe('FjordClientSdk Solana Functions', () => {
 describe('FjordClientSdk EVM Read Functions', () => {
   let sdk: FjordClientSdk;
   beforeEach(async () => {
-    sdk = await createSdk(false);
+    sdk = await FjordClientSdk.create(false);
   });
   afterEach(() => {
     jest.clearAllMocks();

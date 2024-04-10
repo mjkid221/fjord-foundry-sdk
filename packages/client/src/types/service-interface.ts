@@ -1,4 +1,5 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
@@ -16,6 +17,12 @@ export interface SolanaConnectionServiceInterface {
    * @returns {Connection} - The Solana connection object.
    */
   getConnection?(): Connection;
+
+  /**
+   * Gets the connected wallet.
+   * @returns {PhantomWalletAdapter | null} - The connected wallet, or null if no wallet is connected.
+   */
+  getConnectedWallet?(): Promise<PhantomWalletAdapter | null>;
 
   /**
    * Connects the wallet to the specified network.
