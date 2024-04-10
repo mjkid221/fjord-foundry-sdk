@@ -6,6 +6,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 import PoolAddress from '@/components/PoolAddressInput';
+import WalletContext from '@/context/WalletContext';
 import theme from '@/styles/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -19,14 +20,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/solana.ico" />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Container maxWidth="md" sx={{ paddingY: '30px' }}>
-            <PoolAddress />
-            <Component {...pageProps} />
-            <Link href="/">Home</Link>
-          </Container>
-        </ThemeProvider>
+        <WalletContext>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Container maxWidth="md" sx={{ paddingY: '30px' }}>
+              <PoolAddress />
+              <Component {...pageProps} />
+              <Link href="/">Home</Link>
+            </Container>
+          </ThemeProvider>
+        </WalletContext>
       </QueryClientProvider>
     </AppCacheProvider>
   );

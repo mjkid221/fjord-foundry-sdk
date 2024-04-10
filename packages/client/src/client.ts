@@ -41,6 +41,13 @@ export class FjordClientSdk implements ClientSdkInterface {
     return await this.service.getConnection().getAccountInfoAndContext(address);
   }
 
+  // public async sendTransaction(transaction: Transaction): Promise<string> {
+  //   if (!this.service.connectWallet) {
+  //     throw new Error('sendTransaction method not supported for this client');
+  //   }
+  //   return await this.service.sendTransaction(transaction);
+  // }
+
   /**
    * Reads data from a smart contract.
    *
