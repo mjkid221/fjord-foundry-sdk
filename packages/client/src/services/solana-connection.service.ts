@@ -11,6 +11,7 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
   private connection: Connection;
   private wallet: PhantomWalletAdapter | null = null; // Store wallet instance
   private publicKey: PublicKey | null = null; // Cache public key
+  private network: WalletAdapterNetwork;
 
   /**
    * Creates an instance of SolanaConnectionService.
@@ -19,6 +20,7 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
    */
   constructor(network: WalletAdapterNetwork, connection?: Connection) {
     this.connection = connection ?? new Connection(clusterApiUrl(network), 'confirmed');
+    this.network = network;
   }
 
   /**
@@ -35,10 +37,17 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
     return this.connection;
   }
 
-  public async connectWallet(network: WalletAdapterNetwork): Promise<PublicKey | null> {
+  public async getConnectedWallet(): Promise<PhantomWalletAdapter | null> {
+    if (!this.wallet) {
+      this.connectWallet;
+    }
+    return this.wallet;
+  }
+
+  public async connectWallet(): Promise<PublicKey | null> {
     if (!this.wallet) {
       // Initialize wallet instance if not already initialized
-      this.wallet = new PhantomWalletAdapter({ network: network });
+      this.wallet = new PhantomWalletAdapter({ network: this.network });
     }
 
     // Attempt wallet connection
