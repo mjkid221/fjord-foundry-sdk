@@ -7,7 +7,7 @@ import {
   getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 import { abi } from '../mocks/abi';
 

@@ -1,10 +1,12 @@
 import { createSdk } from '@fjord-foundry/solana-sdk-client';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { PublicKey } from '@solana/web3.js';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { abi } from '@/constants/abi';
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { contractAddress } = req.query as { contractAddress: `0x${string}` };
+  const { contractAddress } = req.query as { contractAddress: string };
+
+  const publicKey = new PublicKey(contractAddress);
 
   if (typeof contractAddress !== 'string') {
     res.status(400).json({ error: 'Invalid contract address' });
@@ -15,11 +17,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(400).json({ error: 'Contract address is required' });
     return;
   }
-  const sdkClient = await createSdk(false);
+  const sdkClient = await createSdk(true, WalletAdapterNetwork.Mainnet);
 
-  const isPoolClosed = await sdkClient.isPoolClosed({ contractAddress, abi });
+  const addressDeets = await sdkClient.readAddress(publicKey);
 
-  res.status(200).json(isPoolClosed.toString());
+  res.status(200).json(addressDeets);
 };
 
 export default handler;
