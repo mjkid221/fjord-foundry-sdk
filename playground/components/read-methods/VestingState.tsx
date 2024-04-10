@@ -10,7 +10,7 @@ const VestingState = () => {
   const { data } = useQuery({
     queryKey: ['vesting-state', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<GetVestingStateResponse>('/api/read/vesting-state', {
+      const { data } = await axios.get<GetVestingStateResponse>('/api/read/evm/vesting-state', {
         params: { contractAddress: poolAddress },
       });
       return data;

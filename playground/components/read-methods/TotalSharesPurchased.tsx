@@ -9,7 +9,7 @@ const TotalSharesPurchased = () => {
   const { data } = useQuery({
     queryKey: ['total-shares-purchased', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<string>('/api/read/total-shares-purchased', {
+      const { data } = await axios.get<string>('/api/read/evm/total-shares-purchased', {
         params: { contractAddress: poolAddress },
       });
       return data;

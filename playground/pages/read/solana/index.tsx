@@ -1,15 +1,14 @@
 import { Container, Stack } from '@mui/material';
 import Link from 'next/link';
 
-const Home = () => {
+const SolanaRead = () => {
   return (
     <Container maxWidth="md" sx={{ paddingY: '30px' }}>
       <Stack>
-        <Link href={`read/evm`}>Evm Read Functions</Link>
-        <Link href={`read/solana`}>Solana Read Functions</Link>
+        <Link href={`solana/address-deets`}>Address Details</Link>
       </Stack>
     </Container>
   );
 };
 
-export default Home;
+export default SolanaRead;

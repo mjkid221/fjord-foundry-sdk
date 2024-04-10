@@ -10,7 +10,7 @@ const ContractManager = () => {
   const { data } = useQuery({
     queryKey: ['contract-manager', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<GetContractManagerAddressResponse>('/api/read/manager-address', {
+      const { data } = await axios.get<GetContractManagerAddressResponse>('/api/read/evm/manager-address', {
         params: { contractAddress: poolAddress },
       });
       return data;

@@ -9,7 +9,7 @@ const PoolClosedStatus = () => {
   const { data } = useQuery({
     queryKey: ['pool-closed-status', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<string>('/api/read/pool-closed', {
+      const { data } = await axios.get<string>('/api/read/evm/pool-closed', {
         params: { contractAddress: poolAddress },
       });
       return data;

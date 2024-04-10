@@ -9,7 +9,7 @@ const MaxAssetsIn = () => {
   const { data } = useQuery({
     queryKey: ['max-assets-in', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<string>('/api/read/max-assets-in', {
+      const { data } = await axios.get<string>('/api/read/evm/max-assets-in', {
         params: { contractAddress: poolAddress },
       });
       return data;

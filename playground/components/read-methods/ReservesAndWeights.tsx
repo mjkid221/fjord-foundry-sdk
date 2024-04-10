@@ -10,7 +10,7 @@ const ReservesAndWeights = () => {
   const { data } = useQuery({
     queryKey: ['reserves-weights', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<GetReservesAndWeightsResponse>('/api/read/reserves-weights', {
+      const { data } = await axios.get<GetReservesAndWeightsResponse>('/api/read/evm/reserves-weights', {
         params: { contractAddress: poolAddress },
       });
       return data;
