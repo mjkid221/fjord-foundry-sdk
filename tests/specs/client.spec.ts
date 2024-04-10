@@ -19,19 +19,21 @@ const solAddress = 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
 describe('FjordClientSdk Solana Functions', () => {
   let sdk: FjordClientSdk;
   let mockConnectWallet: jest.Mock;
-  // let mockSignTransaction: jest.Mock;
+  let mockGetConnectedWallet: jest.Mock;
 
   beforeEach(async () => {
     sdk = await FjordClientSdk.create(true, WalletAdapterNetwork.Mainnet);
     mockConnectWallet = jest.fn();
-    // mockSignTransaction = jest.fn();
+    mockGetConnectedWallet = jest.fn();
     jest.mock('@fjord-foundry/solana-sdk-client', () => ({
       FjordClientSdk: jest.fn().mockImplementation(async () => ({
         connectWallet: mockConnectWallet,
+        getConnectedWallet: mockGetConnectedWallet,
       })),
     }));
 
     sdk.connectWallet = mockConnectWallet;
+    sdk.getConnectedWallet = mockGetConnectedWallet;
   });
 
   afterEach(() => {
@@ -64,6 +66,25 @@ describe('FjordClientSdk Solana Functions', () => {
 
     expect(mockConnectWallet).toHaveBeenCalledWith(network);
     expect(publicKey).toEqual(mockPublicKey);
+  });
+
+  it('calls clientService.getConnectedWallet and returns the wallet', async () => {
+    let mockWallet: any; // Define your mock wallet object
+    mockGetConnectedWallet.mockResolvedValue(mockWallet);
+
+    const result = await sdk.getConnectedWallet();
+
+    expect(mockGetConnectedWallet).toHaveBeenCalled();
+    expect(result).toEqual(mockWallet);
+  });
+
+  it('throws an error if clientService.getConnectedWallet is not implemented', async () => {
+    const clientServiceWithoutMethod = false; // Create a mock clientService without the method
+    const sdkWithoutMethod = await FjordClientSdk.create(clientServiceWithoutMethod);
+
+    await expect(sdkWithoutMethod.getConnectedWallet()).rejects.toThrow(
+      'getConnectedWallet method not supported for this client',
+    );
   });
 });
 

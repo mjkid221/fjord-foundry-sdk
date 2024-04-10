@@ -1,4 +1,3 @@
-import { BN } from '@coral-xyz/anchor';
 import * as anchor from '@project-serum/anchor';
 import { Wallet } from '@project-serum/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
@@ -6,7 +5,7 @@ import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 import { INITIALIZE_LBP_IDL } from '../constants';
-import { Accounts } from '../types';
+import { Accounts, InitializePoolParams } from '../types';
 
 export class LbpInitializationService {
   private provider: anchor.Provider;
@@ -22,26 +21,26 @@ export class LbpInitializationService {
     return service;
   }
 
-  public async initializePool(
-    creator: PublicKey,
-    shareTokenMint: PublicKey,
-    assetTokenMint: PublicKey,
-    assets: BN,
-    shares: BN,
-    virtualAssets: BN,
-    virtualShares: BN,
-    maxSharePrice: BN,
-    maxSharesOut: BN,
-    maxAssetsIn: BN,
-    startWeightBasisPoints: number,
-    endWeightBasisPoints: number,
-    saleStartTime: BN,
-    saleEndTime: BN,
-    vestCliff: BN,
-    vestEnd: BN,
-    whitelistMerkleRoot: number[],
-    sellingAllowed: boolean,
-  ) {
+  public async initializePool({ keys, args }: InitializePoolParams) {
+    const { creator, shareTokenMint, assetTokenMint } = keys;
+    const {
+      assets,
+      shares,
+      virtualAssets,
+      virtualShares,
+      maxSharePrice,
+      maxSharesOut,
+      maxAssetsIn,
+      startWeightBasisPoints,
+      endWeightBasisPoints,
+      saleStartTime,
+      saleEndTime,
+      vestCliff,
+      vestEnd,
+      whitelistMerkleRoot,
+      sellingAllowed,
+    } = args;
+
     const initializePoolIdl = INITIALIZE_LBP_IDL;
 
     const program = new anchor.Program(initializePoolIdl, this.programId, this.provider);

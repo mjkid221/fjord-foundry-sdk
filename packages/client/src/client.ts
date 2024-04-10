@@ -11,6 +11,7 @@ import {
   GetContractManagerAddressResponse,
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
+  InitializePoolParams,
   ReadContractRequest,
 } from './types';
 
@@ -32,7 +33,6 @@ export class FjordClientSdk implements ClientSdkInterface {
       }
       service = await SolanaConnectionService.create(solanaNetwork);
       const client = new FjordClientSdk(service);
-      await this.initLbpInitializationService(client);
       return client;
     }
     service = await PublicClientService.create();
@@ -47,13 +47,26 @@ export class FjordClientSdk implements ClientSdkInterface {
     return await this.clientService.connectWallet(network);
   }
 
-  // public async createPool() {
-  //   if (!this.lbpInitializationService) {
-  //     throw new Error('LbpInitializationService not initialized');
-  //   }
-  //   // Call the initializePool method from the LbpInitializationService
-  //   this.lbpInitializationService.initializePool();
-  // }
+  public async getConnectedWallet(): Promise<Wallet | null> {
+    if (!this.clientService.getConnectedWallet) {
+      throw new Error('getConnectedWallet method not supported for this client');
+    }
+    return (await this.clientService.getConnectedWallet()) as any as Wallet;
+  }
+
+  public async createPool({ keys, args }: InitializePoolParams) {
+    if (!this.clientService.getConnection || !this.clientService.getConnectedWallet) {
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpInitializationService = await LbpInitializationService.create(
+      this.clientService.getConnection(),
+      this.clientService.getConnectedWallet() as any as Wallet,
+      Keypair.generate().publicKey,
+    );
+    // Call the initializePool method from the LbpInitializationService
+    this.lbpInitializationService.initializePool({ keys, args });
+  }
 
   public async signTransaction(transaction: Transaction): Promise<Transaction | null> {
     if (!this.clientService.signTransaction) {
@@ -171,22 +184,22 @@ export class FjordClientSdk implements ClientSdkInterface {
     };
   }
 
-  private static async initLbpInitializationService(client: FjordClientSdk) {
-    if (!client.clientService.getConnection || !client.clientService.getConnectedWallet) {
-      throw new Error('LbpInitializationService method not supported for this client');
-    }
-    const connection = client.clientService.getConnection();
-    const wallet = await client.clientService.getConnectedWallet();
-    if (!wallet) {
-      throw new Error('Wallet not connected');
-    }
+  // private static async initLbpInitializationService(client: FjordClientSdk) {
+  //   if (!client.clientService.getConnection || !client.clientService.getConnectedWallet) {
+  //     throw new Error('LbpInitializationService method not supported for this client');
+  //   }
+  //   const connection = client.clientService.getConnection();
+  //   const wallet = await client.clientService.getConnectedWallet();
+  //   if (!wallet) {
+  //     throw new Error('Wallet not connected');
+  //   }
 
-    const programId = Keypair.generate().publicKey; //TODO: Use the actual program ID
+  //   const programId = Keypair.generate().publicKey; //TODO: Use the actual program ID
 
-    client.lbpInitializationService = await LbpInitializationService.create(
-      connection,
-      wallet as any as Wallet,
-      programId,
-    );
-  }
+  //   client.lbpInitializationService = await LbpInitializationService.create(
+  //     connection,
+  //     wallet as any as Wallet,
+  //     programId,
+  //   );
+  // }
 }

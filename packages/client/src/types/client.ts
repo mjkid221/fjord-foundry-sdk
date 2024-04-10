@@ -1,4 +1,3 @@
-import { Address } from '@project-serum/anchor';
 import { z } from 'zod';
 
 export type ContractAddress = `0x${string}`;
@@ -51,13 +50,3 @@ export const getReservesAndWeightsResponseSchema = z.object({
 });
 
 export type GetReservesAndWeightsResponse = z.infer<typeof getReservesAndWeightsResponseSchema>;
-
-export type Accounts = {
-  creator: Address | undefined;
-  shareTokenMint: Address | undefined;
-  assetTokenMint: Address | undefined;
-  poolShareTokenAccount: Address | undefined;
-  poolAssetTokenAccount: Address | undefined;
-  creatorShareTokenAccount: Address | undefined;
-  creatorAssetTokenAccount: Address | undefined;
-};

@@ -39,17 +39,7 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
 
   public async getConnectedWallet(): Promise<PhantomWalletAdapter | null> {
     if (!this.wallet) {
-      // Initialize wallet instance if not already initialized
-      this.wallet = new PhantomWalletAdapter({ network: this.network });
-      // Attempt wallet connection
-      try {
-        await this.wallet.connect();
-        this.publicKey = this.wallet.publicKey; // Cache public key
-        return this.wallet;
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-        return null;
-      }
+      this.connectWallet;
     }
     return this.wallet;
   }
