@@ -5,17 +5,34 @@ import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 import { INITIALIZE_LBP_IDL } from '../constants';
-import { Accounts, InitializePoolParams } from '../types';
+import { Accounts, InitializePoolParams, LbpInitializationServiceInterface } from '../types';
 
-export class LbpInitializationService {
+/**
+ * A service class for initializing Liquidity Bootstrapping Pools (LBPs).
+ * This service interacts with the Solana blockchain using Anchor framework.
+ */
+export class LbpInitializationService implements LbpInitializationServiceInterface {
   private provider: anchor.Provider;
   private programId: PublicKey;
 
+  /**
+   * Creates an instance of LbpInitializationService.
+   * @param {Connection} connection - The Solana connection object.
+   * @param {Wallet} wallet - The wallet used for signing transactions.
+   * @param {PublicKey} programId - The public key of the program governing the LBP.
+   */
   constructor(connection: Connection, wallet: Wallet, programId: PublicKey) {
     this.provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
     this.programId = programId;
   }
 
+  /**
+   * Asynchronously creates an instance of LbpInitializationService.
+   * @param {Connection} connection - The Solana connection object.
+   * @param {Wallet} wallet - The wallet used for signing transactions.
+   * @param {PublicKey} programId - The public key of the program governing the LBP.
+   * @returns {Promise<LbpInitializationService>} - A promise that resolves with an instance of LbpInitializationService.
+   */
   static async create(connection: Connection, wallet: Wallet, programId: PublicKey) {
     const service = await Promise.resolve(new LbpInitializationService(connection, wallet, programId));
     return service;

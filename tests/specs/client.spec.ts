@@ -1,12 +1,15 @@
 import {
   FjordClientSdk,
+  LbpInitializationService,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
   getReservesAndWeightsResponseSchema,
   getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
+import { BN } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { Keypair, PublicKey } from '@solana/web3.js';
+import { hoursToSeconds } from 'date-fns';
 
 import { abi } from '../mocks/abi';
 
@@ -257,5 +260,89 @@ describe('FjordClientSdk EVM Read Functions', () => {
     it('throws an error if contract address is incorrect', async () => {
       await expect(sdk.getReservesAndWeights({ contractAddress: incorrectContractAddress, abi })).rejects.toThrow();
     });
+  });
+});
+
+describe('FjordClientSdk createPool Function', () => {
+  let sdk: FjordClientSdk;
+  let mockConnectWallet: jest.Mock;
+  let mockGetConnectedWallet: jest.Mock;
+
+  beforeEach(async () => {
+    sdk = await FjordClientSdk.create(true, WalletAdapterNetwork.Mainnet);
+    mockConnectWallet = jest.fn();
+    mockGetConnectedWallet = jest.fn();
+    jest.mock('@fjord-foundry/solana-sdk-client', () => ({
+      FjordClientSdk: jest.fn().mockImplementation(async () => ({
+        connectWallet: mockConnectWallet,
+        getConnectedWallet: mockGetConnectedWallet,
+      })),
+    }));
+
+    sdk.connectWallet = mockConnectWallet;
+    sdk.getConnectedWallet = mockGetConnectedWallet;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.only('should create a pool using LbpInitializationService', async () => {
+    // Mock necessary parameters
+    const keys = {
+      creator: Keypair.generate().publicKey,
+      shareTokenMint: Keypair.generate().publicKey,
+      assetTokenMint: Keypair.generate().publicKey,
+    };
+    const TIME_OFFSET = 1_000;
+    const ONE_DAY_SECONDS = hoursToSeconds(24);
+    const PERCENTAGE_BASIS_POINTS = 100;
+
+    const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + TIME_OFFSET);
+
+    const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
+
+    const DEFAULT_VESTING_CLIFF_BN = DEFAULT_SALE_END_TIME_BN.add(new BN(ONE_DAY_SECONDS));
+
+    const DEFAULT_VESTING_END_BN = DEFAULT_VESTING_CLIFF_BN.add(new BN(ONE_DAY_SECONDS));
+
+    const args = {
+      assets: new BN(1000000),
+      shares: new BN(1000000),
+      virtualAssets: new BN(0),
+      virtualShares: new BN(0),
+      maxSharePrice: new BN(1000000),
+      maxSharesOut: new BN(1000000),
+      maxAssetsIn: new BN(1000000),
+      startWeightBasisPoints: 50 * PERCENTAGE_BASIS_POINTS,
+      endWeightBasisPoints: 50 * PERCENTAGE_BASIS_POINTS,
+      saleStartTime: DEFAULT_SALE_START_TIME_BN,
+      saleEndTime: DEFAULT_SALE_END_TIME_BN,
+      vestCliff: DEFAULT_VESTING_CLIFF_BN,
+      vestEnd: DEFAULT_VESTING_END_BN,
+      whitelistMerkleRoot: [],
+      sellingAllowed: true,
+    };
+
+    // Mock the LbpInitializationService.create method
+    const mockInitializePool = jest.fn().mockResolvedValue({ pool: {}, events: [] });
+    LbpInitializationService.create = jest.fn().mockResolvedValue({
+      initializePool: mockInitializePool,
+    });
+
+    // Call createPool method
+    const result = await sdk.createPool({ keys, args });
+
+    // Assert that the LbpInitializationService.initializePool method was called with the correct parameters
+    expect(mockInitializePool).toHaveBeenCalledWith({ keys, args });
+
+    // Assert that the result contains pool and events
+    expect(result).toHaveProperty('pool');
+    expect(result).toHaveProperty('events');
   });
 });

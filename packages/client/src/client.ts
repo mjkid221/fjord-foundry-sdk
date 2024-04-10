@@ -65,7 +65,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       Keypair.generate().publicKey,
     );
     // Call the initializePool method from the LbpInitializationService
-    this.lbpInitializationService.initializePool({ keys, args });
+    const { pool, events } = await this.lbpInitializationService.initializePool({ keys, args });
+
+    return { pool, events };
   }
 
   public async signTransaction(transaction: Transaction): Promise<Transaction | null> {

@@ -3,6 +3,8 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
+import { InitializePoolParams } from './lbp-initialization';
+
 export interface PublicClientServiceInterface {
   /**
    * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
@@ -40,3 +42,43 @@ export interface SolanaConnectionServiceInterface {
 }
 
 export interface ClientService extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}
+
+export interface LbpInitializationServiceInterface {
+  /**
+   * Initializes a liquidity bootstrapping pool (LBP) with the provided parameters.
+   * @param {InitializePoolParams} options - The options for initializing the pool.
+   * @param {InitializePoolPublicKeys} options.keys - The keys required for initializing the pool.
+   * @param {InitializePoolArgs} options.args - The arguments for initializing the pool.
+   * @returns {Promise<{ pool: any, events: any[] }>} - A promise that resolves with the initialized pool and events.
+   *
+   * @example
+   * ```typescript
+   * const keys = {
+   *  creator: creatorWallet.publicKey,
+   *  shareTokenMint: shareTokenMint.publicKey,
+   *  assetTokenMint: assetTokenMint.publicKey,
+   * };
+   *
+   * const args = {
+   *  assets: [assetTokenMint.publicKey],
+   *  shares: [shareTokenMint.publicKey],
+   *  virtualAssets: [assetTokenMint.publicKey],
+   *  virtualShares: [shareTokenMint.publicKey],
+   *  maxSharePrice: 100,
+   *  maxSharesOut: 100,
+   *  maxAssetsIn: 100,
+   *  startWeightBasisPoints: 1000,
+   *  endWeightBasisPoints: 1000,
+   *  saleStartTime: 0,
+   *  saleEndTime: 0,
+   *  vestCliff: 0,
+   *  vestEnd: 0,
+   *  whitelistMerkleRoot: new anchor.web3.PublicKey(''),
+   *  sellingAllowed: true,
+   * };
+   *
+   * const { pool, events } = await lbpInitializationService.initializePool({ keys, args });
+   * ```
+   */
+  initializePool({ keys, args }: InitializePoolParams): Promise<{ pool: any; events: any[] }>;
+}
