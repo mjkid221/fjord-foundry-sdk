@@ -1,46 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AnchorProvider } from '@project-serum/anchor';
-import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
+import * as anchor from '@project-serum/anchor';
+import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, TransactionInstruction, Transaction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-// const initializePoolPublicKeysSchema = z.object({
-//   keys: z.object({
-//     creator: z.string().refine(
-//       (val) => {
-//         try {
-//           return new PublicKey(val);
-//         } catch (error) {
-//           return false;
-//         }
-//       },
-//       { message: 'Creator must be a valid Solana public key' },
-//     ),
-//     shareTokenMint: z.string().refine(
-//       (val) => {
-//         try {
-//           return new PublicKey(val);
-//         } catch (error) {
-//           return false;
-//         }
-//       },
-//       { message: 'Share Token Mint must be a valid Solana public key' },
-//     ),
-//     assetTokenMint: z.string().refine(
-//       (val) => {
-//         try {
-//           return new PublicKey(val);
-//         } catch (error) {
-//           return false;
-//         }
-//       },
-//       { message: 'Asset Token Mint must be a valid Solana public key' },
-//     ),
-//   }),
-// });
 
 // Validation for InitializePoolArgs
 const initializePoolArgsSchema = z.object({
@@ -90,8 +55,6 @@ const initializePoolArgsSchema = z.object({
     vestEnd: z.string().optional(),
     whitelistMerkleRoot: z.array(z.string()).optional(),
     sellingAllowed: z.boolean().optional(),
-    // wallet: z.any().optional(),
-    // connection: z.any().optional(),
   }),
 });
 
@@ -100,8 +63,10 @@ const initializePoolArgsSchema = z.object({
 export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
 
 const CreateLbp = () => {
-  const wallet = useAnchorWallet();
+  const { publicKey, sendTransaction, wallet } = useWallet();
   const { connection } = useConnection();
+
+  // const wallet = useAnchorWallet();
 
   const {
     register,
@@ -112,20 +77,42 @@ const CreateLbp = () => {
   });
 
   const createPool = async (formData: z.infer<typeof initializePoolArgsSchema>) => {
-    const response = await axios.post('/api/write/solana/create-pool', {
+    const { data } = await axios.post<TransactionInstruction>('/api/write/solana/create-pool', {
       ...formData,
-      // wallet,
-      // connection,
     });
 
-    return response.data;
+    return data;
+  };
+
+  const signTransaction = async (transactionInstruction: TransactionInstruction) => {
+    const transaction = new anchor.web3.Transaction({
+      // feePayer: publicKey,
+      recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+    });
+
+    transaction.add(transactionInstruction);
+
+    console.log(transaction);
+
+    try {
+      const transactionId = await sendTransaction(transaction, connection);
+
+      console.log(transactionId);
+      return transactionId;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const createPoolMutation = useMutation({
     mutationFn: createPool,
-    onSuccess: (data) => console.log('Success', data),
+    onSuccess: async (data) => {
+      const transaction = await signTransaction(data);
+      console.log(transaction);
+    },
     onError: (error) => console.log('Error', error),
   });
+
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
     console.log(data);
     createPoolMutation.mutate(data);

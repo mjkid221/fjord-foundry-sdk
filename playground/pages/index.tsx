@@ -12,7 +12,7 @@ const Home = () => {
         </Stack>
         <Stack>
           <Typography variant="h4">Write Functions</Typography>
-          <Link href={`write/solana`}>Solana Read Functions</Link>
+          <Link href={`write/solana`}>Solana Write Functions</Link>
         </Stack>
       </Stack>
     </Container>

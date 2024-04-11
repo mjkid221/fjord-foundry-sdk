@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
 import { InitializePoolParams } from './lbp-initialization';
@@ -80,5 +80,5 @@ export interface LbpInitializationServiceInterface {
    * const { pool, events } = await lbpInitializationService.initializePool({ keys, args });
    * ```
    */
-  initializePool({ keys, args }: InitializePoolParams): Promise<{ pool: any; events: any[] }>;
+  initializePool({ keys, args }: InitializePoolParams): Promise<TransactionInstruction>;
 }

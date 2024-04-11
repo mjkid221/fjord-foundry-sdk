@@ -2,9 +2,22 @@ import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { BN } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
+import { hoursToSeconds } from 'date-fns';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { InitializePoolArgsType, SchemaUnionType } from '@/components/write-methods/CreateLbp';
+import { InitializePoolArgsType } from '@/components/write-methods/CreateLbp';
+
+const TIME_OFFSET = 1_000;
+const ONE_DAY_SECONDS = hoursToSeconds(24);
+const PERCENTAGE_BASIS_POINTS = 100;
+
+const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + TIME_OFFSET);
+
+const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
+
+// const DEFAULT_VESTING_CLIFF_BN = DEFAULT_SALE_END_TIME_BN.add(new BN(ONE_DAY_SECONDS));
+
+// const DEFAULT_VESTING_END_BN = DEFAULT_VESTING_CLIFF_BN.add(new BN(ONE_DAY_SECONDS));
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
@@ -25,10 +38,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const maxAssetsIn = new BN(body.args.maxAssetsIn);
   const maxSharePrice = new BN(body.args.maxSharePrice);
   const maxSharesOut = new BN(body.args.maxSharesOut);
-  const startWeightBasisPoints = Number(body.args.startWeightBasisPoints);
-  const endWeightBasisPoints = Number(body.args.endWeightBasisPoints);
-  const saleStartTime = new BN(body.args.saleStartTime);
-  const saleEndTime = new BN(body.args.saleEndTime);
+  const startWeightBasisPoints = Number(body.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
+  const endWeightBasisPoints = Number(body.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
+  const saleStartTime = DEFAULT_SALE_START_TIME_BN;
+  const saleEndTime = DEFAULT_SALE_END_TIME_BN;
 
   const keys = {
     creator,
@@ -50,11 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
 
-  const walletConnection = await sdkClient.connectWallet(WalletAdapterNetwork.Devnet);
-
   const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args });
-
-  console.log(response);
 
   res.status(200).json(response);
 };
