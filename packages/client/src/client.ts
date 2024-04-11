@@ -1,6 +1,6 @@
 import { Wallet } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey, Transaction } from '@solana/web3.js';
 
 import { ReadFunction } from './enums';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
@@ -54,18 +54,27 @@ export class FjordClientSdk implements ClientSdkInterface {
     return (await this.clientService.getConnectedWallet()) as any as Wallet;
   }
 
-  public async createPool({ keys, args }: InitializePoolParams) {
-    if (!this.clientService.getConnection || !this.clientService.getConnectedWallet) {
+  public async createPool({ keys, args, programId }: InitializePoolParams) {
+    if (
+      !this.clientService.getConnection ||
+      !this.clientService.getConnectedWallet ||
+      !this.clientService.connectWallet
+    ) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
+    await this.clientService.connectWallet(WalletAdapterNetwork.Devnet);
+
+    console.log('CONNECTION', await this.clientService.getConnection());
+    console.log('WALLET', await this.clientService.getConnectedWallet());
+
     this.lbpInitializationService = await LbpInitializationService.create(
-      this.clientService.getConnection(),
-      this.clientService.getConnectedWallet() as any as Wallet,
-      Keypair.generate().publicKey,
+      await this.clientService.getConnection(),
+      (await this.clientService.getConnectedWallet()) as any as Wallet,
+      programId,
     );
     // Call the initializePool method from the LbpInitializationService
-    const { pool, events } = await this.lbpInitializationService.initializePool({ keys, args });
+    const { pool, events } = await this.lbpInitializationService.initializePool({ keys, args, programId });
 
     return { pool, events };
   }

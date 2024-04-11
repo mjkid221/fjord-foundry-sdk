@@ -1,5 +1,5 @@
-import { Address, BN } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { Address, BN, Wallet } from '@project-serum/anchor';
+import { Connection, PublicKey } from '@solana/web3.js';
 
 export type InitializePoolPublicKeys = {
   keys: {
@@ -13,8 +13,8 @@ export type InitializePoolArgs = {
   args: {
     assets: BN;
     shares: BN;
-    virtualAssets: BN;
-    virtualShares: BN;
+    virtualAssets?: BN;
+    virtualShares?: BN;
     maxSharePrice: BN;
     maxSharesOut: BN;
     maxAssetsIn: BN;
@@ -22,14 +22,22 @@ export type InitializePoolArgs = {
     endWeightBasisPoints: number;
     saleStartTime: BN;
     saleEndTime: BN;
-    vestCliff: BN;
-    vestEnd: BN;
-    whitelistMerkleRoot: number[];
-    sellingAllowed: boolean;
+    vestCliff?: BN;
+    vestEnd?: BN;
+    whitelistMerkleRoot?: number[];
+    sellingAllowed?: boolean;
   };
 };
 
-export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {}
+export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {
+  programId: PublicKey;
+}
+
+export interface CreatePoolClientParams extends InitializePoolPublicKeys, InitializePoolArgs {
+  programId: PublicKey;
+  connection: Connection;
+  wallet: Wallet;
+}
 
 export type Accounts = {
   creator: Address | undefined;

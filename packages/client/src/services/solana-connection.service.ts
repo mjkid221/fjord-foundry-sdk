@@ -48,12 +48,14 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
     if (!this.wallet) {
       // Initialize wallet instance if not already initialized
       this.wallet = new PhantomWalletAdapter({ network: this.network });
+      console.log('wallet', this.wallet);
     }
 
     // Attempt wallet connection
     try {
       await this.wallet.connect();
       this.publicKey = this.wallet.publicKey; // Cache public key
+      console.log('Connected wallet:', this.publicKey?.toBase58());
       return this.publicKey;
     } catch (error) {
       console.error('Failed to connect wallet:', error);

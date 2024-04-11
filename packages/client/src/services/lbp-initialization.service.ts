@@ -35,11 +35,13 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    */
   static async create(connection: Connection, wallet: Wallet, programId: PublicKey) {
     const service = await Promise.resolve(new LbpInitializationService(connection, wallet, programId));
+
     return service;
   }
 
   public async initializePool({ keys, args }: InitializePoolParams) {
     const { creator, shareTokenMint, assetTokenMint } = keys;
+
     const {
       assets,
       shares,
@@ -58,20 +60,45 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       sellingAllowed,
     } = args;
 
+    console.log('assets', assets);
+    console.log('shares', shares);
+    console.log('virtualAssets', virtualAssets);
+    console.log('virtualShares', virtualShares);
+    console.log('maxSharePrice', maxSharePrice);
+    console.log('maxSharesOut', maxSharesOut);
+    console.log('maxAssetsIn', maxAssetsIn);
+    console.log('startWeightBasisPoints', startWeightBasisPoints);
+    console.log('endWeightBasisPoints', endWeightBasisPoints);
+    console.log('saleStartTime', saleStartTime);
+    console.log('saleEndTime', saleEndTime);
+    console.log('vestCliff', vestCliff);
+    console.log('vestEnd', vestEnd);
+    console.log('whitelistMerkleRoot', whitelistMerkleRoot);
+    console.log('sellingAllowed', sellingAllowed);
+
     const initializePoolIdl = INITIALIZE_LBP_IDL;
 
     const program = new anchor.Program(initializePoolIdl, this.programId, this.provider);
+
+    console.log('program', program);
 
     const [poolPda] = findProgramAddressSync(
       [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
       program.programId,
     );
 
+    console.log('poolPda', poolPda);
+
     const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
     const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
 
     const creatorShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, creator);
     const creatorAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, creator);
+
+    console.log('poolShareTokenAccount', poolShareTokenAccount);
+    console.log('poolAssetTokenAccount', poolAssetTokenAccount);
+    console.log('creatorShareTokenAccount', creatorShareTokenAccount);
+    console.log('creatorAssetTokenAccount', creatorAssetTokenAccount);
 
     const accounts: Accounts = {
       creator,
@@ -83,31 +110,44 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       creatorAssetTokenAccount,
     };
 
+    console.log('accounts', accounts);
+
     const events: any[] = [];
     const poolCreationEventListener = program.addEventListener('PoolCreatedEvent', (event) => {
       events.push(event);
     });
 
-    await program.methods
-      .initializePool(
-        assets,
-        shares,
-        virtualAssets,
-        virtualShares,
-        maxSharePrice,
-        maxSharesOut,
-        maxAssetsIn,
-        startWeightBasisPoints,
-        endWeightBasisPoints,
-        saleStartTime,
-        saleEndTime,
-        vestCliff,
-        vestEnd,
-        whitelistMerkleRoot,
-        sellingAllowed,
-      )
-      .accounts(accounts)
-      .rpc();
+    console.log('poolCreationEventListener', poolCreationEventListener);
+
+    const zeroBn = new anchor.BN(0);
+
+    try {
+      const creation = await program.methods
+        .initializePool(
+          assets,
+          shares,
+          virtualAssets ?? zeroBn,
+          virtualShares ?? zeroBn,
+          maxSharePrice,
+          maxSharesOut,
+          maxAssetsIn,
+          startWeightBasisPoints,
+          endWeightBasisPoints,
+          saleStartTime,
+          saleEndTime,
+          vestCliff ?? zeroBn,
+          vestEnd ?? zeroBn,
+          whitelistMerkleRoot ?? [],
+          sellingAllowed ?? false,
+        )
+        .accounts(accounts)
+        .rpc();
+
+      console.log('creation', creation);
+    } catch (error: any) {
+      console.error('Error initializing pool:', error);
+      throw new Error('Error initializing pool', error);
+    }
 
     const pool = await program.account.liquidityBootstrappingPool.fetch(poolPda);
     program.removeEventListener(poolCreationEventListener);
