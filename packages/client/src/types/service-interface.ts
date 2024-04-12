@@ -3,7 +3,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
-import { InitializePoolParams } from './lbp-initialization';
+import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 
 export interface PublicClientServiceInterface {
   /**
@@ -45,40 +45,16 @@ export interface ClientService extends PublicClientServiceInterface, SolanaConne
 
 export interface LbpInitializationServiceInterface {
   /**
-   * Initializes a liquidity bootstrapping pool (LBP) with the provided parameters.
-   * @param {InitializePoolParams} options - The options for initializing the pool.
-   * @param {InitializePoolPublicKeys} options.keys - The keys required for initializing the pool.
-   * @param {InitializePoolArgs} options.args - The arguments for initializing the pool.
-   * @returns {Promise<{ pool: any, events: any[] }>} - A promise that resolves with the initialized pool and events.
+   * Initializes a liquidity bootstrapping pool (LBP) transaction instruction with the provided parameters.
+   * This includes constructing the program instruction, fetching necessary account information, and calculating the pool's PDA.
+   *
+   * @param {InitializePoolParams} options - The options for initializing the pool (keys and arguments).
+   * @returns {Promise<InitializePoolResponse>} - A promise that resolves with the transaction instruction and pool PDA.
    *
    * @example
    * ```typescript
-   * const keys = {
-   *  creator: creatorWallet.publicKey,
-   *  shareTokenMint: shareTokenMint.publicKey,
-   *  assetTokenMint: assetTokenMint.publicKey,
-   * };
-   *
-   * const args = {
-   *  assets: [assetTokenMint.publicKey],
-   *  shares: [shareTokenMint.publicKey],
-   *  virtualAssets: [assetTokenMint.publicKey],
-   *  virtualShares: [shareTokenMint.publicKey],
-   *  maxSharePrice: 100,
-   *  maxSharesOut: 100,
-   *  maxAssetsIn: 100,
-   *  startWeightBasisPoints: 1000,
-   *  endWeightBasisPoints: 1000,
-   *  saleStartTime: 0,
-   *  saleEndTime: 0,
-   *  vestCliff: 0,
-   *  vestEnd: 0,
-   *  whitelistMerkleRoot: new anchor.web3.PublicKey(''),
-   *  sellingAllowed: true,
-   * };
-   *
-   * const { pool, events } = await lbpInitializationService.initializePool({ keys, args });
+   * const { transactionInstruction, poolPda } = await lbpInitializationService.initializePool({ keys, args });
    * ```
    */
-  initializePool({ keys, args }: InitializePoolParams): Promise<{ pool: any; events: any[] }>;
+  initializePool({ keys, args }: InitializePoolParams): Promise<InitializePoolResponse>;
 }

@@ -1,17 +1,16 @@
-import { Wallet } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
 import { ReadFunction } from './enums';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
 import {
   ClientSdkInterface,
   ClientService,
+  CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
-  InitializePoolParams,
   ReadContractRequest,
 } from './types';
 
@@ -40,41 +39,16 @@ export class FjordClientSdk implements ClientSdkInterface {
     return client;
   }
 
-  public async connectWallet(network: WalletAdapterNetwork): Promise<PublicKey | null> {
-    if (!this.clientService.connectWallet) {
-      throw new Error('connectWallet method not supported for this client');
-    }
-    return await this.clientService.connectWallet(network);
-  }
-
-  public async getConnectedWallet(): Promise<Wallet | null> {
-    if (!this.clientService.getConnectedWallet) {
-      throw new Error('getConnectedWallet method not supported for this client');
-    }
-    return (await this.clientService.getConnectedWallet()) as any as Wallet;
-  }
-
-  public async createPool({ keys, args }: InitializePoolParams) {
-    if (!this.clientService.getConnection || !this.clientService.getConnectedWallet) {
+  public async createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams) {
+    if (!this.clientService.getConnection) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    this.lbpInitializationService = await LbpInitializationService.create(
-      this.clientService.getConnection(),
-      this.clientService.getConnectedWallet() as any as Wallet,
-      Keypair.generate().publicKey,
-    );
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
     // Call the initializePool method from the LbpInitializationService
-    const { pool, events } = await this.lbpInitializationService.initializePool({ keys, args });
+    const transaction = await this.lbpInitializationService.initializePool({ keys, args });
 
-    return { pool, events };
-  }
-
-  public async signTransaction(transaction: Transaction): Promise<Transaction | null> {
-    if (!this.clientService.signTransaction) {
-      throw new Error('signTransaction method not supported for this client');
-    }
-    return await this.clientService.signTransaction(transaction);
+    return transaction;
   }
 
   public async readAddress(address: PublicKey) {

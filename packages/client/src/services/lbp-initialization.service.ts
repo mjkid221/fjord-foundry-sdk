@@ -1,8 +1,7 @@
 import * as anchor from '@project-serum/anchor';
-import { Wallet } from '@project-serum/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
 import { INITIALIZE_LBP_IDL } from '../constants';
 import { Accounts, InitializePoolParams, LbpInitializationServiceInterface } from '../types';
@@ -21,25 +20,28 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param {Wallet} wallet - The wallet used for signing transactions.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    */
-  constructor(connection: Connection, wallet: Wallet, programId: PublicKey) {
-    this.provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider) {
+    // const keypair = Keypair.generate();
+    // const wallet = new Wallet(keypair);
+    this.provider = provider;
     this.programId = programId;
   }
 
   /**
    * Asynchronously creates an instance of LbpInitializationService.
    * @param {Connection} connection - The Solana connection object.
-   * @param {Wallet} wallet - The wallet used for signing transactions.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @returns {Promise<LbpInitializationService>} - A promise that resolves with an instance of LbpInitializationService.
    */
-  static async create(connection: Connection, wallet: Wallet, programId: PublicKey) {
-    const service = await Promise.resolve(new LbpInitializationService(connection, wallet, programId));
+  static async create(programId: PublicKey, provider: anchor.AnchorProvider) {
+    const service = await Promise.resolve(new LbpInitializationService(programId, provider));
+
     return service;
   }
 
   public async initializePool({ keys, args }: InitializePoolParams) {
     const { creator, shareTokenMint, assetTokenMint } = keys;
+
     const {
       assets,
       shares,
@@ -83,34 +85,34 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       creatorAssetTokenAccount,
     };
 
-    const events: any[] = [];
-    const poolCreationEventListener = program.addEventListener('PoolCreatedEvent', (event) => {
-      events.push(event);
-    });
+    const zeroBn = new anchor.BN(0);
 
-    await program.methods
-      .initializePool(
-        assets,
-        shares,
-        virtualAssets,
-        virtualShares,
-        maxSharePrice,
-        maxSharesOut,
-        maxAssetsIn,
-        startWeightBasisPoints,
-        endWeightBasisPoints,
-        saleStartTime,
-        saleEndTime,
-        vestCliff,
-        vestEnd,
-        whitelistMerkleRoot,
-        sellingAllowed,
-      )
-      .accounts(accounts)
-      .rpc();
+    try {
+      const transactionInstruction = await program.methods
+        .initializePool(
+          assets,
+          shares,
+          virtualAssets ?? zeroBn,
+          virtualShares ?? zeroBn,
+          maxSharePrice,
+          maxSharesOut,
+          maxAssetsIn,
+          startWeightBasisPoints,
+          endWeightBasisPoints,
+          saleStartTime,
+          saleEndTime,
+          vestCliff ?? zeroBn,
+          vestEnd ?? zeroBn,
+          whitelistMerkleRoot ?? [],
+          sellingAllowed ?? false,
+        )
+        .accounts(accounts)
+        .instruction();
 
-    const pool = await program.account.liquidityBootstrappingPool.fetch(poolPda);
-    program.removeEventListener(poolCreationEventListener);
-    return { pool, events };
+      return { transactionInstruction, poolPda };
+    } catch (error: any) {
+      console.error('Error initializing pool:', error);
+      throw new Error('Error initializing pool', error);
+    }
   }
 }
