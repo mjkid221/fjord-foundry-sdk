@@ -1,20 +1,26 @@
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+// import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as anchor from '@project-serum/anchor';
+// import * as anchor from '@project-serum/anchor';
 import { BN } from '@project-serum/anchor';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+// import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
+import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { DEFAULT_SALE_END_TIME_BN, DEFAULT_SALE_START_TIME_BN, PERCENTAGE_BASIS_POINTS } from '@/constants';
+import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { initializePoolArgsSchema } from '@/types';
 
 const CreateLbp = () => {
   const { sendTransaction } = useWallet();
   const { connection } = useConnection();
+
+  const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+  console.log('sdkClient', sdkClient);
+  console.log('provider', provider);
 
   const wallet = useAnchorWallet();
 
@@ -23,11 +29,11 @@ const CreateLbp = () => {
   });
 
   const createPool = async (formData: z.infer<typeof initializePoolArgsSchema>) => {
-    if (!wallet || !connection) {
+    if (!wallet || !connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
     }
 
-    const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+    // const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
     const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
     const creator = new PublicKey(formData.args.creator);
     const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -61,7 +67,7 @@ const CreateLbp = () => {
       saleEndTime,
     };
 
-    const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+    // const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
 
     const { transactionInstruction, poolPda } = await sdkClient.createPoolTransaction({
       programId: programAddressPublicKey,

@@ -1,25 +1,11 @@
-import { FjordClientSdk, createSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { ConnectionProvider, WalletProvider, useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider, WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
-
-interface SDKContextType {
-  sdkClient: FjordClientSdk | null;
-  connectWallet: () => Promise<void>;
-}
-
-const SDKContext = createContext<SDKContextType>({
-  sdkClient: null,
-  connectWallet: async () => {
-    /* ... */
-  },
-});
 
 const WalletContext = ({ children }: { children: ReactNode }) => {
   const network = WalletAdapterNetwork.Devnet;
@@ -61,5 +47,3 @@ const WalletContext = ({ children }: { children: ReactNode }) => {
 };
 
 export default WalletContext;
-
-export const useSDK = () => useContext(SDKContext);
