@@ -1,5 +1,4 @@
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
 import {
   GetContractArgsResponse,
@@ -8,35 +7,34 @@ import {
   GetVestingStateResponse,
   ReadContractRequest,
 } from './client';
+import { CreatePoolClientParams, InitializePoolResponse } from './lbp-initialization';
 
 export interface ClientSdkInterfaceSolana {
   /**
-   * Connects the wallet to the specified network.
-   * @param {WalletAdapterNetwork} network - The network to connect to.
-   * @returns {Promise<PublicKey | null>} - A promise that resolves with the public key of the connected wallet, or null if connection fails.
-   * @throws {Error} If the connection to the wallet fails.
+   * Creates a transaction to initialize a new liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * 1. **Checks Client Compatibility:** Verifies if the connected client supports the necessary methods.
+   * 2. **Creates LBP Service:** Instantiates an `LbpInitializationService` object for handling pool setup.
+   * 3. **Calls Initialization:** Calls the `initializePool` method of the `LbpInitializationService` to construct the transaction.
+   * 4. **Returns Transaction:** Returns the generated transaction, ready for submission to the Solana network.
+   *
+   * @param {CreatePoolClientParams} options - The options for creating the pool transaction.
+   * @param options.keys - The public keys required for initializing the pool.
+   * @param options.args - The arguments for initializing the pool.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<InitializePoolResponse>} - A promise that resolves with the LBP initialization transaction.
+   *
    * @example
-   * const publicClient = new SolanaConnectionService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const network = WalletAdapterNetwork.Mainnet;
-   * sdk.connectWallet(network)
-   *    .then(publicKey => console.log(publicKey))
-   *    .catch(error => console.error(error));
+   * ```typescript
+   * const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+   * const programAddressPublicKey = new PublicKey('... your program address ...');
+   *
+   * // ... (keys and args defined)
+   * const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args, provider });
+   * ```
    */
-  connectWallet(network: WalletAdapterNetwork): Promise<PublicKey | null>;
-
-  /**
-   * Signs a transaction using the connected wallet.
-   * @param {Transaction} transaction - The transaction to be signed.
-   * @returns {Promise<Transaction | null>} - A promise that resolves with the signed transaction, or null if signing fails.
-   * @throws {Error} If signing the transaction fails.
-   * @example
-   * const transaction = new Transaction(...);
-   * sdk.signTransaction(transaction)
-   *    .then(signedTransaction => console.log(signedTransaction))
-   *    .catch(error => console.error(error));
-   */
-  signTransaction(transaction: Transaction): Promise<Transaction | null>;
+  createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
 
   /**
    * Reads information about an account on the blockchain.

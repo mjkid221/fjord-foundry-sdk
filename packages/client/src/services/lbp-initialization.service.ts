@@ -87,19 +87,10 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       creatorAssetTokenAccount,
     };
 
-    console.log('accounts', accounts);
-
-    // const events: any[] = [];
-    // const poolCreationEventListener = program.addEventListener('PoolCreatedEvent', (event) => {
-    //   events.push(event);
-    // });
-
-    // console.log('poolCreationEventListener', poolCreationEventListener);
-
     const zeroBn = new anchor.BN(0);
 
     try {
-      const creation = await program.methods
+      const transactionInstruction = await program.methods
         .initializePool(
           assets,
           shares,
@@ -120,16 +111,10 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
         .accounts(accounts)
         .instruction();
 
-      console.log('creation', creation);
-
-      return creation;
+      return { transactionInstruction, poolPda };
     } catch (error: any) {
       console.error('Error initializing pool:', error);
       throw new Error('Error initializing pool', error);
     }
-
-    // const pool = await program.account.liquidityBootstrappingPool.fetch(poolPda);
-    // program.removeEventListener(poolCreationEventListener);
-    // return { pool, events };
   }
 }
