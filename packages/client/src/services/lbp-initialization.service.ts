@@ -1,8 +1,7 @@
 import * as anchor from '@project-serum/anchor';
-import { Wallet } from '@project-serum/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
 import { INITIALIZE_LBP_IDL } from '../constants';
 import { Accounts, InitializePoolParams, LbpInitializationServiceInterface } from '../types';
@@ -21,10 +20,10 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param {Wallet} wallet - The wallet used for signing transactions.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    */
-  constructor(connection: Connection, programId: PublicKey) {
-    const keypair = Keypair.generate();
-    const wallet = new Wallet(keypair);
-    this.provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider) {
+    // const keypair = Keypair.generate();
+    // const wallet = new Wallet(keypair);
+    this.provider = provider;
     this.programId = programId;
   }
 
@@ -34,8 +33,8 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @returns {Promise<LbpInitializationService>} - A promise that resolves with an instance of LbpInitializationService.
    */
-  static async create(connection: Connection, programId: PublicKey) {
-    const service = await Promise.resolve(new LbpInitializationService(connection, programId));
+  static async create(programId: PublicKey, provider: anchor.AnchorProvider) {
+    const service = await Promise.resolve(new LbpInitializationService(programId, provider));
 
     return service;
   }

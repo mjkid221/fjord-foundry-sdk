@@ -1,11 +1,36 @@
+import {
+  FjordClientSdk,
+  INITIALIZE_LBP_IDL,
+  InitializePoolArgs,
+  InitializePoolParams,
+  InitializePoolPublicKeys,
+} from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as anchor from '@project-serum/anchor';
-import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, TransactionInstruction, Transaction } from '@solana/web3.js';
+import { BN } from '@project-serum/anchor';
+import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, TransactionInstruction, Transaction, Connection } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { hoursToSeconds } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
+interface InitializePoolParamz extends InitializePoolPublicKeys, InitializePoolArgs {
+  wallet: AnchorWallet;
+  connection: Connection;
+}
+
+const TIME_OFFSET = 1_000;
+const ONE_DAY_SECONDS = hoursToSeconds(24);
+const PERCENTAGE_BASIS_POINTS = 100;
+
+const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + TIME_OFFSET);
+
+const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
 
 // Validation for InitializePoolArgs
 const initializePoolArgsSchema = z.object({
@@ -63,10 +88,10 @@ const initializePoolArgsSchema = z.object({
 export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
 
 const CreateLbp = () => {
-  const { publicKey, sendTransaction, wallet } = useWallet();
+  const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
-
-  // const wallet = useAnchorWallet();
+  console.log(publicKey ? publicKey.toBase58() : '');
+  const wallet = useAnchorWallet();
 
   const {
     register,
@@ -77,28 +102,69 @@ const CreateLbp = () => {
   });
 
   const createPool = async (formData: z.infer<typeof initializePoolArgsSchema>) => {
-    const { data } = await axios.post<TransactionInstruction>('/api/write/solana/create-pool', {
-      ...formData,
-    });
+    if (!wallet || !connection) {
+      throw new Error('Wallet not connected');
+    }
 
-    return data;
+    const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+    const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
+    const creator = new PublicKey(formData.args.creator);
+    const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+    const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+
+    const assets = new BN(formData.args.assets);
+    const shares = new BN(formData.args.shares);
+    const maxAssetsIn = new BN(formData.args.maxAssetsIn);
+    const maxSharePrice = new BN(formData.args.maxSharePrice);
+    const maxSharesOut = new BN(formData.args.maxSharesOut);
+    const startWeightBasisPoints = Number(formData.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
+    const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
+    const saleStartTime = DEFAULT_SALE_START_TIME_BN;
+    const saleEndTime = DEFAULT_SALE_END_TIME_BN;
+
+    const keys = {
+      creator,
+      shareTokenMint,
+      assetTokenMint,
+    };
+
+    const args = {
+      assets,
+      shares,
+      maxAssetsIn,
+      maxSharePrice,
+      maxSharesOut,
+      startWeightBasisPoints,
+      endWeightBasisPoints,
+      saleStartTime,
+      saleEndTime,
+    };
+
+    const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+
+    const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args, provider });
+
+    return response;
   };
 
-  const signTransaction = async (transactionInstruction: TransactionInstruction) => {
+  const signTransactionA = async (transactionInstruction: TransactionInstruction) => {
     const transaction = new anchor.web3.Transaction({
-      // feePayer: publicKey,
+      feePayer: publicKey,
       recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
     });
 
     transaction.add(transactionInstruction);
 
-    console.log(transaction);
-
+    if (!wallet) {
+      throw new Error('Wallet not connected');
+    }
     try {
-      const transactionId = await sendTransaction(transaction, connection);
+      if (!transaction || !sendTransaction) throw new Error('Transaction not found');
+      const txid = await sendTransaction(transaction, connection);
 
-      console.log(transactionId);
-      return transactionId;
+      alert(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
+      console.log(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
+      return txid;
     } catch (error) {
       console.error(error);
     }
@@ -107,8 +173,13 @@ const CreateLbp = () => {
   const createPoolMutation = useMutation({
     mutationFn: createPool,
     onSuccess: async (data) => {
-      const transaction = await signTransaction(data);
-      console.log(transaction);
+      try {
+        console.log(data);
+        const transaction = await signTransactionA(data);
+        console.log(transaction);
+      } catch (error) {
+        console.error(error);
+      }
     },
     onError: (error) => console.log('Error', error),
   });

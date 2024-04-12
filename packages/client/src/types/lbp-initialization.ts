@@ -1,5 +1,5 @@
-import { Address, BN, Wallet } from '@project-serum/anchor';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Address, AnchorProvider, BN } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
 
 export type InitializePoolPublicKeys = {
   keys: {
@@ -30,13 +30,12 @@ export type InitializePoolArgs = {
 };
 
 export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {
-  programId: PublicKey;
+  // programId?: PublicKey;
 }
 
 export interface CreatePoolClientParams extends InitializePoolPublicKeys, InitializePoolArgs {
   programId: PublicKey;
-  connection: Connection;
-  wallet: Wallet;
+  provider: AnchorProvider;
 }
 
 export type Accounts = {

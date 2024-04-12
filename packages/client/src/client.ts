@@ -7,11 +7,12 @@ import { LbpInitializationService, PublicClientService, SolanaConnectionService 
 import {
   ClientSdkInterface,
   ClientService,
+  CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
-  InitializePoolParams,
+  // InitializePoolParams,
   ReadContractRequest,
 } from './types';
 
@@ -54,17 +55,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     return (await this.clientService.getConnectedWallet()) as any as Wallet;
   }
 
-  public async createPool({ keys, args, programId }: InitializePoolParams) {
+  public async createPool({ keys, args, programId, provider }: CreatePoolClientParams) {
     if (!this.clientService.getConnection) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    this.lbpInitializationService = await LbpInitializationService.create(
-      await this.clientService.getConnection(),
-      programId,
-    );
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
     // Call the initializePool method from the LbpInitializationService
-    const transaction = await this.lbpInitializationService.initializePool({ keys, args, programId });
+    const transaction = await this.lbpInitializationService.initializePool({ keys, args });
 
     return transaction;
   }
