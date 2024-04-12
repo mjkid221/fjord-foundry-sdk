@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';

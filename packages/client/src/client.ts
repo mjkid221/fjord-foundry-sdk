@@ -1,3 +1,4 @@
+import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
@@ -17,10 +18,12 @@ import {
 export class FjordClientSdk implements ClientSdkInterface {
   private clientService: ClientService;
   private lbpInitializationService!: LbpInitializationService;
+  private isSolana: boolean;
 
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientService) {
+  constructor(clientService: ClientService, isSolana: boolean) {
     this.clientService = clientService;
+    this.isSolana = isSolana;
   }
 
   static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
@@ -31,16 +34,16 @@ export class FjordClientSdk implements ClientSdkInterface {
         throw new Error('Solana network is required when using Solana');
       }
       service = await SolanaConnectionService.create(solanaNetwork);
-      const client = new FjordClientSdk(service);
+      const client = new FjordClientSdk(service, useSolana);
       return client;
     }
     service = await PublicClientService.create();
-    const client = new FjordClientSdk(service);
+    const client = new FjordClientSdk(service, useSolana);
     return client;
   }
 
   public async createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams) {
-    if (!this.clientService.getConnection) {
+    if (!this.isSolana) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
@@ -51,19 +54,24 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
+  public async retrievePoolData(poolPda: PublicKey, programId: PublicKey, provider: AnchorProvider) {
+    if (!this.isSolana) {
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+    }
+
+    return await this.lbpInitializationService.getPoolData(poolPda);
+  }
+
   public async readAddress(address: PublicKey) {
     if (!this.clientService.getConnection) {
       throw new Error('getConnection method not supported for this client');
     }
     return await this.clientService.getConnection().getAccountInfoAndContext(address);
   }
-
-  // public async sendTransaction(transaction: Transaction): Promise<string> {
-  //   if (!this.service.connectWallet) {
-  //     throw new Error('sendTransaction method not supported for this client');
-  //   }
-  //   return await this.service.sendTransaction(transaction);
-  // }
 
   /**
    * Reads data from a smart contract.

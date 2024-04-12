@@ -1,103 +1,24 @@
-import {
-  FjordClientSdk,
-  INITIALIZE_LBP_IDL,
-  InitializePoolArgs,
-  InitializePoolParams,
-  InitializePoolPublicKeys,
-} from '@fjord-foundry/solana-sdk-client';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as anchor from '@project-serum/anchor';
 import { BN } from '@project-serum/anchor';
-import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
-import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, TransactionInstruction, Transaction, Connection } from '@solana/web3.js';
+import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-import { hoursToSeconds } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-interface InitializePoolParamz extends InitializePoolPublicKeys, InitializePoolArgs {
-  wallet: AnchorWallet;
-  connection: Connection;
-}
-
-const TIME_OFFSET = 1_000;
-const ONE_DAY_SECONDS = hoursToSeconds(24);
-const PERCENTAGE_BASIS_POINTS = 100;
-
-const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + TIME_OFFSET);
-
-const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
-
-// Validation for InitializePoolArgs
-const initializePoolArgsSchema = z.object({
-  args: z.object({
-    creator: z.string().refine(
-      (val) => {
-        try {
-          return new PublicKey(val);
-        } catch (error) {
-          return false;
-        }
-      },
-      { message: 'Creator must be a valid Solana public key' },
-    ),
-    shareTokenMint: z.string().refine(
-      (val) => {
-        try {
-          return new PublicKey(val);
-        } catch (error) {
-          return false;
-        }
-      },
-      { message: 'Share Token Mint must be a valid Solana public key' },
-    ),
-    assetTokenMint: z.string().refine(
-      (val) => {
-        try {
-          return new PublicKey(val);
-        } catch (error) {
-          return false;
-        }
-      },
-      { message: 'Asset Token Mint must be a valid Solana public key' },
-    ),
-    assets: z.string(), // Assuming BN can be represented as a number
-    shares: z.string(),
-    virtualAssets: z.string().optional(),
-    virtualShares: z.string().optional(),
-    maxSharePrice: z.string(),
-    maxSharesOut: z.string(),
-    maxAssetsIn: z.string(),
-    startWeightBasisPoints: z.string(),
-    endWeightBasisPoints: z.string(),
-    saleStartTime: z.string(),
-    saleEndTime: z.string(),
-    vestCliff: z.string().optional(),
-    vestEnd: z.string().optional(),
-    whitelistMerkleRoot: z.array(z.string()).optional(),
-    sellingAllowed: z.boolean().optional(),
-  }),
-});
-
-// interface InitializePoolPublicKeysType extends z.TypeOf<typeof initializePoolPublicKeysSchema> {}
-
-export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
+import { DEFAULT_SALE_END_TIME_BN, DEFAULT_SALE_START_TIME_BN, PERCENTAGE_BASIS_POINTS } from '@/constants';
+import { initializePoolArgsSchema } from '@/types';
 
 const CreateLbp = () => {
-  const { publicKey, sendTransaction } = useWallet();
+  const { sendTransaction } = useWallet();
   const { connection } = useConnection();
-  console.log(publicKey ? publicKey.toBase58() : '');
+
   const wallet = useAnchorWallet();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<z.infer<typeof initializePoolArgsSchema>>({
+  const { register, handleSubmit } = useForm<z.infer<typeof initializePoolArgsSchema>>({
     resolver: zodResolver(initializePoolArgsSchema),
   });
 
@@ -142,29 +63,43 @@ const CreateLbp = () => {
 
     const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
 
-    const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args, provider });
-
-    return response;
-  };
-
-  const signTransactionA = async (transactionInstruction: TransactionInstruction) => {
-    const transaction = new anchor.web3.Transaction({
-      feePayer: publicKey,
-      recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+    const { transactionInstruction, poolPda } = await sdkClient.createPoolTransaction({
+      programId: programAddressPublicKey,
+      keys,
+      args,
+      provider,
     });
 
-    transaction.add(transactionInstruction);
+    await signTransaction(transactionInstruction);
+
+    const pool = await sdkClient.retrievePoolData(poolPda, programAddressPublicKey, provider);
+
+    return pool;
+  };
+
+  const signTransaction = async (transactionInstruction: TransactionInstruction) => {
+    const transaction = new Transaction().add(transactionInstruction);
 
     if (!wallet) {
       throw new Error('Wallet not connected');
     }
+
+    const {
+      context: { slot: minContextSlot },
+      value: { blockhash, lastValidBlockHeight },
+    } = await connection.getLatestBlockhashAndContext();
+
     try {
       if (!transaction || !sendTransaction) throw new Error('Transaction not found');
-      const txid = await sendTransaction(transaction, connection);
 
-      alert(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
+      const txid = await sendTransaction(transaction, connection, { minContextSlot });
+
       console.log(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
-      return txid;
+
+      const confirmation = await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature: txid });
+
+      console.log('Transaction confirmed:', confirmation);
+      return { txid, confirmation };
     } catch (error) {
       console.error(error);
     }
@@ -173,22 +108,14 @@ const CreateLbp = () => {
   const createPoolMutation = useMutation({
     mutationFn: createPool,
     onSuccess: async (data) => {
-      try {
-        console.log(data);
-        const transaction = await signTransactionA(data);
-        console.log(transaction);
-      } catch (error) {
-        console.error(error);
-      }
+      console.log('Success', data);
     },
     onError: (error) => console.log('Error', error),
   });
 
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
-    console.log(data);
     createPoolMutation.mutate(data);
   };
-  console.log(errors);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

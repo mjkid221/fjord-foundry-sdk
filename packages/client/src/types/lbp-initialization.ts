@@ -55,21 +55,10 @@ export type InitializePoolArgs = {
   };
 };
 
-<<<<<<< HEAD
-export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {
-  // programId?: PublicKey;
-}
-
-export interface CreatePoolClientParams extends InitializePoolPublicKeys, InitializePoolArgs {
-  programId: PublicKey;
-  provider: AnchorProvider;
-}
-=======
 /**
  * Combines the public keys and initialization arguments required for creating a new LBP pool.
  */
 export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {}
->>>>>>> simon/client-sdk/lbp-initialization-scaffold
 
 export interface CreatePoolClientParams extends InitializePoolPublicKeys, InitializePoolArgs {
   programId: PublicKey;
