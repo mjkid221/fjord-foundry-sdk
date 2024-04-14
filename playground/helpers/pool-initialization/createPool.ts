@@ -13,6 +13,42 @@ type CreatePoolParams = {
   sdkClient: FjordClientSdk;
 };
 
+/**
+ * Asynchronously creates a new Fjord pool using the provided parameters.
+ *
+ * @param {CreatePoolParams} params - An object containing the following properties:
+ *   * **formData:** The parsed and validated form data (inferred from `initializePoolArgsSchema`).
+ *   * **connection:** An established Solana connection object.
+ *   * **provider:** An AnchorProvider instance.
+ *   * **sdkClient:** An instance of the FjordClientSdk.
+ *
+ * @returns {Promise<InitializePoolResponse>} A promise resolving to the Fjord `InitializePoolResponse` object.
+ *
+ * @throws {Error} If wallet is not connected (connection, provider, or sdkClient are missing).
+ *
+ * @example
+ * ```ts
+ * const myFormData = ... // Initialize with your form data
+ * const { connection } = useConnection(); // Your Solana connection object
+ * const { sdkClient, provider } = useContext(SolanaSdkClientContext); // Your Solana SDK client and provider
+ *
+ *
+ * const createPoolMutation = useMutation({
+ *   mutationFn: createPool,
+ *   onSuccess: async (data) => {
+ *     await yourSignAndSendTransactionFunction(data.transactionInstruction);
+ *   },
+ *   onError: (error) => console.log('Error', error),
+ * });
+ *
+ * const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
+ *  if (!connection || !provider || !sdkClient) {
+ *    throw new Error('Wallet not connected');
+ *  }
+ *   createPoolMutation.mutate({ formData: myFormData, connection, provider, sdkClient });
+ * };
+ * ```
+ */
 export const createPool = async ({
   formData,
   connection,
@@ -23,7 +59,6 @@ export const createPool = async ({
     throw new Error('Wallet not connected');
   }
 
-  // const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
   const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -57,18 +92,10 @@ export const createPool = async ({
     saleEndTime,
   };
 
-  // const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
-
   return await sdkClient.createPoolTransaction({
     programId: programAddressPublicKey,
     keys,
     args,
     provider,
   });
-
-  // await signTransaction(transactionInstruction);
-
-  // const pool = await sdkClient.retrievePoolData(poolPda, programAddressPublicKey, provider);
-
-  // return pool;
 };
