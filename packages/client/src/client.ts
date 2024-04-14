@@ -12,6 +12,7 @@ import {
   GetContractManagerAddressResponse,
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
+  InitializePoolResponse,
   ReadContractRequest,
 } from './types';
 
@@ -42,7 +43,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     return client;
   }
 
-  public async createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams) {
+  public async createPoolTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: CreatePoolClientParams): Promise<InitializePoolResponse> {
     if (!this.isSolana) {
       throw new Error('LbpInitializationService method not supported for this client');
     }

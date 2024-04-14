@@ -1,17 +1,13 @@
-// import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-// import * as anchor from '@project-serum/anchor';
-import { BN } from '@project-serum/anchor';
-// import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { DEFAULT_SALE_END_TIME_BN, DEFAULT_SALE_START_TIME_BN, PERCENTAGE_BASIS_POINTS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
+import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
 
 const CreateLbp = () => {
@@ -19,8 +15,6 @@ const CreateLbp = () => {
   const { connection } = useConnection();
 
   const { sdkClient, provider } = useContext(SolanaSdkClientContext);
-  console.log('sdkClient', sdkClient);
-  console.log('provider', provider);
 
   const wallet = useAnchorWallet();
 
@@ -28,62 +22,7 @@ const CreateLbp = () => {
     resolver: zodResolver(initializePoolArgsSchema),
   });
 
-  const createPool = async (formData: z.infer<typeof initializePoolArgsSchema>) => {
-    if (!wallet || !connection || !provider || !sdkClient) {
-      throw new Error('Wallet not connected');
-    }
-
-    // const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
-    const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
-    const creator = new PublicKey(formData.args.creator);
-    const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
-    const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
-
-    const assets = new BN(formData.args.assets);
-    const shares = new BN(formData.args.shares);
-    const maxAssetsIn = new BN(formData.args.maxAssetsIn);
-    const maxSharePrice = new BN(formData.args.maxSharePrice);
-    const maxSharesOut = new BN(formData.args.maxSharesOut);
-    const startWeightBasisPoints = Number(formData.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
-    const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
-    const saleStartTime = DEFAULT_SALE_START_TIME_BN;
-    const saleEndTime = DEFAULT_SALE_END_TIME_BN;
-
-    const keys = {
-      creator,
-      shareTokenMint,
-      assetTokenMint,
-    };
-
-    const args = {
-      assets,
-      shares,
-      maxAssetsIn,
-      maxSharePrice,
-      maxSharesOut,
-      startWeightBasisPoints,
-      endWeightBasisPoints,
-      saleStartTime,
-      saleEndTime,
-    };
-
-    // const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
-
-    const { transactionInstruction, poolPda } = await sdkClient.createPoolTransaction({
-      programId: programAddressPublicKey,
-      keys,
-      args,
-      provider,
-    });
-
-    await signTransaction(transactionInstruction);
-
-    const pool = await sdkClient.retrievePoolData(poolPda, programAddressPublicKey, provider);
-
-    return pool;
-  };
-
-  const signTransaction = async (transactionInstruction: TransactionInstruction) => {
+  const signAndSendCreatePoolTransaction = async (transactionInstruction: TransactionInstruction) => {
     const transaction = new Transaction().add(transactionInstruction);
 
     if (!wallet) {
@@ -114,13 +53,17 @@ const CreateLbp = () => {
   const createPoolMutation = useMutation({
     mutationFn: createPool,
     onSuccess: async (data) => {
+      await signAndSendCreatePoolTransaction(data.transactionInstruction);
       console.log('Success', data);
     },
     onError: (error) => console.log('Error', error),
   });
 
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
-    createPoolMutation.mutate(data);
+    if (!connection || !provider || !sdkClient) {
+      throw new Error('Wallet not connected');
+    }
+    createPoolMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
 
   return (
