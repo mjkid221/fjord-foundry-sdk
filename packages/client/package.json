@@ -12,8 +12,8 @@
     "browser": "./dist/browser.js",
     "default": "./dist/index.js"
   },
-  "author": "Simon Tanna <92503409+simon-tanna@users.noreply.github.com>",
-  "license": "ISC",
+  "author": "Labrys <simon@labrys.io (https://www.labrys.io/)",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "directory": "packages/client",
@@ -35,5 +35,8 @@
     "@solana/web3.js": "^1.91.4",
     "viem": "^2.9.9",
     "zod": "^3.22.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

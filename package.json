@@ -6,6 +6,8 @@
     "type": "git",
     "url": "git+https://github.com/Labrys-Group/fjord-foundry-sdk.git"
   },
+  "author": "Labrys <simon@labrys.io (https://www.labrys.io/)",
+  "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --quiet '**/*.{ts,tsx,js,cjs,mjs,jsx}'",
     "lint:fix": "npm run lint -- --fix",
@@ -40,6 +42,10 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "wait-port": "^1.1.0"
+  },
+  "peerDependencies": {
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0"
   },
   "workspaces": {
     "packages": [
