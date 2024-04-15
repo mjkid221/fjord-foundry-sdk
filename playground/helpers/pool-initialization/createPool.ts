@@ -3,7 +3,12 @@ import { AnchorProvider, BN } from '@project-serum/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
-import { PERCENTAGE_BASIS_POINTS, DEFAULT_SALE_START_TIME_BN, DEFAULT_SALE_END_TIME_BN } from '@/constants';
+import {
+  PERCENTAGE_BASIS_POINTS,
+  DEFAULT_SALE_START_TIME_BN,
+  DEFAULT_SALE_END_TIME_BN,
+  INITIALIZE_LBP_ADDRESS,
+} from '@/constants';
 import { initializePoolArgsSchema } from '@/types';
 
 type CreatePoolParams = {
@@ -59,7 +64,7 @@ export const createPool = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);

@@ -1,7 +1,9 @@
 import { RetrievePoolDataParams, FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { Connection } from '@solana/web3.js';
 
 export interface GetPoolArgs extends RetrievePoolDataParams {
   sdkClient: FjordClientSdk;
+  connection: Connection;
 }
 
 export interface GetPoolArgsResponse {

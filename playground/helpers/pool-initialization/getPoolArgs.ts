@@ -1,10 +1,15 @@
-import { FjordClientSdk, GetPoolDataResponse } from '@fjord-foundry/solana-sdk-client';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { GetPoolDataResponse } from '@fjord-foundry/solana-sdk-client';
 
 import { GetPoolArgs } from '@/types';
 
-export const getPoolArgs = async ({ poolPda, programId, provider }: GetPoolArgs): Promise<GetPoolDataResponse> => {
-  const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+export const getPoolArgs = async ({
+  poolPda,
+  programId,
+  provider,
+  sdkClient,
+  connection,
+}: GetPoolArgs): Promise<GetPoolDataResponse> => {
+  const pool = await sdkClient.retrievePoolData({ poolPda, programId, provider, connection });
 
-  return await sdkClient.retrievePoolData({ poolPda, programId, provider });
+  return pool;
 };

@@ -1,5 +1,5 @@
 import { AnchorProvider } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
 export type ContractAddress = `0x${string}`;
@@ -57,4 +57,5 @@ export interface RetrievePoolDataParams {
   poolPda: PublicKey;
   programId: PublicKey;
   provider: AnchorProvider;
+  connection: Connection;
 }

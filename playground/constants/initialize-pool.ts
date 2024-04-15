@@ -10,3 +10,5 @@ export const PERCENTAGE_BASIS_POINTS = 100;
 export const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + TIME_OFFSET);
 
 export const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
+
+export const INITIALIZE_LBP_ADDRESS = 'AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm';

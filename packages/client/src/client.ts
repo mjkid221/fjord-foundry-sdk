@@ -2,6 +2,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
 import { ReadFunction } from './enums';
+import { getTokenDivisor, formatEpochDate } from './helpers';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
 import {
   ClientSdkInterface,
@@ -67,6 +68,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     poolPda,
     programId,
     provider,
+    connection,
   }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
     if (!this.isSolana || !this.solanaNetwork) {
       throw new Error('LbpInitializationService method not supported for this client');
@@ -76,7 +78,35 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
     }
 
-    return await this.lbpInitializationService.getPoolData(poolPda, this.solanaNetwork);
+    const poolData = await this.lbpInitializationService.getPoolData(poolPda);
+
+    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
+    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
+
+    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
+    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
+
+    const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / shareTokenDivisor;
+    const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
+
+    const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
+    const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
+
+    return {
+      ...poolData,
+      assetToken: poolData.assetToken.toBase58(),
+      creator: poolData.creator.toBase58(),
+      shareToken: poolData.shareToken.toBase58(),
+      maxSharesOut: formattedMaxSharesOut,
+      maxSharePrice: poolData.maxSharePrice.toString(),
+      maxAssetsIn: formattedMaxAssetsIn,
+      saleEndTime: formattedSaleEndTime,
+      saleStartTime: formattedSaleStartTime,
+      vestCliff: poolData.vestCliff.toString(),
+      vestEnd: poolData.vestEnd.toString(),
+      virtualAssets: poolData.virtualAssets.toString(),
+      virtualShares: poolData.virtualShares.toString(),
+    };
   }
 
   public async readAddress(address: PublicKey) {
