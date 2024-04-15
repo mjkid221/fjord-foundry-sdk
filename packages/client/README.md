@@ -191,6 +191,8 @@ export const createPool = async ({
   return transaction;
 };
 
+  const { connection } = useConnection()
+
   const wallet = useAnchorWallet();
 
   const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
@@ -211,6 +213,54 @@ export const createPool = async ({
     }
     createPoolMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
+
+```
+
+## Read Methods Solana
+
+### Retrieve All Pool Data
+
+#### `async retrievePoolData({ poolPda, programId, provider, connection, }: RetrievePoolDataParams): Promise<GetPoolDataResponse>`
+
+This method fetches data associated with a liquidity bootstrapping pool (LBP) and formats it for front-end rendering.
+
+**Parameters**
+
+- `poolDataParams` (RetrievePoolDataParams): An object containing:
+  - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
+  - `programId` (PublicKey): The PublicKey of your Solana program.
+  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+  - `connection` (Connection): An established Solana connection object.
+
+**Returns**
+
+`Promise<GetPoolDataResponse>`: A promise resolving to a `GetPoolDataResponse` object. This object contains the fetched and formatted pool data.
+
+**Example**
+
+```ts
+import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { AnchorProvider } from '@project-serum/anchor';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+
+const { connection } = useConnection()
+const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+
+const { data } = useQuery({
+  queryKey: ['pool-args'],
+  queryFn: async () => {
+    const poolArgs: GetPoolArgs = { 
+      poolPda: new PublicKey(poolAddress),
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS),
+      provider, 
+      connection 
+    }; 
+    return await sdkClient.retrievePoolData(poolArgs);
+  },
+  enabled: !!poolAddress, // Ensure poolAddress exists
+});
 
 ```
 
