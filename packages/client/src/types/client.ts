@@ -2,6 +2,8 @@ import { AnchorProvider } from '@project-serum/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
+import { PoolDataValueKey } from '../enums';
+
 export type ContractAddress = `0x${string}`;
 
 /**
@@ -58,4 +60,8 @@ export interface RetrievePoolDataParams {
   programId: PublicKey;
   provider: AnchorProvider;
   connection: Connection;
+}
+
+export interface RetrieveSinglePoolDataValueParams extends RetrievePoolDataParams {
+  valueKey: PoolDataValueKey;
 }

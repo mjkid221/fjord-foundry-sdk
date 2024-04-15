@@ -9,7 +9,5 @@ export const getPoolArgs = async ({
   sdkClient,
   connection,
 }: GetPoolArgs): Promise<GetPoolDataResponse> => {
-  const pool = await sdkClient.retrievePoolData({ poolPda, programId, provider, connection });
-
-  return pool;
+  return await sdkClient.retrievePoolData({ poolPda, programId, provider, connection });
 };

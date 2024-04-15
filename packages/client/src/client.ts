@@ -1,7 +1,7 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
-import { ReadFunction } from './enums';
+import { PoolDataValueKey, ReadFunction } from './enums';
 import { getTokenDivisor, formatEpochDate } from './helpers';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
 import {
@@ -16,6 +16,7 @@ import {
   InitializePoolResponse,
   ReadContractRequest,
   RetrievePoolDataParams,
+  RetrieveSinglePoolDataValueParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -70,6 +71,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
     connection,
   }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
+    // Client and service validation
     if (!this.isSolana || !this.solanaNetwork) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
@@ -78,8 +80,10 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
     }
 
+    // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
 
+    // Format pool data
     const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
     const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
 
@@ -107,6 +111,70 @@ export class FjordClientSdk implements ClientSdkInterface {
       virtualAssets: poolData.virtualAssets.toString(),
       virtualShares: poolData.virtualShares.toString(),
     };
+  }
+
+  public async retrieveSinglePoolDataValue({
+    poolPda,
+    programId,
+    provider,
+    connection,
+    valueKey,
+  }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean> {
+    // Client and service validation
+    if (!this.isSolana || !this.solanaNetwork) {
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+    }
+
+    // Fetch pool data
+    const poolData = await this.lbpInitializationService.getPoolData(poolPda);
+
+    // Determine and return value based on valueKey
+    switch (valueKey) {
+      case PoolDataValueKey.AssetToken:
+        return poolData.assetToken.toBase58();
+      case PoolDataValueKey.Creator:
+        return poolData.creator.toBase58();
+      case PoolDataValueKey.EndWeightBasisPoints:
+        return poolData.endWeightBasisPoints;
+      case PoolDataValueKey.MaxAssetsIn: {
+        const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
+        const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
+        return poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
+      }
+      case PoolDataValueKey.MaxSharePrice:
+        return poolData.maxSharePrice.toString();
+      case PoolDataValueKey.MaxSharesOut: {
+        const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
+        const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
+        return poolData.maxSharesOut.toNumber() / shareTokenDivisor;
+      }
+      case PoolDataValueKey.SaleEndTime:
+        return formatEpochDate(poolData.saleEndTime);
+      case PoolDataValueKey.SaleStartTime:
+        return formatEpochDate(poolData.saleStartTime);
+      case PoolDataValueKey.SellingAllowed:
+        return poolData.sellingAllowed;
+      case PoolDataValueKey.ShareToken:
+        return poolData.shareToken.toBase58();
+      case PoolDataValueKey.StartWeightBasisPoints:
+        return poolData.startWeightBasisPoints;
+      case PoolDataValueKey.VestCliff:
+        return poolData.vestCliff.toString();
+      case PoolDataValueKey.VestEnd:
+        return poolData.vestEnd.toString();
+      case PoolDataValueKey.VirtualAssets:
+        return poolData.virtualAssets.toString();
+      case PoolDataValueKey.VirtualShares:
+        return poolData.virtualShares.toString();
+      case PoolDataValueKey.WhitelistMerkleRoot:
+        return poolData.whitelistMerkleRoot;
+      default:
+        throw new Error(`Invalid value key: ${valueKey}`);
+    }
   }
 
   public async readAddress(address: PublicKey) {
