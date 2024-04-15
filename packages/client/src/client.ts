@@ -126,7 +126,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     }
 
     if (!this.lbpInitializationService) {
-      this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+      this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
     }
 
     // Fetch pool data

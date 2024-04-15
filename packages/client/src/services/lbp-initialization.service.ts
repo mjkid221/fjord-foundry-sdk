@@ -1,9 +1,11 @@
 import * as anchor from '@project-serum/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
 import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
+import { getTokenDivisor } from '../helpers';
 import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
 
 /**
@@ -153,9 +155,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    */
   public async getPoolData(poolPda: PublicKey) {
     try {
-      const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-      console.log('pool', pool);
-      return pool;
+      return await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
     } catch (error: any) {
       console.error('Error fetching pool data:', error);
       throw new Error('Error fetching pool data', error);
