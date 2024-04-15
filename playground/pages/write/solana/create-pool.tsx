@@ -7,7 +7,7 @@ import { SolanaSdkClientProvider } from '@/context/SolanaSdkClientProvider';
 const CreatePool = () => {
   return (
     <SolanaSdkClientProvider solanaNetwork={WalletAdapterNetwork.Devnet}>
-      <Typography variant="h1">Create Pool Placeholder</Typography>
+      <Typography variant="h4">Create Pool Placeholder</Typography>
       <CreateLbp />
     </SolanaSdkClientProvider>
   );

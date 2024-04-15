@@ -1,4 +1,3 @@
-import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
@@ -14,6 +13,7 @@ import {
   GetVestingStateResponse,
   InitializePoolResponse,
   ReadContractRequest,
+  RetrievePoolDataParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -60,7 +60,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
-  public async retrievePoolData(poolPda: PublicKey, programId: PublicKey, provider: AnchorProvider) {
+  public async retrievePoolData({ poolPda, programId, provider }: RetrievePoolDataParams) {
     if (!this.isSolana) {
       throw new Error('LbpInitializationService method not supported for this client');
     }

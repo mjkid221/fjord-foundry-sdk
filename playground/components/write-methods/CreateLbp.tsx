@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -11,6 +12,7 @@ import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
 
 const CreateLbp = () => {
+  const [poolAddress, setPoolAddress] = useState<string>();
   const { sendTransaction } = useWallet();
   const { connection } = useConnection();
 
@@ -53,8 +55,9 @@ const CreateLbp = () => {
   const createPoolMutation = useMutation({
     mutationFn: createPool,
     onSuccess: async (data) => {
-      await signAndSendCreatePoolTransaction(data.transactionInstruction);
-      console.log('Success', data);
+      setPoolAddress(data.poolPda.toBase58());
+      const confirmation = await signAndSendCreatePoolTransaction(data.transactionInstruction);
+      console.log('Success', confirmation);
     },
     onError: (error) => console.log('Error', error),
   });
@@ -67,26 +70,39 @@ const CreateLbp = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input type="text" placeholder="creator - pubkey" {...register('args.creator', { required: true })} />
-      <input type="text" placeholder="shareTokenMint - pubkey" {...register('args.shareTokenMint')} />
-      <input type="text" placeholder="assetTokenMint - pubkey" {...register('args.assetTokenMint', {})} />
-      <input type="number" placeholder="assets - number" {...register('args.assets')} />
-      <input type="number" placeholder="shares - number" {...register('args.shares', {})} />
-      <input type="number" placeholder="maxSharesOut - number" {...register('args.maxSharesOut', {})} />
-      <input type="number" placeholder="maxSharePrice - number" {...register('args.maxSharePrice', {})} />
-      <input type="number" placeholder="maxAssetsIn - number" {...register('args.maxAssetsIn', {})} />
-      <input
-        type="number"
-        placeholder="startWeightBasisPoints - number"
-        {...register('args.startWeightBasisPoints', {})}
-      />
-      <input type="number" placeholder="endWeightBasisPoints - number" {...register('args.endWeightBasisPoints', {})} />
-      <input type="number" placeholder="saleTimeStart - number" {...register('args.saleStartTime', {})} />
-      <input type="number" placeholder="saleTimeEnd - number" {...register('args.saleEndTime', {})} />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <TextField
+          label="creator address"
+          placeholder="creator - pubkey"
+          {...register('args.creator', { required: true })}
+        />
+        <TextField type="text" placeholder="shareTokenMint - pubkey" {...register('args.shareTokenMint')} />
+        <TextField type="text" placeholder="assetTokenMint - pubkey" {...register('args.assetTokenMint', {})} />
+        <TextField type="number" placeholder="assets - number" {...register('args.assets')} />
+        <TextField type="number" placeholder="shares - number" {...register('args.shares', {})} />
+        <TextField type="number" placeholder="maxSharesOut - number" {...register('args.maxSharesOut', {})} />
+        <TextField type="number" placeholder="maxSharePrice - number" {...register('args.maxSharePrice', {})} />
+        <TextField type="number" placeholder="maxAssetsIn - number" {...register('args.maxAssetsIn', {})} />
+        <TextField
+          type="number"
+          placeholder="startWeightBasisPoints - number"
+          {...register('args.startWeightBasisPoints', {})}
+        />
+        <TextField
+          type="number"
+          placeholder="endWeightBasisPoints - number"
+          {...register('args.endWeightBasisPoints', {})}
+        />
+        <TextField type="number" placeholder="saleTimeStart - number" {...register('args.saleStartTime', {})} />
+        <TextField type="number" placeholder="saleTimeEnd - number" {...register('args.saleEndTime', {})} />
 
-      <button type="submit">Submit</button>
-    </form>
+        <Button variant="contained" type="submit">
+          Submit
+        </Button>
+      </form>
+      {poolAddress && <Typography>Pool address: {poolAddress}</Typography>}
+    </Box>
   );
 };
 

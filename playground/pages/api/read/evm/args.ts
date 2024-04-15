@@ -1,4 +1,4 @@
-import { createSdk } from '@fjord-foundry/solana-sdk-client';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { abi } from '@/constants/abi';
@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(400).json({ error: 'Contract address is required' });
     return;
   }
-  const sdkClient = await createSdk(false);
+  const sdkClient = await FjordClientSdk.create(false);
 
   const args = await sdkClient.getContractArgs({ contractAddress, abi });
   // Convert all BigInt properties in args to strings

@@ -92,10 +92,12 @@ export const createPool = async ({
     saleEndTime,
   };
 
-  return await sdkClient.createPoolTransaction({
+  const transaction = await sdkClient.createPoolTransaction({
     programId: programAddressPublicKey,
     keys,
     args,
     provider,
   });
+
+  return transaction;
 };

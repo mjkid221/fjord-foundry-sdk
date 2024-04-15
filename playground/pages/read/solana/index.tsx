@@ -6,6 +6,7 @@ const SolanaRead = () => {
     <Container maxWidth="md" sx={{ paddingY: '30px' }}>
       <Stack>
         <Link href={`solana/address-deets`}>Address Details</Link>
+        <Link href={`solana/pool-args`}>Pool Arguments</Link>
       </Stack>
     </Container>
   );
