@@ -22,6 +22,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
   private provider: anchor.Provider;
   private programId: PublicKey;
   private program: anchor.Program<FjordLbp>;
+  private network: WalletAdapterNetwork;
 
   /**
    * Creates an instance of LbpInitializationService.
@@ -31,10 +32,11 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @constructor
    * @returns {LbpInitializationService} - An instance of LbpInitializationService.
    */
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(INITIALIZE_LBP_IDL, programId, provider);
+    this.network = network;
   }
 
   /**
@@ -43,13 +45,20 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @returns {Promise<LbpInitializationService>} - A promise that resolves with an instance of LbpInitializationService.
    */
-  static async create(programId: PublicKey, provider: anchor.AnchorProvider): Promise<LbpInitializationService> {
-    const service = await Promise.resolve(new LbpInitializationService(programId, provider));
+  static async create(
+    programId: PublicKey,
+    provider: anchor.AnchorProvider,
+    network: WalletAdapterNetwork,
+  ): Promise<LbpInitializationService> {
+    const service = await Promise.resolve(new LbpInitializationService(programId, provider, network));
 
     return service;
   }
 
   public async initializePool({ keys, args }: InitializePoolParams): Promise<InitializePoolResponse> {
+    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
+    const connection = new anchor.web3.Connection(solanaNetwork);
+
     const { creator, shareTokenMint, assetTokenMint } = keys;
 
     const {
@@ -69,6 +78,25 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       whitelistMerkleRoot,
       sellingAllowed,
     } = args;
+
+    // Fetch the token supply data for the asset and share tokens.
+    const assetTokenData = await connection.getTokenSupply(assetTokenMint);
+    const shareTokenData = await connection.getTokenSupply(shareTokenMint);
+
+    // Calculate the token divisors for the asset and share tokens.
+    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
+    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
+
+    // Define the zero BN value for optional parameters. TODO: This can probably be moved to a constants file.
+    const zeroBn = new anchor.BN(0);
+
+    // Format the provided parameters to BN values.
+    const formattedAssets = new anchor.BN(assets * assetTokenDivisor);
+    const formattedShares = new anchor.BN(shares * shareTokenDivisor);
+    const formattedVirtualAssets = virtualAssets ? new anchor.BN(virtualAssets * assetTokenDivisor) : zeroBn;
+    const formattedVirtualShares = virtualShares ? new anchor.BN(virtualShares * shareTokenDivisor) : zeroBn;
+    const formattedMaxAssetsIn = new anchor.BN(maxAssetsIn * assetTokenDivisor);
+    const formattedMaxSharesOut = new anchor.BN(maxSharesOut * shareTokenDivisor);
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const [poolPda] = findProgramAddressSync(
@@ -94,20 +122,17 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       creatorAssetTokenAccount,
     };
 
-    // Define the zero BN value for optional parameters. TODO: This can probably be moved to a constants file.
-    const zeroBn = new anchor.BN(0);
-
     // Initialize the pool with the provided parameters.
     try {
       const transactionInstruction = await this.program.methods
         .initializePool(
-          assets,
-          shares,
-          virtualAssets ?? zeroBn,
-          virtualShares ?? zeroBn,
+          formattedAssets,
+          formattedShares,
+          formattedVirtualAssets,
+          formattedVirtualShares,
           maxSharePrice,
-          maxSharesOut,
-          maxAssetsIn,
+          formattedMaxSharesOut,
+          formattedMaxAssetsIn,
           startWeightBasisPoints,
           endWeightBasisPoints,
           saleStartTime,
