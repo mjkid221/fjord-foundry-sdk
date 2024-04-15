@@ -26,7 +26,7 @@
 
 ## Description
 
-TODO: Fill in description here
+TODO: Fill in description here.
 
 ## Installation
 
