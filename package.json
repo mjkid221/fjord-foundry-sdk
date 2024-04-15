@@ -2,10 +2,6 @@
   "name": "fjord-foundry-solana-sdk",
   "description": "Fjord Foundry Solana SDK for JavaScript",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Labrys-Group/fjord-foundry-sdk.git"
-  },
   "author": "Labrys <simon@labrys.io (https://www.labrys.io/)",
   "license": "Apache-2.0",
   "scripts": {

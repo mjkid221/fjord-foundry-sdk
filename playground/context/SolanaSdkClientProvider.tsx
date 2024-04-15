@@ -2,22 +2,22 @@ import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import React, { useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 
 import { SolanaSdkClientContext } from './SolanaSdkClientContext';
 
 export interface SolanaSdkClientProviderProps {
   children: ReactNode;
-  solanaNetwork: WalletAdapterNetwork;
+  solanaNetwork?: WalletAdapterNetwork;
 }
 
 export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkClientProviderProps) => {
   const [sdkClient, setSdkClient] = useState<FjordClientSdk>();
   const [provider, setProvider] = useState<AnchorProvider>();
-  const createSolanaSdkClient = async (solanaNetwork = WalletAdapterNetwork.Devnet) => {
+  const createSolanaSdkClient = useCallback(async () => {
     const network = solanaNetwork;
     return await FjordClientSdk.create(true, network);
-  };
+  }, [solanaNetwork]);
 
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
@@ -34,15 +34,17 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
       return new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
     };
     const initialize = async () => {
-      // Make it an async function
-
-      const client = await createSolanaSdkClient();
-      const anchorProvider = await getAnchorProvider();
-      setSdkClient(client);
-      setProvider(anchorProvider);
+      try {
+        const client = await createSolanaSdkClient();
+        const anchorProvider = await getAnchorProvider();
+        setSdkClient(client);
+        setProvider(anchorProvider);
+      } catch (error) {
+        console.error('Error initializing Solana SDK:', error);
+      }
     };
     initialize();
-  }, [connection, wallet]);
+  }, [connection, createSolanaSdkClient, wallet]);
 
   const values: SolanaSdkClientContext = useMemo(() => {
     return {
@@ -50,5 +52,6 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
       provider,
     };
   }, [sdkClient, provider]);
+
   return <SolanaSdkClientContext.Provider value={values}>{children}</SolanaSdkClientContext.Provider>;
 };
