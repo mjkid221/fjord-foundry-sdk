@@ -5,6 +5,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
 import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
+import { formatEpochDate, getTokenDivisor } from '../helpers';
 import {
   Accounts,
   GetPoolDataResponse,
@@ -127,40 +128,43 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     }
   }
 
-  /**
-   * Retrieves the args of a liquidity bootstrapping pool.
-   *
-   * @param poolPda - The public key of the pool's PDA.
-   * @returns The pool's args.
-   */
   public async getPoolData(poolPda: PublicKey, network: WalletAdapterNetwork): Promise<GetPoolDataResponse> {
     const solanaNetwork = anchor.web3.clusterApiUrl(network);
     const connection = new anchor.web3.Connection(solanaNetwork);
 
-    const poolData = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+    try {
+      const poolData = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
 
-    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
-    const assetTokenDecimals = assetTokenData.value.decimals;
-    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
-    const shareTokenDecimals = shareTokenData.value.decimals;
+      const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
+      const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
 
-    const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / Math.pow(10, shareTokenDecimals);
-    const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / Math.pow(10, assetTokenDecimals);
+      const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
+      const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
 
-    return {
-      ...poolData,
-      assetToken: poolData.assetToken.toBase58(),
-      creator: poolData.creator.toBase58(),
-      shareToken: poolData.shareToken.toBase58(),
-      maxSharesOut: formattedMaxSharesOut,
-      maxSharePrice: poolData.maxSharePrice.toString(),
-      maxAssetsIn: formattedMaxAssetsIn,
-      saleEndTime: poolData.saleEndTime.toString(),
-      saleStartTime: poolData.saleStartTime.toString(),
-      vestCliff: poolData.vestCliff.toString(),
-      vestEnd: poolData.vestEnd.toString(),
-      virtualAssets: poolData.virtualAssets.toString(),
-      virtualShares: poolData.virtualShares.toString(),
-    };
+      const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / shareTokenDivisor;
+      const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
+
+      const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
+      const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
+
+      return {
+        ...poolData,
+        assetToken: poolData.assetToken.toBase58(),
+        creator: poolData.creator.toBase58(),
+        shareToken: poolData.shareToken.toBase58(),
+        maxSharesOut: formattedMaxSharesOut,
+        maxSharePrice: poolData.maxSharePrice.toString(),
+        maxAssetsIn: formattedMaxAssetsIn,
+        saleEndTime: formattedSaleEndTime,
+        saleStartTime: formattedSaleStartTime,
+        vestCliff: poolData.vestCliff.toString(),
+        vestEnd: poolData.vestEnd.toString(),
+        virtualAssets: poolData.virtualAssets.toString(),
+        virtualShares: poolData.virtualShares.toString(),
+      };
+    } catch (error: any) {
+      console.error('Error fetching pool data:', error);
+      throw new Error('Error fetching pool data', error);
+    }
   }
 }

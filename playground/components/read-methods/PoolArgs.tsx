@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
 import { useContext } from 'react';
@@ -25,12 +25,34 @@ const PoolArgs = () => {
     enabled: poolAddress !== '' && !!poolAddress,
   });
 
-  console.log(data);
-
   return (
     <>
       <Typography>PoolArgs</Typography>
-      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <Typography>Loading...</Typography>}
+      {data ? (
+        <TableContainer component={Paper}>
+          <Table aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Argument</TableCell>
+                <TableCell align="center">Value</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data &&
+                Object.entries(data).map(([key, value]) => (
+                  <TableRow key={key}>
+                    <TableCell component="th" scope="row">
+                      {key.toUpperCase()}
+                    </TableCell>
+                    <TableCell align="right">{value}</TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <Typography>Loading...</Typography>
+      )}
     </>
   );
 };
