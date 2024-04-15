@@ -69,11 +69,11 @@ export const createPool = async ({
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
 
-  const assets = new BN(formData.args.assets);
-  const shares = new BN(formData.args.shares);
-  const maxAssetsIn = new BN(formData.args.maxAssetsIn);
+  const assets = Number(formData.args.assets);
+  const shares = Number(formData.args.shares);
+  const maxAssetsIn = Number(formData.args.maxAssetsIn);
   const maxSharePrice = new BN(formData.args.maxSharePrice);
-  const maxSharesOut = new BN(formData.args.maxSharesOut);
+  const maxSharesOut = Number(formData.args.maxSharesOut);
   const startWeightBasisPoints = Number(formData.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const saleStartTime = DEFAULT_SALE_START_TIME_BN;

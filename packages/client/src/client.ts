@@ -54,11 +54,11 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: CreatePoolClientParams): Promise<InitializePoolResponse> {
-    if (!this.isSolana) {
+    if (!this.isSolana || !this.solanaNetwork) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
     // Call the initializePool method from the LbpInitializationService
     const transaction = await this.lbpInitializationService.initializePool({ keys, args });
 
@@ -77,7 +77,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     }
 
     if (!this.lbpInitializationService) {
-      this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+      this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
     }
 
     // Fetch pool data

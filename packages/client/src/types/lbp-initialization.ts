@@ -37,13 +37,13 @@ export type InitializePoolPublicKeys = {
  */
 export type InitializePoolArgs = {
   args: {
-    assets: BN;
-    shares: BN;
-    virtualAssets?: BN;
-    virtualShares?: BN;
+    assets: number;
+    shares: number;
+    virtualAssets?: number;
+    virtualShares?: number;
     maxSharePrice: BN;
-    maxSharesOut: BN;
-    maxAssetsIn: BN;
+    maxSharesOut: number;
+    maxAssetsIn: number;
     startWeightBasisPoints: number;
     endWeightBasisPoints: number;
     saleStartTime: BN;
