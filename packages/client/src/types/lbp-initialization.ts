@@ -85,3 +85,22 @@ export interface InitializePoolResponse {
   transactionInstruction: TransactionInstruction;
   poolPda: PublicKey;
 }
+
+export interface GetPoolDataResponse {
+  assetToken: string;
+  creator: string;
+  endWeightBasisPoints: number;
+  maxAssetsIn: number;
+  maxSharePrice: string;
+  maxSharesOut: number;
+  saleEndTime: string;
+  saleStartTime: string;
+  sellingAllowed: boolean;
+  shareToken: string;
+  startWeightBasisPoints: number;
+  vestCliff: string;
+  vestEnd: string;
+  virtualAssets: string;
+  virtualShares: string;
+  whitelistMerkleRoot: number[];
+}

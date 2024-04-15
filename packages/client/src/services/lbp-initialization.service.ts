@@ -1,10 +1,17 @@
 import * as anchor from '@project-serum/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
 import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
-import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
+import {
+  Accounts,
+  GetPoolDataResponse,
+  InitializePoolParams,
+  InitializePoolResponse,
+  LbpInitializationServiceInterface,
+} from '../types';
 
 /**
  * A service class for initializing Liquidity Bootstrapping Pools (LBPs).
@@ -126,7 +133,34 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param poolPda - The public key of the pool's PDA.
    * @returns The pool's args.
    */
-  public async getPoolData(poolPda: PublicKey) {
-    return await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+  public async getPoolData(poolPda: PublicKey, network: WalletAdapterNetwork): Promise<GetPoolDataResponse> {
+    const solanaNetwork = anchor.web3.clusterApiUrl(network);
+    const connection = new anchor.web3.Connection(solanaNetwork);
+
+    const poolData = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
+    const assetTokenDecimals = assetTokenData.value.decimals;
+    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
+    const shareTokenDecimals = shareTokenData.value.decimals;
+
+    const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / Math.pow(10, shareTokenDecimals);
+    const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / Math.pow(10, assetTokenDecimals);
+
+    return {
+      ...poolData,
+      assetToken: poolData.assetToken.toBase58(),
+      creator: poolData.creator.toBase58(),
+      shareToken: poolData.shareToken.toBase58(),
+      maxSharesOut: formattedMaxSharesOut,
+      maxSharePrice: poolData.maxSharePrice.toString(),
+      maxAssetsIn: formattedMaxAssetsIn,
+      saleEndTime: poolData.saleEndTime.toString(),
+      saleStartTime: poolData.saleStartTime.toString(),
+      vestCliff: poolData.vestCliff.toString(),
+      vestEnd: poolData.vestEnd.toString(),
+      virtualAssets: poolData.virtualAssets.toString(),
+      virtualShares: poolData.virtualShares.toString(),
+    };
   }
 }
