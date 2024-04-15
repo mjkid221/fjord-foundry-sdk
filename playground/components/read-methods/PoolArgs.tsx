@@ -1,9 +1,6 @@
-import { GetContractArgsResponse } from '@fjord-foundry/solana-sdk-client';
 import { Typography } from '@mui/material';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { useContext } from 'react';
 
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
@@ -12,9 +9,8 @@ import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 
 const PoolArgs = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
-  const { connection } = useConnection();
 
-  const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+  const { provider } = useContext(SolanaSdkClientContext);
 
   const { data } = useQuery({
     queryKey: ['pool-args'],
