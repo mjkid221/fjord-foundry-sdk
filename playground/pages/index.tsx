@@ -1,19 +1,22 @@
-import { Container, Stack, Typography } from '@mui/material';
-import Link from 'next/link';
+import { Container, Stack } from '@mui/material';
+
+import NavigationAccordion from '@/components/NavigationAccordion';
 
 const Home = () => {
   return (
     <Container maxWidth="md" sx={{ paddingY: '30px' }}>
-      <Stack direction="row">
-        <Stack>
-          <Typography variant="h4">Read Functions</Typography>
-          <Link href={`read/evm`}>Evm Read Functions</Link>
-          <Link href={`read/solana`}>Solana Read Functions</Link>
-        </Stack>
-        <Stack>
-          <Typography variant="h4">Write Functions</Typography>
-          <Link href={`write/solana`}>Solana Write Functions</Link>
-        </Stack>
+      <Stack>
+        <NavigationAccordion
+          title="Read Functions"
+          links={[
+            { href: 'read/evm', label: 'Evm Read Functions' },
+            { href: 'read/solana', label: 'Solana Read Functions' },
+          ]}
+        />
+        <NavigationAccordion
+          title="Write Functions"
+          links={[{ href: 'write/solana', label: 'Solana Write Functions' }]}
+        />
       </Stack>
     </Container>
   );
