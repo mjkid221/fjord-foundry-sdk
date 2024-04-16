@@ -110,6 +110,7 @@ export class FjordClientSdk implements ClientSdkInterface {
       vestEnd: poolData.vestEnd.toString(),
       virtualAssets: poolData.virtualAssets.toString(),
       virtualShares: poolData.virtualShares.toString(),
+      sellingAllowed: poolData.sellingAllowed.toString(),
     };
   }
 
