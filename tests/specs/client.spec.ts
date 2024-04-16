@@ -1,16 +1,170 @@
+import * as anchor from '@coral-xyz/anchor';
+import { Wallet } from '@coral-xyz/anchor';
 import {
   FjordClientSdk,
+  PoolDataValueKey,
   getContractArgsResponseSchema,
   getContractManagerAddressResponseSchema,
   getReservesAndWeightsResponseSchema,
   getVestingStateResponseSchema,
 } from '@fjord-foundry/solana-sdk-client';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 import { abi } from '../mocks/abi';
 
 const contractAddress = '0xC17374e2C8FebaBf509F2671F5fB8Aaac3236031';
 const tooLongContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBdbbbbbb';
 const incorrectContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBa';
+
+const solanaPoolPda = new PublicKey('4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF');
+const programAddress = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
+
+describe('FjordClientSdk Solana Read Functions', () => {
+  let sdk: FjordClientSdk;
+  const keypair = anchor.web3.Keypair.generate();
+  const wallet = new Wallet(keypair);
+  const connection = new Connection(clusterApiUrl(WalletAdapterNetwork.Devnet), 'confirmed');
+  const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+
+  beforeEach(async () => {
+    sdk = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Test if the class is defined
+  it('should create an instance of FjordClientSdk', () => {
+    expect(sdk).toBeInstanceOf(FjordClientSdk);
+  });
+
+  // Test the methods
+  it('should call retrievePoolData with correct parameters and return the correct response', async () => {
+    const response = await sdk.retrievePoolData({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+    });
+
+    expect(response).toBeDefined();
+    expect(response).toBeInstanceOf(Object);
+    expect(response).toHaveProperty('assetToken');
+    expect(response).toHaveProperty('shareToken');
+    expect(response).toHaveProperty('maxAssetsIn');
+    expect(response).toHaveProperty('maxSharesOut');
+    expect(response).toHaveProperty('virtualAssets');
+    expect(response).toHaveProperty('virtualShares');
+    expect(response).toHaveProperty('saleStartTime');
+    expect(response).toHaveProperty('saleEndTime');
+    expect(response).toHaveProperty('maxSharePrice');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.AssetToken and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.AssetToken,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('string');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.ShareToken and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.ShareToken,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('string');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxAssetsIn and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.MaxAssetsIn,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('number');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.Creator and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.Creator,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('string');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.EndWeightBasisPoints and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.EndWeightBasisPoints,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('number');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxSharePrice and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.MaxSharePrice,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('string');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxSharesOut and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.MaxSharesOut,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('number');
+  });
+
+  it('should call retrieveSinglePoolDataValues with PoolDataValueKey.SaleEndTime and return the correct response', async () => {
+    const response = await sdk.retrieveSinglePoolDataValue({
+      poolPda: solanaPoolPda,
+      programId: programAddress,
+      provider,
+      connection,
+      valueKey: PoolDataValueKey.SaleEndTime,
+    });
+
+    expect(response).toBeDefined();
+    expect(typeof response).toBe('string');
+  });
+});
 
 describe('FjordClientSdk EVM Read Functions', () => {
   let sdk: FjordClientSdk;
