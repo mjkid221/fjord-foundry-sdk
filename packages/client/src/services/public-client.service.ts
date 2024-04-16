@@ -56,15 +56,3 @@ export class PublicClientService implements PublicClientServiceInterface {
     return this.client;
   }
 }
-
-/**
- * **This is a scaffold for the Solana implementation.**
- */
-// private connection: Connection;
-// constructor() {
-//   // Choose the cluster you want to connect to
-//   this.connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
-// }
-// public getConnection(): Connection {
-//   return this.connection;
-// }

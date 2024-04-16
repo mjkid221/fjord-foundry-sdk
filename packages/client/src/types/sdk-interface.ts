@@ -1,4 +1,4 @@
-import { createPublicClient } from 'viem';
+import { PublicKey } from '@solana/web3.js';
 
 import {
   GetContractArgsResponse,
@@ -7,8 +7,50 @@ import {
   GetVestingStateResponse,
   ReadContractRequest,
 } from './client';
+import { CreatePoolClientParams, InitializePoolResponse } from './lbp-initialization';
 
-export interface ClientSdkInterface {
+export interface ClientSdkInterfaceSolana {
+  /**
+   * Creates a transaction to initialize a new liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * 1. **Checks Client Compatibility:** Verifies if the connected client supports the necessary methods.
+   * 2. **Creates LBP Service:** Instantiates an `LbpInitializationService` object for handling pool setup.
+   * 3. **Calls Initialization:** Calls the `initializePool` method of the `LbpInitializationService` to construct the transaction.
+   * 4. **Returns Transaction:** Returns the generated transaction, ready for submission to the Solana network.
+   *
+   * @param {CreatePoolClientParams} options - The options for creating the pool transaction.
+   * @param options.keys - The public keys required for initializing the pool.
+   * @param options.args - The arguments for initializing the pool.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<InitializePoolResponse>} - A promise that resolves with the LBP initialization transaction.
+   *
+   * @example
+   * ```typescript
+   * const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+   * const programAddressPublicKey = new PublicKey('... your program address ...');
+   *
+   * // ... (keys and args defined)
+   * const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args, provider });
+   * ```
+   */
+  createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
+
+  /**
+   * Reads information about an account on the blockchain.
+   * @param {PublicKey} address - The public key of the account to read.
+   * @returns {Promise<any>} - A promise that resolves with the account information and context, or null if the account does not exist.
+   * @throws {Error} If reading the account information fails.
+   * @example
+   * const address = new PublicKey('...');
+   * sdk.readAddress(address)
+   *    .then(accountInfo => console.log(accountInfo))
+   *    .catch(error => console.error(error));
+   */
+  readAddress(address: PublicKey): Promise<any>;
+}
+
+export interface ClientSdkInterfaceEvm {
   /**
    * Retrieves arguments for a specified LBP contract on the blockchain.
    *
@@ -208,10 +250,4 @@ export interface ClientSdkInterface {
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
 
-export interface PublicClientServiceInterface {
-  /**
-   * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
-   * @returns {ReturnType<typeof createPublicClient>} The public client instance.
-   */
-  getPublicClient(): ReturnType<typeof createPublicClient>;
-}
+export interface ClientSdkInterface extends ClientSdkInterfaceSolana, ClientSdkInterfaceEvm {}
