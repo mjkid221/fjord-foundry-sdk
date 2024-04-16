@@ -5,8 +5,8 @@ import { z } from 'zod';
 
 import {
   PERCENTAGE_BASIS_POINTS,
-  DEFAULT_SALE_START_TIME_BN,
-  DEFAULT_SALE_END_TIME_BN,
+  // DEFAULT_SALE_START_TIME_BN,
+  // DEFAULT_SALE_END_TIME_BN,
   INITIALIZE_LBP_ADDRESS,
 } from '@/constants';
 import { initializePoolArgsSchema } from '@/types';
@@ -63,7 +63,7 @@ export const createPool = async ({
   if (!connection || !provider || !sdkClient) {
     throw new Error('Wallet not connected');
   }
-
+  console.log('Creating pool with data:', formData);
   const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -76,8 +76,8 @@ export const createPool = async ({
   const maxSharesOut = Number(formData.args.maxSharesOut);
   const startWeightBasisPoints = Number(formData.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
-  const saleStartTime = DEFAULT_SALE_START_TIME_BN;
-  const saleEndTime = DEFAULT_SALE_END_TIME_BN;
+  const saleStartTime = new BN(formData.args.saleStartTime);
+  const saleEndTime = new BN(formData.args.saleEndTime);
 
   const keys = {
     creator,

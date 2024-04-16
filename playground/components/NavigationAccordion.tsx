@@ -2,6 +2,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Accordion, AccordionSummary, Typography, AccordionDetails, Stack } from '@mui/material';
 import Link from 'next/link';
 
+import theme from '@/styles/theme';
+
 interface NavigationAccordionProps {
   title: string;
   links: {
@@ -19,7 +21,14 @@ const NavigationAccordion = ({ title, links }: NavigationAccordionProps) => {
       <AccordionDetails>
         <Stack>
           {links.map((link) => (
-            <Link key={link.label} href={link.href}>
+            <Link
+              key={link.label}
+              href={link.href}
+              style={{
+                color: theme.palette.primary.dark,
+                textDecoration: 'none',
+              }}
+            >
               {link.label}
             </Link>
           ))}
