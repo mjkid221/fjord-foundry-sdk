@@ -20,7 +20,7 @@ jobs:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
 
       - name: Install packages
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Check code style
         run: npm run lint
