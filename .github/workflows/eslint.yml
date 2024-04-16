@@ -15,7 +15,7 @@ jobs:
           cache: npm
 
       - name: 🧶 Install Packages with npm
-        run: npm install
+        run: npm install --include=optional
 
       - name: 🐍 ESLint
         run: npm run lint
