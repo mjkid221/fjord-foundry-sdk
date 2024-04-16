@@ -1,9 +1,9 @@
 import { BN } from '@project-serum/anchor';
 import { hoursToSeconds } from 'date-fns';
 
-export const TIME_OFFSET = 1_000;
+export const TIME_OFFSET = 1_000; // 1000 seconds
 
-export const ONE_DAY_SECONDS = hoursToSeconds(24);
+export const ONE_DAY_SECONDS = hoursToSeconds(24); // 24 hours in seconds
 
 export const PERCENTAGE_BASIS_POINTS = 100;
 
