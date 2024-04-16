@@ -41,7 +41,7 @@ export interface SolanaConnectionServiceInterface {
   signTransaction?(transaction: Transaction): Promise<Transaction | null>;
 }
 
-export interface ClientService extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}
+export interface ClientServiceInterface extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}
 
 export interface LbpInitializationServiceInterface {
   /**
