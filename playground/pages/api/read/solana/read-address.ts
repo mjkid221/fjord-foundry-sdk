@@ -6,8 +6,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { contractAddress } = req.query as { contractAddress: string };
 
-  const contractAddressPublicKey = new PublicKey(contractAddress);
-
   if (typeof contractAddress !== 'string') {
     res.status(400).json({ error: 'Invalid contract address' });
     return;
@@ -17,6 +15,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(400).json({ error: 'Contract address is required' });
     return;
   }
+  const contractAddressPublicKey = new PublicKey(contractAddress);
   const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
 
   const addressDeets = await sdkClient.readAddress(contractAddressPublicKey);

@@ -6,7 +6,7 @@ import { getTokenDivisor, formatEpochDate } from './helpers';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
 import {
   ClientSdkInterface,
-  ClientService,
+  ClientServiceInterface,
   CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
@@ -20,20 +20,20 @@ import {
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
-  private clientService: ClientService;
+  private clientService: ClientServiceInterface;
   private lbpInitializationService!: LbpInitializationService;
   private isSolana: boolean;
   private solanaNetwork: WalletAdapterNetwork | undefined = undefined;
 
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientService, isSolana: boolean, network?: WalletAdapterNetwork) {
+  constructor(clientService: ClientServiceInterface, isSolana: boolean, network?: WalletAdapterNetwork) {
     this.clientService = clientService;
     this.isSolana = isSolana;
     this.solanaNetwork = network ?? undefined;
   }
 
   static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
-    let service: ClientService;
+    let service: ClientServiceInterface;
 
     if (useSolana) {
       if (!solanaNetwork) {

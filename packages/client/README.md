@@ -132,11 +132,21 @@ This method is responsible for initializing a new liquidity bootstrapping pool (
 
 ```ts
 
+import { BN } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useMutation } from '@tanstack/react-query';
+
+const PERCENTAGE_BASIS_POINTS = 100;
+const DEFAULT_SALE_START_TIME_BN = new BN(
+  new Date().getTime() / 1000 + 1000
+);
+const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(
+  new BN(hoursToSeconds(24))
+);
+
 
 export const createPool = async ({
   formData,
@@ -252,8 +262,8 @@ const { data } = useQuery({
   queryKey: ['pool-args'],
   queryFn: async () => {
     const poolArgs: GetPoolArgs = { 
-      poolPda: new PublicKey(poolAddress),
-      programId: new PublicKey(INITIALIZE_LBP_ADDRESS),
+      poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
       provider, 
       connection 
     }; 
