@@ -37,13 +37,13 @@ export type InitializePoolPublicKeys = {
  */
 export type InitializePoolArgs = {
   args: {
-    assets: BN;
-    shares: BN;
-    virtualAssets?: BN;
-    virtualShares?: BN;
+    assets: number;
+    shares: number;
+    virtualAssets?: number;
+    virtualShares?: number;
     maxSharePrice: BN;
-    maxSharesOut: BN;
-    maxAssetsIn: BN;
+    maxSharesOut: number;
+    maxAssetsIn: number;
     startWeightBasisPoints: number;
     endWeightBasisPoints: number;
     saleStartTime: BN;
@@ -84,4 +84,23 @@ export type Accounts = {
 export interface InitializePoolResponse {
   transactionInstruction: TransactionInstruction;
   poolPda: PublicKey;
+}
+
+export interface GetPoolDataResponse {
+  assetToken: string;
+  creator: string;
+  endWeightBasisPoints: number;
+  maxAssetsIn: number;
+  maxSharePrice: string;
+  maxSharesOut: number;
+  saleEndTime: string;
+  saleStartTime: string;
+  sellingAllowed: boolean;
+  shareToken: string;
+  startWeightBasisPoints: number;
+  vestCliff: string;
+  vestEnd: string;
+  virtualAssets: string;
+  virtualShares: string;
+  whitelistMerkleRoot: number[];
 }

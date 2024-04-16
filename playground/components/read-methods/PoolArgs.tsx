@@ -1,18 +1,25 @@
-import { GetVestingStateResponse } from '@fjord-foundry/solana-sdk-client';
-import { Typography, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useContext } from 'react';
 
+import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
+import { getPoolArgs } from '@/helpers/pool-initialization';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 
-const VestingState = () => {
+const PoolArgs = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
+
+  const { provider, sdkClient } = useContext(SolanaSdkClientContext);
+
   const { data } = useQuery({
-    queryKey: ['vesting-state', poolAddress],
+    queryKey: ['pool-args'],
     queryFn: async () => {
-      const { data } = await axios.get<GetVestingStateResponse>('/api/read/evm/vesting-state', {
-        params: { contractAddress: poolAddress },
-      });
+      if (!provider || !sdkClient) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
+
+      const data = await getPoolArgs({ poolPda, programId: programAddressPublicKey, provider, sdkClient });
       return data;
     },
     enabled: poolAddress !== '' && !!poolAddress,
@@ -20,13 +27,13 @@ const VestingState = () => {
 
   return (
     <>
-      <Typography variant="h3">Vesting State</Typography>
+      <Typography>PoolArgs</Typography>
       {data ? (
         <TableContainer component={Paper}>
           <Table aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell>Key</TableCell>
+                <TableCell>Argument</TableCell>
                 <TableCell align="center">Value</TableCell>
               </TableRow>
             </TableHead>
@@ -37,7 +44,7 @@ const VestingState = () => {
                     <TableCell component="th" scope="row">
                       {key.toUpperCase()}
                     </TableCell>
-                    <TableCell align="right">{value.toString()}</TableCell>
+                    <TableCell align="right">{value}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -50,4 +57,4 @@ const VestingState = () => {
   );
 };
 
-export default VestingState;
+export default PoolArgs;

@@ -1,11 +1,14 @@
 import { Container, CssBaseline, ThemeProvider } from '@mui/material';
 import { AppCacheProvider } from '@mui/material-nextjs/v14-pagesRouter';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Link from 'next/link';
 
 import PoolAddress from '@/components/PoolAddressInput';
+import { SolanaSdkClientProvider } from '@/context/SolanaSdkClientProvider';
+import WalletContext from '@/context/WalletContext';
 import theme from '@/styles/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -19,14 +22,18 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/solana.ico" />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Container maxWidth="md" sx={{ paddingY: '30px' }}>
-            <PoolAddress />
-            <Component {...pageProps} />
-            <Link href="/">Home</Link>
-          </Container>
-        </ThemeProvider>
+        <WalletContext>
+          <SolanaSdkClientProvider solanaNetwork={WalletAdapterNetwork.Devnet}>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              <Container maxWidth="md" sx={{ paddingY: '30px' }}>
+                <PoolAddress />
+                <Component {...pageProps} />
+                <Link href="/">Home</Link>
+              </Container>
+            </ThemeProvider>
+          </SolanaSdkClientProvider>
+        </WalletContext>
       </QueryClientProvider>
     </AppCacheProvider>
   );

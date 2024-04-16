@@ -1,3 +1,5 @@
+import { AnchorProvider } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
 export type ContractAddress = `0x${string}`;
@@ -50,3 +52,9 @@ export const getReservesAndWeightsResponseSchema = z.object({
 });
 
 export type GetReservesAndWeightsResponse = z.infer<typeof getReservesAndWeightsResponseSchema>;
+
+export interface RetrievePoolDataParams {
+  poolPda: PublicKey;
+  programId: PublicKey;
+  provider: AnchorProvider;
+}

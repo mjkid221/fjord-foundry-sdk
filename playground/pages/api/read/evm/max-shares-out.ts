@@ -1,7 +1,7 @@
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { abi } from '@/constants/abi';
-import { initializeSdk } from '@/utils/initialiseClient';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { contractAddress } = req.query as { contractAddress: `0x${string}` };
@@ -15,11 +15,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(400).json({ error: 'Contract address is required' });
     return;
   }
-  const sdkClient = await initializeSdk();
+  const sdkClient = await FjordClientSdk.create(false);
 
-  const vestingState = await sdkClient.getVestingState({ contractAddress, abi });
+  const maxSharesOut = await sdkClient.getMaxTotalSharesOut({ contractAddress, abi });
 
-  res.status(200).json(vestingState);
+  res.status(200).json(maxSharesOut.toString()); // Convert BigInt to string
 };
 
 export default handler;

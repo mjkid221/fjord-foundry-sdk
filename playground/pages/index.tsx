@@ -1,17 +1,19 @@
-import { Container, Stack } from '@mui/material';
+import { Container, Stack, Typography } from '@mui/material';
 import Link from 'next/link';
-
-import { transformedFunctionsObject } from '@/constants/contract-methods';
 
 const Home = () => {
   return (
     <Container maxWidth="md" sx={{ paddingY: '30px' }}>
-      <Stack>
-        {Object.entries(transformedFunctionsObject).map((func) => (
-          <Link key={func[0]} href={`read/${func[1]}`}>
-            {func[0]}
-          </Link>
-        ))}
+      <Stack direction="row">
+        <Stack>
+          <Typography variant="h4">Read Functions</Typography>
+          <Link href={`read/evm`}>Evm Read Functions</Link>
+          <Link href={`read/solana`}>Solana Read Functions</Link>
+        </Stack>
+        <Stack>
+          <Typography variant="h4">Write Functions</Typography>
+          <Link href={`write/solana`}>Solana Write Functions</Link>
+        </Stack>
       </Stack>
     </Container>
   );

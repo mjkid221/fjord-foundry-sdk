@@ -1,7 +1,7 @@
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { abi } from '@/constants/abi';
-import { initializeSdk } from '@/utils/initialiseClient';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { contractAddress } = req.query as { contractAddress: `0x${string}` };
@@ -15,11 +15,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     res.status(400).json({ error: 'Contract address is required' });
     return;
   }
-  const sdkClient = await initializeSdk();
+  const sdkClient = await FjordClientSdk.create(false);
 
-  const isSellingAllowed = await sdkClient.isSellingAllowed({ contractAddress, abi });
+  const managerAddress = await sdkClient.getContractManagerAddress({ contractAddress, abi });
 
-  res.status(200).json(isSellingAllowed.toString());
+  res.status(200).json(managerAddress);
 };
 
 export default handler;

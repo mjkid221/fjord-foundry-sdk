@@ -9,18 +9,25 @@ import {
   CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
+  GetPoolDataResponse,
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
+  InitializePoolResponse,
   ReadContractRequest,
+  RetrievePoolDataParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
   private clientService: ClientServiceInterface;
   private lbpInitializationService!: LbpInitializationService;
+  private isSolana: boolean;
+  private solanaNetwork: WalletAdapterNetwork | undefined = undefined;
 
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientServiceInterface) {
+  constructor(clientService: ClientServiceInterface, isSolana: boolean, network?: WalletAdapterNetwork) {
     this.clientService = clientService;
+    this.isSolana = isSolana;
+    this.solanaNetwork = network ?? undefined;
   }
 
   static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
@@ -31,24 +38,45 @@ export class FjordClientSdk implements ClientSdkInterface {
         throw new Error('Solana network is required when using Solana');
       }
       service = await SolanaConnectionService.create(solanaNetwork);
-      const client = new FjordClientSdk(service);
+      const client = new FjordClientSdk(service, useSolana, solanaNetwork);
       return client;
     }
     service = await PublicClientService.create();
-    const client = new FjordClientSdk(service);
+    const client = new FjordClientSdk(service, useSolana);
     return client;
   }
 
-  public async createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams) {
-    if (!this.clientService.getConnection) {
+  public async createPoolTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: CreatePoolClientParams): Promise<InitializePoolResponse> {
+    if (!this.isSolana || !this.solanaNetwork) {
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    this.lbpInitializationService = await LbpInitializationService.create(programId, provider);
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
     // Call the initializePool method from the LbpInitializationService
     const transaction = await this.lbpInitializationService.initializePool({ keys, args });
 
     return transaction;
+  }
+
+  public async retrievePoolData({
+    poolPda,
+    programId,
+    provider,
+  }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
+    }
+
+    return await this.lbpInitializationService.getPoolData(poolPda, this.solanaNetwork);
   }
 
   public async readAddress(address: PublicKey) {

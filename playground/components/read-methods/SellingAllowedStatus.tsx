@@ -9,7 +9,7 @@ const SellingAllowedStatus = () => {
   const { data } = useQuery({
     queryKey: ['selling-allowed-status', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<string>('/api/read/selling-allowed', {
+      const { data } = await axios.get<string>('/api/read/evm/selling-allowed', {
         params: { contractAddress: poolAddress },
       });
       return data;

@@ -10,7 +10,7 @@ const ContractArgs = () => {
   const { data } = useQuery({
     queryKey: ['contract-args', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<GetContractArgsResponse>('/api/read/args', {
+      const { data } = await axios.get<GetContractArgsResponse>('/api/read/evm/args', {
         params: { contractAddress: poolAddress },
       });
       return data;

@@ -9,7 +9,7 @@ const MaxSharesOut = () => {
   const { data } = useQuery({
     queryKey: ['max-shares-out', poolAddress],
     queryFn: async () => {
-      const { data } = await axios.get<string>('/api/read/max-shares-out', {
+      const { data } = await axios.get<string>('/api/read/evm/max-shares-out', {
         params: { contractAddress: poolAddress },
       });
       return data;
