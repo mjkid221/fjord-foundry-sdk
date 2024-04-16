@@ -285,23 +285,4 @@ export class FjordClientSdk implements ClientSdkInterface {
       shareWeight: reservesAndWeightsArray[3],
     };
   }
-
-  // private static async initLbpInitializationService(client: FjordClientSdk) {
-  //   if (!client.clientService.getConnection || !client.clientService.getConnectedWallet) {
-  //     throw new Error('LbpInitializationService method not supported for this client');
-  //   }
-  //   const connection = client.clientService.getConnection();
-  //   const wallet = await client.clientService.getConnectedWallet();
-  //   if (!wallet) {
-  //     throw new Error('Wallet not connected');
-  //   }
-
-  //   const programId = Keypair.generate().publicKey; //TODO: Use the actual program ID
-
-  //   client.lbpInitializationService = await LbpInitializationService.create(
-  //     connection,
-  //     wallet as any as Wallet,
-  //     programId,
-  //   );
-  // }
 }

@@ -22,6 +22,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * Creates an instance of LbpInitializationService.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @param {anchor.AnchorProvider} provider - The Anchor provider object.
+   * @param {WalletAdapterNetwork} network - The Solana network to interact with.
    *
    * @constructor
    * @returns {LbpInitializationService} - An instance of LbpInitializationService.
