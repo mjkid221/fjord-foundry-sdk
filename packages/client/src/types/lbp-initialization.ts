@@ -95,7 +95,7 @@ export interface GetPoolDataResponse {
   maxSharesOut: number;
   saleEndTime: string;
   saleStartTime: string;
-  sellingAllowed: boolean;
+  sellingAllowed: string;
   shareToken: string;
   startWeightBasisPoints: number;
   vestCliff: string;

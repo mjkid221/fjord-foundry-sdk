@@ -1,5 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, FormControl, FormLabel, Stack, TextField, Typography } from '@mui/material';
+import {
+  Button,
+  FormControl,
+  FormLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -19,6 +29,7 @@ const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();
   const [saleTimeStart, setSaleTimeStart] = useState<Dayjs | null | undefined>(null);
   const [saleTimeEnd, setSaleTimeEnd] = useState<Dayjs | null | undefined>(null);
+  const [isSellingAllowed, setIsSellingAllowed] = useState<boolean>(false);
 
   const { sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -73,18 +84,26 @@ const CreateLbp = () => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
     }
-    createPoolMutation.mutate({
-      formData: {
-        args: {
-          ...data.args,
-          saleEndTime: saleTimeEnd?.unix().toString() as string,
-          saleStartTime: saleTimeStart?.unix().toString() as string,
-        },
+    const formattedData = {
+      args: {
+        ...data.args,
+        saleEndTime: saleTimeEnd?.unix().toString() as string,
+        saleStartTime: saleTimeStart?.unix().toString() as string,
+        sellingAllowed: isSellingAllowed,
       },
+    };
+
+    createPoolMutation.mutate({
+      formData: formattedData,
       connection,
       provider,
       sdkClient,
     });
+  };
+
+  const handleIsSellingAllowedChange = (event: SelectChangeEvent<string>) => {
+    setIsSellingAllowed(event.target.value === 'true');
+    setValue('args.sellingAllowed', event.target.value === 'true');
   };
 
   return (
@@ -181,6 +200,18 @@ const CreateLbp = () => {
             />
           </LocalizationProvider>
         </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="isSellingAllowed">Is Selling Allowed</FormLabel>
+          <Select
+            value={isSellingAllowed ? 'true' : 'false'}
+            label="Selling Allowed"
+            onChange={handleIsSellingAllowedChange}
+            defaultValue={'false'}
+          >
+            <MenuItem value="false">False</MenuItem>
+            <MenuItem value="true">True</MenuItem>
+          </Select>
+        </FormControl>
         <Button variant="contained" type="submit">
           Submit
         </Button>
@@ -191,8 +222,3 @@ const CreateLbp = () => {
 };
 
 export default CreateLbp;
-
-{
-  /* <TextField label="saleTimeEnd" placeholder="saleTimeEnd" {...register('args.saleEndTime', {})} />; */
-}
-// <TextField label="saleTimeStart" placeholder="saleTimeStart" {...register('args.saleStartTime', {})} />;

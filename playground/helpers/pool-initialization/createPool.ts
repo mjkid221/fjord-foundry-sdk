@@ -63,7 +63,7 @@ export const createPool = async ({
   if (!connection || !provider || !sdkClient) {
     throw new Error('Wallet not connected');
   }
-  console.log('Creating pool with data:', formData);
+
   const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -78,6 +78,9 @@ export const createPool = async ({
   const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const saleStartTime = new BN(formData.args.saleStartTime);
   const saleEndTime = new BN(formData.args.saleEndTime);
+  const sellingAllowed = formData.args.sellingAllowed ?? false;
+  const virtualAssets = formData.args.virtualAssets ? Number(formData.args.virtualAssets) : undefined;
+  const virtualShares = formData.args.virtualShares ? Number(formData.args.virtualShares) : undefined;
 
   const keys = {
     creator,
@@ -95,6 +98,9 @@ export const createPool = async ({
     endWeightBasisPoints,
     saleStartTime,
     saleEndTime,
+    sellingAllowed,
+    virtualAssets,
+    virtualShares,
   };
 
   const transaction = await sdkClient.createPoolTransaction({
