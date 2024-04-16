@@ -5,7 +5,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [1.1.0-rc.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.0.2-alpha.0...v1.1.0-rc.0) (2024-04-16)
 
-
-### Features
-
-* ✨ changelog file ([6e2540e](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/6e2540e6804731a1485a1bd1c74e836172fe052b))
+**Note:** Version bump only for package @fjord-foundry/solana-sdk-tests
