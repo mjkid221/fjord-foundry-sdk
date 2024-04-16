@@ -262,8 +262,8 @@ const { data } = useQuery({
   queryKey: ['pool-args'],
   queryFn: async () => {
     const poolArgs: GetPoolArgs = { 
-      poolPda: new PublicKey(poolAddress),
-      programId: new PublicKey(INITIALIZE_LBP_ADDRESS),
+      poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
       provider, 
       connection 
     }; 
