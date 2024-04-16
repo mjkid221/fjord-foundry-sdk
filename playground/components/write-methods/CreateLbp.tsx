@@ -1,8 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Button, FormControl, FormLabel, Stack, TextField, Typography } from '@mui/material';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
+import { Dayjs } from 'dayjs';
 import { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +17,9 @@ import { initializePoolArgsSchema } from '@/types';
 
 const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();
+  const [saleTimeStart, setSaleTimeStart] = useState<Dayjs | null | undefined>(null);
+  const [saleTimeEnd, setSaleTimeEnd] = useState<Dayjs | null | undefined>(null);
+
   const { sendTransaction } = useWallet();
   const { connection } = useConnection();
 
@@ -20,7 +27,7 @@ const CreateLbp = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit } = useForm<z.infer<typeof initializePoolArgsSchema>>({
+  const { register, handleSubmit, setValue } = useForm<z.infer<typeof initializePoolArgsSchema>>({
     resolver: zodResolver(initializePoolArgsSchema),
   });
 
@@ -66,44 +73,126 @@ const CreateLbp = () => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
     }
-    createPoolMutation.mutate({ formData: data, connection, provider, sdkClient });
+    createPoolMutation.mutate({
+      formData: {
+        args: {
+          ...data.args,
+          saleEndTime: saleTimeEnd?.unix().toString() as string,
+          saleStartTime: saleTimeStart?.unix().toString() as string,
+        },
+      },
+      connection,
+      provider,
+      sdkClient,
+    });
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <TextField
-          label="creator address"
-          placeholder="creator - pubkey"
-          {...register('args.creator', { required: true })}
-        />
-        <TextField type="text" placeholder="shareTokenMint - pubkey" {...register('args.shareTokenMint')} />
-        <TextField type="text" placeholder="assetTokenMint - pubkey" {...register('args.assetTokenMint', {})} />
-        <TextField type="number" placeholder="assets - number" {...register('args.assets')} />
-        <TextField type="number" placeholder="shares - number" {...register('args.shares', {})} />
-        <TextField type="number" placeholder="maxSharesOut - number" {...register('args.maxSharesOut', {})} />
-        <TextField type="number" placeholder="maxSharePrice - number" {...register('args.maxSharePrice', {})} />
-        <TextField type="number" placeholder="maxAssetsIn - number" {...register('args.maxAssetsIn', {})} />
-        <TextField
-          type="number"
-          placeholder="startWeightBasisPoints - number"
-          {...register('args.startWeightBasisPoints', {})}
-        />
-        <TextField
-          type="number"
-          placeholder="endWeightBasisPoints - number"
-          {...register('args.endWeightBasisPoints', {})}
-        />
-        <TextField type="number" placeholder="saleTimeStart - number" {...register('args.saleStartTime', {})} />
-        <TextField type="number" placeholder="saleTimeEnd - number" {...register('args.saleEndTime', {})} />
-
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Stack spacing={2} flexDirection="column">
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
+          <TextField label="creator address" placeholder="creator" {...register('args.creator', { required: true })} />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="shareTokenMint">Share Token Mint</FormLabel>
+          <TextField label="shareTokenMint" placeholder="shareTokenMint" {...register('args.shareTokenMint')} />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="assetTokenMint">Asset Token Mint</FormLabel>
+          <TextField label="assetTokenMint" placeholder="assetTokenMint" {...register('args.assetTokenMint', {})} />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="assets">Assets</FormLabel>
+          <TextField label="assets" placeholder="assets" type="number" {...register('args.assets')} />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="shares">Shares</FormLabel>
+          <TextField label="shares" placeholder="shares" type="number" {...register('args.shares', {})} />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="maxSharesOut">Max Shares Out</FormLabel>
+          <TextField
+            label="maxSharesOut"
+            placeholder="maxSharesOut"
+            type="number"
+            {...register('args.maxSharesOut', {})}
+          />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="maxSharePrice">Max Share Price</FormLabel>
+          <TextField
+            label="maxSharePrice"
+            placeholder="maxSharePrice"
+            type="number"
+            {...register('args.maxSharePrice', {})}
+          />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="maxAssetsIn">Max Assets In</FormLabel>
+          <TextField
+            label="maxAssetsIn"
+            placeholder="maxAssetsIn"
+            type="number"
+            {...register('args.maxAssetsIn', {})}
+          />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="startWeightBasisPoints">Start Weight Basis Points</FormLabel>
+          <TextField
+            label="startWeightBasisPoints"
+            placeholder="startWeightBasisPoints"
+            {...register('args.startWeightBasisPoints', {})}
+            type="number"
+          />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="endWeightBasisPoints">End Weight Basis Points</FormLabel>
+          <TextField
+            label="endWeightBasisPoints"
+            placeholder="endWeightBasisPoints"
+            {...register('args.endWeightBasisPoints', {})}
+            type="number"
+          />
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="saleTimeStart">Sale Time Start</FormLabel>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+              label="Sale Time Start"
+              value={saleTimeStart}
+              onChange={(newValue) => {
+                setSaleTimeStart(newValue);
+                setValue('args.saleStartTime', newValue?.unix().toString() as string);
+              }}
+            />
+          </LocalizationProvider>
+        </FormControl>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel htmlFor="saleTimeEnd">Sale Time End</FormLabel>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+              label="Sale Time End"
+              value={saleTimeEnd}
+              onChange={(newValue) => {
+                setSaleTimeEnd(newValue);
+                setValue('args.saleEndTime', newValue?.unix().toString() as string);
+              }}
+            />
+          </LocalizationProvider>
+        </FormControl>
         <Button variant="contained" type="submit">
           Submit
         </Button>
-      </form>
-      {poolAddress && <Typography>Pool address: {poolAddress}</Typography>}
-    </Box>
+        {poolAddress && <Typography>Newly created pool address: {poolAddress}</Typography>}
+      </Stack>
+    </form>
   );
 };
 
 export default CreateLbp;
+
+{
+  /* <TextField label="saleTimeEnd" placeholder="saleTimeEnd" {...register('args.saleEndTime', {})} />; */
+}
+// <TextField label="saleTimeStart" placeholder="saleTimeStart" {...register('args.saleStartTime', {})} />;

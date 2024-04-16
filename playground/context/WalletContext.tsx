@@ -1,9 +1,11 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import { ReactNode, useMemo } from 'react';
+
+import WalletButtons from '@/components/WalletButtons';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
@@ -37,8 +39,7 @@ const WalletContext = ({ children }: { children: ReactNode }) => {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <WalletMultiButton />
-          <WalletDisconnectButton />
+          <WalletButtons />
           {children}
         </WalletModalProvider>
       </WalletProvider>
