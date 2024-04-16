@@ -6,8 +6,10 @@ import {
   GetReservesAndWeightsResponse,
   GetVestingStateResponse,
   ReadContractRequest,
+  RetrievePoolDataParams,
+  RetrieveSinglePoolDataValueParams,
 } from './client';
-import { CreatePoolClientParams, InitializePoolResponse } from './lbp-initialization';
+import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -35,6 +37,50 @@ export interface ClientSdkInterfaceSolana {
    * ```
    */
   createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
+
+  /**
+   * Retrieves and formats data associated with a liquidity bootstrapping pool.
+   *
+   * @param {RetrievePoolDataParams} params
+   *  * **poolPda:** The public key of the pool's Program Derived Address (PDA).
+   *  * **programId:** The program ID associated with the pool.
+   *  * **provider:** An Anchor Provider object for interacting with the Solana network.
+   *  * **connection:** An established Solana connection object.
+   *
+   * @returns {Promise<GetPoolDataResponse>} A promise resolving to an object containing:
+   *  * Formatted pool data, with some values converted for front-end readability.
+   *  * Additional calculated values like token divisors.
+   *
+   * @throws {Error} If:
+   *  * This method is called on a client that doesn't support Solana.
+   *  * No `lbpInitializationService` instance exists (handles internal initialization if needed).
+   */
+  retrievePoolData({ poolPda, programId, provider, connection }: RetrievePoolDataParams): Promise<GetPoolDataResponse>;
+
+  /**
+   * Retrieves a specific data value from a liquidity bootstrapping pool.
+   *
+   * @param {RetrieveSinglePoolDataValueParams} params
+   *   * **poolPda:** The public key of the pool's Program Derived Address (PDA).
+   *   * **programId:** The program ID associated with the pool.
+   *   * **provider:** An Anchor Provider object for interacting with the Solana network.
+   *   * **connection:** An established Solana connection object.
+   *   * **valueKey:** A `PoolDataValueKey` enum member specifying the data value to retrieve.
+   *
+   * @returns {string | number | number[] | boolean} The requested pool data value, formatted if necessary.
+   *
+   * @throws {Error} If:
+   *   * This method is called on a client that doesn't support Solana.
+   *   * No `lbpInitializationService` instance exists (handles internal initialization if needed).
+   *   * An invalid `valueKey` is provided.
+   */
+  retrieveSinglePoolDataValue({
+    poolPda,
+    programId,
+    provider,
+    connection,
+    valueKey,
+  }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean>;
 
   /**
    * Reads information about an account on the blockchain.

@@ -11,3 +11,22 @@ export enum ReadFunction {
   GetTotalSharePurchased = 'totalPurchased',
   GetReservesAndWeights = 'reservesAndWeights',
 }
+
+export enum PoolDataValueKey {
+  AssetToken = 'assetToken',
+  Creator = 'creator',
+  EndWeightBasisPoints = 'endWeightBasisPoints',
+  MaxAssetsIn = 'maxAssetsIn',
+  MaxSharePrice = 'maxSharePrice',
+  MaxSharesOut = 'maxSharesOut',
+  SaleEndTime = 'saleEndTime',
+  SaleStartTime = 'saleStartTime',
+  SellingAllowed = 'sellingAllowed',
+  ShareToken = 'shareToken',
+  StartWeightBasisPoints = 'startWeightBasisPoints',
+  VestCliff = 'vestCliff',
+  VestEnd = 'vestEnd',
+  VirtualAssets = 'virtualAssets',
+  VirtualShares = 'virtualShares',
+  WhitelistMerkleRoot = 'whitelistMerkleRoot',
+}

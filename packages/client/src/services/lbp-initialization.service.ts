@@ -5,14 +5,8 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
 import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
-import { formatEpochDate, getTokenDivisor } from '../helpers';
-import {
-  Accounts,
-  GetPoolDataResponse,
-  InitializePoolParams,
-  InitializePoolResponse,
-  LbpInitializationServiceInterface,
-} from '../types';
+import { getTokenDivisor } from '../helpers';
+import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
 
 /**
  * A service class for initializing Liquidity Bootstrapping Pools (LBPs).
@@ -153,40 +147,15 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     }
   }
 
-  public async getPoolData(poolPda: PublicKey, network: WalletAdapterNetwork): Promise<GetPoolDataResponse> {
-    const solanaNetwork = anchor.web3.clusterApiUrl(network);
-    const connection = new anchor.web3.Connection(solanaNetwork);
-
+  /**
+   * Fetches the data associated with a liquidity bootstrapping pool.
+   * @param poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @returns {Promise<LiquidityBootstrappingPool>} A promise resolving to the fetched pool data object.
+   * @throws {Error} If there's an error during the pool data retrieval process.
+   */
+  public async getPoolData(poolPda: PublicKey) {
     try {
-      const poolData = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-
-      const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
-      const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
-
-      const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-      const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-      const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / shareTokenDivisor;
-      const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
-
-      const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
-      const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
-
-      return {
-        ...poolData,
-        assetToken: poolData.assetToken.toBase58(),
-        creator: poolData.creator.toBase58(),
-        shareToken: poolData.shareToken.toBase58(),
-        maxSharesOut: formattedMaxSharesOut,
-        maxSharePrice: poolData.maxSharePrice.toString(),
-        maxAssetsIn: formattedMaxAssetsIn,
-        saleEndTime: formattedSaleEndTime,
-        saleStartTime: formattedSaleStartTime,
-        vestCliff: poolData.vestCliff.toString(),
-        vestEnd: poolData.vestEnd.toString(),
-        virtualAssets: poolData.virtualAssets.toString(),
-        virtualShares: poolData.virtualShares.toString(),
-      };
+      return await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
     } catch (error: any) {
       console.error('Error fetching pool data:', error);
       throw new Error('Error fetching pool data', error);

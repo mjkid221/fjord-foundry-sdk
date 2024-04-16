@@ -3,7 +3,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
-import { GetPoolDataResponse, InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
+import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 
 export interface PublicClientServiceInterface {
   /**
@@ -57,17 +57,4 @@ export interface LbpInitializationServiceInterface {
    * ```
    */
   initializePool({ keys, args }: InitializePoolParams): Promise<InitializePoolResponse>;
-
-  /**
-   * Retrieves the data and arguments associated with a liquidity bootstrapping pool.
-   *
-   * @param poolPda - The public key of the pool's Program Derived Address (PDA).
-   * @param network - The Solana network environment (e.g., 'devnet', 'mainnet-beta').
-   * @returns {Promise<GetPoolDataResponse>} A promise resolving to an object containing:
-   *   * Formatted pool data, with some values converted for front-end readability.
-   *   * Additional calculated values like token divisors.
-   *
-   * @throws {Error} If any network operations (e.g., fetching pool data or token supply) fail.
-   */
-  getPoolData(poolPda: PublicKey, network: WalletAdapterNetwork): Promise<GetPoolDataResponse>;
 }

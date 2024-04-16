@@ -201,6 +201,8 @@ export const createPool = async ({
   return transaction;
 };
 
+  const { connection } = useConnection()
+
   const wallet = useAnchorWallet();
 
   const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
@@ -223,6 +225,115 @@ export const createPool = async ({
   };
 
 ```
+
+## Read Methods Solana
+
+### Retrieve All Pool Data
+
+#### `async retrievePoolData({ poolPda, programId, provider, connection, }: RetrievePoolDataParams): Promise<GetPoolDataResponse>`
+
+This method fetches data associated with a liquidity bootstrapping pool (LBP) and formats it for front-end rendering.
+
+**Parameters**
+
+- `poolDataParams` (RetrievePoolDataParams): An object containing:
+  - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
+  - `programId` (PublicKey): The PublicKey of your Solana program.
+  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+  - `connection` (Connection): An established Solana connection object.
+
+**Returns**
+
+`Promise<GetPoolDataResponse>`: A promise resolving to a `GetPoolDataResponse` object. This object contains the fetched and formatted pool data.
+
+**Example**
+
+```ts
+import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { AnchorProvider } from '@project-serum/anchor';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+
+const { connection } = useConnection()
+const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+
+const { data } = useQuery({
+  queryKey: ['pool-args'],
+  queryFn: async () => {
+    const poolArgs: GetPoolArgs = { 
+      poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
+      provider, 
+      connection 
+    }; 
+    return await sdkClient.retrievePoolData(poolArgs);
+  },
+  enabled: !!poolAddress, // Ensure poolAddress exists
+});
+
+```
+
+### Retrieve Specific Pool Data Value
+
+#### `async retrieveSinglePoolDataValue({ poolPda, programId, provider, connection, valueKey }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean>`
+
+This method retrieves a specific piece of data associated with a liquidity bootstrapping pool (LBP).
+
+**Parameters**
+
+- `poolDataParams` (RetrieveSinglePoolDataValueParams): An object containing:
+  - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
+  - `programId` (PublicKey): The PublicKey of your Solana program.
+  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+  - `connection` (Connection): An established Solana connection object.
+  - `valueKey` (PoolDataValueKey): A member of the `PoolDataValueKey` enum, indicating the specific data value to retrieve.
+
+**Returns**
+
+`Promise<string | number | number[] | boolean>`: A promise resolving to the requested pool data value. The return type varies based on the selected `valueKey`:
+
+- **Strings:** Used for values like the asset token address (base58 format).
+- **Numbers:** Used for values like weights, timestamps converted from epoch, etc.
+- **Number Arrays:** Potentially used for values like Merkle roots.
+- **Booleans:** Used for simple true/false flags.
+
+**Example**
+
+```ts
+import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { AnchorProvider } from '@project-serum/anchor';
+import { WalletAdapterNetwork, PoolDataValueKey } from '@solana/wallet-adapter-base';
+
+const { connection } = useConnection();
+const wallet = useWallet();
+const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+
+const { data } = useQuery({
+  queryKey: ['pool-args'],
+  queryFn: async () => {
+    const poolArgs: RetrieveSinglePoolDataValueParams = { 
+      poolPda: new PublicKey(poolAddress),
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS),
+      provider, 
+      connection,
+      valueKey: PoolDataValueKey.SaleStartTime 
+    }; 
+
+    const saleStartTime =  await sdkClient.retrieveSinglePoolDataValue(poolArgs);
+    return saleStartTime;
+  },
+  enabled: !!poolAddress, // Ensure poolAddress exists
+});
+
+```
+
+**Important Notes:**
+
+- **`PoolDataValueKey` Enum:** Ensure that the `PoolDataValueKey` enum contains all the possible data values that can be retrieved from an LBP pool.
+- **Error Handling:**  The `default` case in the `switch` statement throws an error for invalid `valueKey` values.
 
 ## Read Methods EVM
 
