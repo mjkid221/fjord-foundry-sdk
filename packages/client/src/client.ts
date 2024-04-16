@@ -5,7 +5,7 @@ import { ReadFunction } from './enums';
 import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
 import {
   ClientSdkInterface,
-  ClientService,
+  ClientServiceInterface,
   CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
@@ -15,16 +15,16 @@ import {
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
-  private clientService: ClientService;
+  private clientService: ClientServiceInterface;
   private lbpInitializationService!: LbpInitializationService;
 
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientService) {
+  constructor(clientService: ClientServiceInterface) {
     this.clientService = clientService;
   }
 
   static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
-    let service: ClientService;
+    let service: ClientServiceInterface;
 
     if (useSolana) {
       if (!solanaNetwork) {
@@ -159,23 +159,4 @@ export class FjordClientSdk implements ClientSdkInterface {
       shareWeight: reservesAndWeightsArray[3],
     };
   }
-
-  // private static async initLbpInitializationService(client: FjordClientSdk) {
-  //   if (!client.clientService.getConnection || !client.clientService.getConnectedWallet) {
-  //     throw new Error('LbpInitializationService method not supported for this client');
-  //   }
-  //   const connection = client.clientService.getConnection();
-  //   const wallet = await client.clientService.getConnectedWallet();
-  //   if (!wallet) {
-  //     throw new Error('Wallet not connected');
-  //   }
-
-  //   const programId = Keypair.generate().publicKey; //TODO: Use the actual program ID
-
-  //   client.lbpInitializationService = await LbpInitializationService.create(
-  //     connection,
-  //     wallet as any as Wallet,
-  //     programId,
-  //   );
-  // }
 }

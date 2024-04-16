@@ -21,8 +21,6 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    */
   constructor(programId: PublicKey, provider: anchor.AnchorProvider) {
-    // const keypair = Keypair.generate();
-    // const wallet = new Wallet(keypair);
     this.provider = provider;
     this.programId = programId;
   }
