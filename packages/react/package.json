@@ -4,7 +4,7 @@
   "description": "Fjord Foundry Solana SDK react",
   "author": "Simon Tanna <92503409+simon-tanna@users.noreply.github.com>",
   "keywords": [],
-  "license": "ISC",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "directory": "packages/react",
