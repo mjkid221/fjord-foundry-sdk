@@ -1,6 +1,4 @@
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
@@ -19,26 +17,6 @@ export interface SolanaConnectionServiceInterface {
    * @returns {Connection} - The Solana connection object.
    */
   getConnection?(): Connection;
-
-  /**
-   * Gets the connected wallet.
-   * @returns {PhantomWalletAdapter | null} - The connected wallet, or null if no wallet is connected.
-   */
-  getConnectedWallet?(): Promise<PhantomWalletAdapter | null>;
-
-  /**
-   * Connects the wallet to the specified network.
-   * @param {WalletAdapterNetwork} network - The network to connect to.
-   * @returns {Promise<PublicKey | null>} - A promise that resolves with the public key of the connected wallet, or null if connection fails.
-   */
-  connectWallet?(network: WalletAdapterNetwork): Promise<PublicKey | null>;
-
-  /**
-   * Signs a transaction using the connected wallet.
-   * @param {Transaction} transaction - The transaction to be signed.
-   * @returns {Promise<Transaction | null>} - A promise that resolves with the signed transaction, or null if signing fails.
-   */
-  signTransaction?(transaction: Transaction): Promise<Transaction | null>;
 }
 
 export interface ClientServiceInterface extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}

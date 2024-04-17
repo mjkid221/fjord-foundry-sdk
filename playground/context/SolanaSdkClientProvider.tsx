@@ -23,9 +23,27 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
   const wallet = useAnchorWallet();
 
   useEffect(() => {
-    if (!connection || !wallet) {
+    if (!connection) {
       return;
     }
+
+    const initialize = async () => {
+      try {
+        const client = await createSolanaSdkClient();
+
+        setSdkClient(client);
+      } catch (error) {
+        console.error('Error initializing Solana SDK:', error);
+      }
+    };
+    initialize();
+  }, [connection, createSolanaSdkClient]);
+
+  useEffect(() => {
+    if (!wallet) {
+      return;
+    }
+
     const getAnchorProvider = async () => {
       if (!connection || !wallet) {
         throw new Error('Wallet not connected');
@@ -33,18 +51,15 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
 
       return new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
     };
+
     const initialize = async () => {
-      try {
-        const client = await createSolanaSdkClient();
-        const anchorProvider = await getAnchorProvider();
-        setSdkClient(client);
-        setProvider(anchorProvider);
-      } catch (error) {
-        console.error('Error initializing Solana SDK:', error);
-      }
+      const anchorProvider = await getAnchorProvider();
+
+      setProvider(anchorProvider);
     };
+
     initialize();
-  }, [connection, createSolanaSdkClient, wallet]);
+  }, [connection, wallet]);
 
   const values: SolanaSdkClientContext = useMemo(() => {
     return {

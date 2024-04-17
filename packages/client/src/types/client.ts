@@ -1,5 +1,4 @@
-import { AnchorProvider } from '@project-serum/anchor';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
 import { PoolDataValueKey } from '../enums';
@@ -58,8 +57,8 @@ export type GetReservesAndWeightsResponse = z.infer<typeof getReservesAndWeights
 export interface RetrievePoolDataParams {
   poolPda: PublicKey;
   programId: PublicKey;
-  provider: AnchorProvider;
-  connection: Connection;
+  // provider: AnchorProvider;
+  // connection: Connection;
 }
 
 export interface RetrieveSinglePoolDataValueParams extends RetrievePoolDataParams {

@@ -5,9 +5,9 @@ import { GetPoolArgs } from '@/types';
 export const getPoolArgs = async ({
   poolPda,
   programId,
-  provider,
+  // provider,
   sdkClient,
-  connection,
+  // connection,
 }: GetPoolArgs): Promise<GetPoolDataResponse> => {
-  return await sdkClient.retrievePoolData({ poolPda, programId, provider, connection });
+  return await sdkClient.retrievePoolData({ poolPda, programId });
 };

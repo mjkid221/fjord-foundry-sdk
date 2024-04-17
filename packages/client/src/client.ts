@@ -1,9 +1,10 @@
+import * as anchor from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 import { PoolDataValueKey, ReadFunction } from './enums';
 import { getTokenDivisor, formatEpochDate } from './helpers';
-import { LbpInitializationService, PublicClientService, SolanaConnectionService } from './services';
+import { LbpInitializationService, Logger, LoggerLike, PublicClientService, SolanaConnectionService } from './services';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
@@ -21,15 +22,21 @@ import {
 
 export class FjordClientSdk implements ClientSdkInterface {
   private clientService: ClientServiceInterface;
+
   private lbpInitializationService!: LbpInitializationService;
+
   private isSolana: boolean;
+
   private solanaNetwork: WalletAdapterNetwork | undefined = undefined;
+
+  private logger: LoggerLike;
 
   // Expect an object that implements the ClientService interface
   constructor(clientService: ClientServiceInterface, isSolana: boolean, network?: WalletAdapterNetwork) {
     this.clientService = clientService;
     this.isSolana = isSolana;
     this.solanaNetwork = network ?? undefined;
+    this.logger = Logger('SolanaSdkClient', true);
   }
 
   static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
@@ -41,10 +48,12 @@ export class FjordClientSdk implements ClientSdkInterface {
       }
       service = await SolanaConnectionService.create(solanaNetwork);
       const client = new FjordClientSdk(service, useSolana, solanaNetwork);
+      client.logger.debug('SolanaSdkClient initialized');
       return client;
     }
     service = await PublicClientService.create();
     const client = new FjordClientSdk(service, useSolana);
+    client.logger.debug('SolanaSdkClient initialized');
     return client;
   }
 
@@ -55,30 +64,39 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
   }: CreatePoolClientParams): Promise<InitializePoolResponse> {
     if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
+    // Create a new instance of the LbpInitializationService
     this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
+
     // Call the initializePool method from the LbpInitializationService
     const transaction = await this.lbpInitializationService.initializePool({ keys, args });
 
     return transaction;
   }
 
-  public async retrievePoolData({
-    poolPda,
-    programId,
-    provider,
-    connection,
-  }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
+  public async retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
     // Client and service validation
-    if (!this.isSolana || !this.solanaNetwork) {
+    if (!this.isSolana || !this.solanaNetwork || !this.clientService.getConnection) {
+      this.logger.error('LbpInitializationService method not supported for this client');
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    if (!this.lbpInitializationService) {
-      this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
-    }
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    // Create a new instance of the LbpInitializationService
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
 
     // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
@@ -117,18 +135,27 @@ export class FjordClientSdk implements ClientSdkInterface {
   public async retrieveSinglePoolDataValue({
     poolPda,
     programId,
-    provider,
-    connection,
     valueKey,
   }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean> {
     // Client and service validation
-    if (!this.isSolana || !this.solanaNetwork) {
+    if (!this.isSolana || !this.solanaNetwork || !this.clientService.getConnection) {
+      this.logger.error('LbpInitializationService method not supported for this client');
       throw new Error('LbpInitializationService method not supported for this client');
     }
 
-    if (!this.lbpInitializationService) {
-      this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
-    }
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    // Create a new instance of the LbpInitializationService
+    this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
 
     // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
