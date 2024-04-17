@@ -282,7 +282,7 @@ This method retrieves a specific piece of data associated with a liquidity boots
 - `poolDataParams` (RetrieveSinglePoolDataValueParams): An object containing:
   - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
   - `programId` (PublicKey): The PublicKey of your Solana program.
-  - `valueKey` (PoolDataValueKey): A member of the `PoolDataValueKey` enum, indicating the specific data value to retrieve.
+  - `valueKey` (PoolDataValueKey): A member of the [PoolDataValueKey](#pooldatavaluekey) enum, indicating the specific data value to retrieve.
 
 **Returns**
 
