@@ -3,12 +3,7 @@ import { AnchorProvider, BN } from '@project-serum/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
-import {
-  PERCENTAGE_BASIS_POINTS,
-  // DEFAULT_SALE_START_TIME_BN,
-  // DEFAULT_SALE_END_TIME_BN,
-  INITIALIZE_LBP_ADDRESS,
-} from '@/constants';
+import { PERCENTAGE_BASIS_POINTS, INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { initializePoolArgsSchema } from '@/types';
 
 type CreatePoolParams = {

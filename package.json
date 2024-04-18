@@ -2,7 +2,7 @@
   "name": "fjord-foundry-solana-sdk",
   "description": "Fjord Foundry Solana SDK for JavaScript",
   "private": true,
-  "author": "Labrys <simon@labrys.io (https://www.labrys.io/)",
+  "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --quiet '**/*.{ts,tsx,js,cjs,mjs,jsx}'",

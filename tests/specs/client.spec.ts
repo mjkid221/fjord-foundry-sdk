@@ -11,10 +11,21 @@ import { PublicKey } from '@solana/web3.js';
 
 import { abi } from '../mocks/abi';
 
+/**
+ * This is a contract address from an actual contract deployed on the Ethereum network.
+ * @see https://etherscan.io/address/0xC17374e2C8FebaBf509F2671F5fB8Aaac3236031
+ */
 const contractAddress = '0xC17374e2C8FebaBf509F2671F5fB8Aaac3236031';
+
 const tooLongContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBdbbbbbb';
 const incorrectContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBa';
 
+/**
+ * These are the actual addresses of a created pool and program on the Solana network devnet.
+ * **Note** These addresses should be updated when new deployments of the program are made.
+ * @see https://explorer.solana.com/address/4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF?cluster=devnet
+ * @see https://explorer.solana.com/address/AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm?cluster=devnet
+ */
 const solanaPoolPda = new PublicKey('4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF');
 const programAddress = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
 
