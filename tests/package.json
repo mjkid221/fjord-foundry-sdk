@@ -1,9 +1,9 @@
 {
   "name": "@fjord-foundry/solana-sdk-tests",
-  "version": "1.1.0-rc.2",
+  "version": "1.1.0-rc.3",
   "description": "Fjord Foundry Solana SDK tests",
   "dependencies": {
-    "@fjord-foundry/solana-sdk-client": "1.1.0-rc.2",
+    "@fjord-foundry/solana-sdk-client": "1.1.0-rc.3",
     "@types/jest": "^29.5.11",
     "date-fns": "^3.6.0",
     "jest": "^29.7.0",

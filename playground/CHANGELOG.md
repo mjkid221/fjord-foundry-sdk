@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0-rc.3](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.2...v1.1.0-rc.3) (2024-04-18)
+
+### Miscellaneous Chores
+
+- remove dead code ([33aa1a6](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/33aa1a6a3956feba58e6f0f5923812d054b4542e))
+
 ## [1.1.0-rc.2](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.1...v1.1.0-rc.2) (2024-04-17)
 
 **Note:** Version bump only for package playground
