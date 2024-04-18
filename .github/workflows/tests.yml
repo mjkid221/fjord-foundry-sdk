@@ -1,12 +1,15 @@
-name: eslint
-on: [push]
+name: 'Tests'
+
+on:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  eslint:
+  tests:
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
-      - name: 🏗 Checkout Repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           submodules: 'true'
 
@@ -24,3 +27,12 @@ jobs:
 
       - name: Check code style
         run: npm run lint
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Check types
+        run: npm run check-types:ci
+
+      - name: Run integration tests
+        run: npm run test:ci

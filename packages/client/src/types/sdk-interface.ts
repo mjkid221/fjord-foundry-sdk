@@ -44,8 +44,6 @@ export interface ClientSdkInterfaceSolana {
    * @param {RetrievePoolDataParams} params
    *  * **poolPda:** The public key of the pool's Program Derived Address (PDA).
    *  * **programId:** The program ID associated with the pool.
-   *  * **provider:** An Anchor Provider object for interacting with the Solana network.
-   *  * **connection:** An established Solana connection object.
    *
    * @returns {Promise<GetPoolDataResponse>} A promise resolving to an object containing:
    *  * Formatted pool data, with some values converted for front-end readability.
@@ -55,7 +53,7 @@ export interface ClientSdkInterfaceSolana {
    *  * This method is called on a client that doesn't support Solana.
    *  * No `lbpInitializationService` instance exists (handles internal initialization if needed).
    */
-  retrievePoolData({ poolPda, programId, provider, connection }: RetrievePoolDataParams): Promise<GetPoolDataResponse>;
+  retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse>;
 
   /**
    * Retrieves a specific data value from a liquidity bootstrapping pool.
@@ -63,8 +61,6 @@ export interface ClientSdkInterfaceSolana {
    * @param {RetrieveSinglePoolDataValueParams} params
    *   * **poolPda:** The public key of the pool's Program Derived Address (PDA).
    *   * **programId:** The program ID associated with the pool.
-   *   * **provider:** An Anchor Provider object for interacting with the Solana network.
-   *   * **connection:** An established Solana connection object.
    *   * **valueKey:** A `PoolDataValueKey` enum member specifying the data value to retrieve.
    *
    * @returns {string | number | number[] | boolean} The requested pool data value, formatted if necessary.
@@ -77,8 +73,6 @@ export interface ClientSdkInterfaceSolana {
   retrieveSinglePoolDataValue({
     poolPda,
     programId,
-    provider,
-    connection,
     valueKey,
   }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean>;
 

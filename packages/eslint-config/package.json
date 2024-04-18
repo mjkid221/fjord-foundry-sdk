@@ -1,10 +1,9 @@
 {
   "name": "@fjord-foundry/solana-sdk-eslint-config",
-  "version": "0.0.0",
+  "version": "1.1.0-rc.3",
   "private": true,
-  "keywords": [],
-  "author": "Simon Tanna <92503409+simon-tanna@users.noreply.github.com>",
-  "license": "ISC",
+  "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
+  "license": "Apache-2.0",
   "main": "index.js",
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^6.16.0",

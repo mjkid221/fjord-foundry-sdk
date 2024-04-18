@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { Connection, PublicKey, Transaction, clusterApiUrl } from '@solana/web3.js';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 import { SolanaConnectionServiceInterface } from '../types';
 
@@ -35,47 +35,5 @@ export class SolanaConnectionService implements SolanaConnectionServiceInterface
 
   public getConnection(): Connection {
     return this.connection;
-  }
-
-  public async getConnectedWallet(): Promise<PhantomWalletAdapter | null> {
-    if (!this.wallet) {
-      this.connectWallet;
-    }
-    return this.wallet;
-  }
-
-  public async connectWallet(): Promise<PublicKey | null> {
-    if (!this.wallet) {
-      // Initialize wallet instance if not already initialized
-      this.wallet = new PhantomWalletAdapter({ network: this.network });
-      console.log('wallet', this.wallet);
-    }
-
-    // Attempt wallet connection
-    try {
-      await this.wallet.connect();
-      this.publicKey = this.wallet.publicKey; // Cache public key
-      console.log('Connected wallet:', this.publicKey?.toBase58());
-      return this.publicKey;
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      return null;
-    }
-  }
-
-  public async signTransaction(transaction: Transaction): Promise<Transaction | null> {
-    // Ensure wallet is connected before signing
-    if (!this.wallet?.connected) {
-      console.error('Wallet is not connected.');
-      return null;
-    }
-
-    // Sign the transaction
-    try {
-      return await this.wallet.signTransaction(transaction);
-    } catch (error) {
-      console.error('Failed to sign transaction:', error);
-      throw error;
-    }
   }
 }

@@ -1,0 +1,11 @@
+{
+  "name": "@fjord-foundry/media-sdk-changelog-preset",
+  "version": "1.1.0-rc.3",
+  "private": true,
+  "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
+  "license": "Apache-2.0",
+  "main": "./index.js",
+  "dependencies": {
+    "conventional-changelog-conventionalcommits": "^7.0.2"
+  }
+}

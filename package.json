@@ -2,10 +2,8 @@
   "name": "fjord-foundry-solana-sdk",
   "description": "Fjord Foundry Solana SDK for JavaScript",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Labrys-Group/fjord-foundry-sdk.git"
-  },
+  "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
+  "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --quiet '**/*.{ts,tsx,js,cjs,mjs,jsx}'",
     "lint:fix": "npm run lint -- --fix",
@@ -28,7 +26,7 @@
     "playground": "lerna run playground"
   },
   "dependencies": {
-    "@types/node": "^18.17.1",
+    "@types/node": "^18.19.1",
     "clean-publish": "^4.2.0",
     "eslint": "^8.54.0",
     "lerna": "^8.1.2",
@@ -40,6 +38,16 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "wait-port": "^1.1.0"
+  },
+  "peerDependencies": {
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0"
+  },
+  "optionalDependencies": {
+    "@nx/nx-darwin-arm64": "18.0.4",
+    "@nx/nx-darwin-x64": "18.0.4",
+    "@nx/nx-linux-x64-gnu": "18.0.4",
+    "@nx/nx-win32-x64-msvc": "18.0.4"
   },
   "workspaces": {
     "packages": [

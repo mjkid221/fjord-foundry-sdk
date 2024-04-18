@@ -1,5 +1,4 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
 import { useContext } from 'react';
@@ -12,18 +11,16 @@ import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 const PoolArgs = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
-  const { connection } = useConnection();
-
-  const { provider, sdkClient } = useContext(SolanaSdkClientContext);
+  const { sdkClient } = useContext(SolanaSdkClientContext);
 
   const { data } = useQuery({
     queryKey: ['pool-args'],
     queryFn: async () => {
-      if (!provider || !sdkClient) throw new Error('Provider not found');
+      if (!sdkClient) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
       const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
-      const data = await getPoolArgs({ poolPda, programId: programAddressPublicKey, provider, sdkClient, connection });
+      const data = await getPoolArgs({ poolPda, programId: programAddressPublicKey, sdkClient });
       return data;
     },
     enabled: poolAddress !== '' && !!poolAddress,

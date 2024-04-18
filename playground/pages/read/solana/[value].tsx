@@ -1,6 +1,5 @@
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { Typography } from '@mui/material';
-import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -15,23 +14,19 @@ const SinglePoolDataValue = () => {
   const { query } = useRouter();
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
-  const { connection } = useConnection();
-
-  const { provider, sdkClient } = useContext(SolanaSdkClientContext);
+  const { sdkClient } = useContext(SolanaSdkClientContext);
 
   const { data } = useQuery({
     queryKey: [`${[query.value]}`],
     queryFn: async () => {
-      if (!provider || !sdkClient) throw new Error('Provider not found');
+      if (!sdkClient) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
       const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
         programId: programAddressPublicKey,
-        provider,
         sdkClient,
-        connection,
         valueKey: query.value as PoolDataValueKey,
       });
       return data;

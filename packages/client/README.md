@@ -11,6 +11,9 @@
 - [API](#api)
   - [Write Methods Solana](#write-methods-solana)
     - [Initialize Liquidity Bootstrap Pool](#initialize-liquidity-bootstrap-pool)
+  - [Read Methods Solana](#read-methods-solana)
+    - [Retrieve All Pool Data](#retrieve-all-pool-data)
+    - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
   - [Read Methods EVM](#read-methods-evm)
     - [getContractArgs](#get-contract-arguments)
     - [getContractManagerAddress](#get-contract-manager-address)
@@ -21,12 +24,14 @@
     - [getVestingState](#get-vesting-state)
     - [getTotalSharesPurchased](#get-total-shares-purchased)
     - [getReservesAndWeights](#get-reserves-and-weights)
+- [Enums](#enums)
+  -[PoolDataValueKey](#pooldatavaluekey)
 - [Features](#features)
 - [License](#license)
 
 ## Description
 
-TODO: Fill in description here
+TODO: Fill in description here.
 
 ## Installation
 
@@ -230,7 +235,7 @@ export const createPool = async ({
 
 ### Retrieve All Pool Data
 
-#### `async retrievePoolData({ poolPda, programId, provider, connection, }: RetrievePoolDataParams): Promise<GetPoolDataResponse>`
+#### `async retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse>`
 
 This method fetches data associated with a liquidity bootstrapping pool (LBP) and formats it for front-end rendering.
 
@@ -239,8 +244,6 @@ This method fetches data associated with a liquidity bootstrapping pool (LBP) an
 - `poolDataParams` (RetrievePoolDataParams): An object containing:
   - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
   - `programId` (PublicKey): The PublicKey of your Solana program.
-  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
-  - `connection` (Connection): An established Solana connection object.
 
 **Returns**
 
@@ -249,14 +252,10 @@ This method fetches data associated with a liquidity bootstrapping pool (LBP) an
 **Example**
 
 ```ts
-import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const { connection } = useConnection()
 const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
-const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 
 const { data } = useQuery({
   queryKey: ['pool-args'],
@@ -264,8 +263,6 @@ const { data } = useQuery({
     const poolArgs: GetPoolArgs = { 
       poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
       programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
-      provider, 
-      connection 
     }; 
     return await sdkClient.retrievePoolData(poolArgs);
   },
@@ -285,9 +282,7 @@ This method retrieves a specific piece of data associated with a liquidity boots
 - `poolDataParams` (RetrieveSinglePoolDataValueParams): An object containing:
   - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
   - `programId` (PublicKey): The PublicKey of your Solana program.
-  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
-  - `connection` (Connection): An established Solana connection object.
-  - `valueKey` (PoolDataValueKey): A member of the `PoolDataValueKey` enum, indicating the specific data value to retrieve.
+  - `valueKey` (PoolDataValueKey): A member of the [PoolDataValueKey](#pooldatavaluekey) enum, indicating the specific data value to retrieve.
 
 **Returns**
 
@@ -301,25 +296,18 @@ This method retrieves a specific piece of data associated with a liquidity boots
 **Example**
 
 ```ts
-import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
-import { WalletAdapterNetwork, PoolDataValueKey } from '@solana/wallet-adapter-base';
+import { FjordClientSdk, PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const { connection } = useConnection();
-const wallet = useWallet();
 const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
-const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 
 const { data } = useQuery({
   queryKey: ['pool-args'],
   queryFn: async () => {
     const poolArgs: RetrieveSinglePoolDataValueParams = { 
-      poolPda: new PublicKey(poolAddress),
-      programId: new PublicKey(INITIALIZE_LBP_ADDRESS),
-      provider, 
-      connection,
-      valueKey: PoolDataValueKey.SaleStartTime 
+      poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
+      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
+      valueKey: PoolDataValueKey.SaleStartTime // This is the key that will query the program value.
     }; 
 
     const saleStartTime =  await sdkClient.retrieveSinglePoolDataValue(poolArgs);
@@ -403,6 +391,29 @@ All read methods require the following arguments:
 
 - Retrieves the reserves and weights for a given LBP.
 - **Returns:** Object containing the reserves and weights details.
+
+## Enums
+
+### PoolDataValueKey
+
+Defines keys used to access specific data within an LBP.
+
+- **AssetToken**: Key for the asset token mint.
+- **Creator**: Key for the address of the pool's creator.
+- **EndWeightBasisPoints**: Key for the pool's ending weight (in basis points).
+- **MaxAssetsIn**: Key for the maximum amount of assets allowed into the pool.
+- **MaxSharePrice**: Key for the maximum price per share.
+- **MaxSharesOut**: Key for the maximum amount of shares that can be issued.
+- **SaleEndTime**: Key for the pool's sale end time.
+- **SaleStartTime**: Key for the pool's sale start time.
+- **SellingAllowed**: Key indicating whether selling assets is currently permitted.
+- **ShareToken**: Key for the share token mint.
+- **StartWeightBasisPoints**: Key for the pool's starting weight (in basis points).
+- **VestCliff**: Key for the vesting cliff timestamp (if applicable).
+- **VestEnd**: Key for the vesting end timestamp (if applicable).
+- **VirtualAssets**: Key for the amount of virtual assets (if applicable).
+- **VirtualShares**: Key for the number of virtual shares (if applicable).
+- **WhitelistMerkleRoot**: Key for the Merkle root used for whitelist-based access control (if applicable).
 
 ## Features
 

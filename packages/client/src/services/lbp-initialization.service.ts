@@ -8,20 +8,28 @@ import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
 
+import { Logger, LoggerLike } from './logger.service';
+
 /**
  * A service class for initializing Liquidity Bootstrapping Pools (LBPs).
  * This service interacts with the Solana blockchain using Anchor framework.
  */
 export class LbpInitializationService implements LbpInitializationServiceInterface {
   private provider: anchor.Provider;
+
   private programId: PublicKey;
+
   private program: anchor.Program<FjordLbp>;
+
   private network: WalletAdapterNetwork;
+
+  private logger: LoggerLike;
 
   /**
    * Creates an instance of LbpInitializationService.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @param {anchor.AnchorProvider} provider - The Anchor provider object.
+   * @param {WalletAdapterNetwork} network - The Solana network to interact with.
    *
    * @constructor
    * @returns {LbpInitializationService} - An instance of LbpInitializationService.
@@ -31,6 +39,8 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     this.programId = programId;
     this.program = new anchor.Program(INITIALIZE_LBP_IDL, programId, provider);
     this.network = network;
+    this.logger = Logger('LbpInitializationService', true);
+    this.logger.debug('LbpInitializationService initialized');
   }
 
   /**
@@ -50,9 +60,11 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
   }
 
   public async initializePool({ keys, args }: InitializePoolParams): Promise<InitializePoolResponse> {
+    // Fetch the Solana network URL based on the provided network.
     const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
     const connection = new anchor.web3.Connection(solanaNetwork);
 
+    // Destructure the provided keys and arguments.
     const { creator, shareTokenMint, assetTokenMint } = keys;
 
     const {
@@ -139,10 +151,12 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
         .accounts(accounts)
         .instruction();
 
+      this.logger.debug('Pool initialized successfully');
+      this.logger.info(`New pool PDA: ${poolPda.toBase58()}`);
       // Return the transaction instruction and pool PDA.
       return { transactionInstruction, poolPda };
     } catch (error: any) {
-      console.error('Error initializing pool:', error);
+      this.logger.error('Error initializing pool:', error);
       throw new Error('Error initializing pool', error);
     }
   }
@@ -157,7 +171,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     try {
       return await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
     } catch (error: any) {
-      console.error('Error fetching pool data:', error);
+      this.logger.error('Error fetching pool data:', error);
       throw new Error('Error fetching pool data', error);
     }
   }

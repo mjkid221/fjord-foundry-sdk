@@ -1,4 +1,18 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "0.0.0"
+  "version": "1.1.0-rc.3",
+  "command": {
+    "publish": {
+      "directory": "{workspaceRoot}/{projectRoot}/package"
+    },
+    "version": {
+      "exact": true,
+      "forcePublish": true,
+      "preid": "rc",
+      "changelog": true,
+      "conventionalCommits": true,
+      "changelogPreset": "@fjord-foundry/media-sdk-changelog-preset",
+      "message": "Release %s"
+    }
+  }
 }
