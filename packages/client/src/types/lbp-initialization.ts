@@ -17,6 +17,39 @@ export type InitializePoolPublicKeys = {
 };
 
 /**
+ * Defines the public keys required for performing a buy or sell operation.
+ *
+ * @property {PublicKey} userPublicKey - The public key of the wallet performing the swap.
+ * @property {PublicKey} creator - The public key of the wallet that created the pool.
+ * @property {PublicKey} [referrer] - (Optional) The public key of the referrer (if applicable).
+ * @property {PublicKey} shareTokenMint - The public key of the mint for the pool's share tokens.
+ * @property {PublicKey} assetTokenMint - The public key of the mint for the pool's underlying asset.
+ */
+export type BuySellOperationPublicKeys = {
+  keys: {
+    userPublicKey: PublicKey;
+    creator: PublicKey;
+    referrer?: PublicKey;
+    shareTokenMint: PublicKey;
+    assetTokenMint: PublicKey;
+  };
+};
+
+export type BuyOperationArgs = {
+  args: {
+    poolPda: PublicKey;
+    sharesAmountOut: number;
+  };
+};
+
+export interface BuyOperationParams extends BuySellOperationPublicKeys, BuyOperationArgs {}
+
+export interface CreateBuyInstructionClientParams extends BuyOperationParams {
+  programId: PublicKey;
+  provider: AnchorProvider;
+}
+
+/**
  * Defines the configuration parameters for initializing a new LBP pool.
  *
  * @property {BN} assets - The amount of asset tokens to be deposited into the pool.
@@ -60,7 +93,7 @@ export type InitializePoolArgs = {
  */
 export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {}
 
-export interface CreatePoolClientParams extends InitializePoolPublicKeys, InitializePoolArgs {
+export interface CreatePoolClientParams extends InitializePoolParams {
   programId: PublicKey;
   provider: AnchorProvider;
 }

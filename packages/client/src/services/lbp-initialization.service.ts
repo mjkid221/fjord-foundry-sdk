@@ -4,7 +4,7 @@ import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
-import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
+import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
 
@@ -37,7 +37,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
   constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
     this.provider = provider;
     this.programId = programId;
-    this.program = new anchor.Program(INITIALIZE_LBP_IDL, programId, provider);
+    this.program = new anchor.Program(IDL, programId, provider);
     this.network = network;
     this.logger = Logger('LbpInitializationService', true);
     this.logger.debug('LbpInitializationService initialized');

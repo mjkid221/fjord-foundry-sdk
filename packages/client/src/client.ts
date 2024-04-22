@@ -4,7 +4,14 @@ import { Keypair, PublicKey } from '@solana/web3.js';
 
 import { PoolDataValueKey, ReadFunction } from './enums';
 import { getTokenDivisor, formatEpochDate } from './helpers';
-import { LbpInitializationService, Logger, LoggerLike, PublicClientService, SolanaConnectionService } from './services';
+import {
+  LbpInitializationService,
+  Logger,
+  LoggerLike,
+  PublicClientService,
+  SolanaConnectionService,
+  LbpBuyService,
+} from './services';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
@@ -18,12 +25,15 @@ import {
   ReadContractRequest,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
+  CreateBuyInstructionClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
   private clientService: ClientServiceInterface;
 
   private lbpInitializationService!: LbpInitializationService;
+
+  private lbpBuyService!: LbpBuyService;
 
   private isSolana: boolean;
 
@@ -73,6 +83,24 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     // Call the initializePool method from the LbpInitializationService
     const transaction = await this.lbpInitializationService.initializePool({ keys, args });
+
+    return transaction;
+  }
+
+  public async createSwapAssetsForExactSharesTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: CreateBuyInstructionClientParams): Promise<any> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpBuyService method not supported for this client');
+      throw new Error('LbpBuyService method not supported for this client');
+    }
+
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpBuyService.createSwapAssetsForExactSharesInstruction({ keys, args });
 
     return transaction;
   }
