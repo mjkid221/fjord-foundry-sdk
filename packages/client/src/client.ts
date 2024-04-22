@@ -25,7 +25,7 @@ import {
   ReadContractRequest,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
-  CreateBuyInstructionClientParams,
+  CreateBuyExactSharesInstructionClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -92,7 +92,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     programId,
     provider,
-  }: CreateBuyInstructionClientParams): Promise<any> {
+  }: CreateBuyExactSharesInstructionClientParams): Promise<any> {
     if (!this.isSolana || !this.solanaNetwork) {
       this.logger.error('LbpBuyService method not supported for this client');
       throw new Error('LbpBuyService method not supported for this client');

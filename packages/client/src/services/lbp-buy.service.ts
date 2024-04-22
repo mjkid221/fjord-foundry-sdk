@@ -6,11 +6,11 @@ import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
-import { BuyOperationParams } from '../types';
+import { BigNumber, BuyExactSharesOperationParams, LbpBuyServiceInterface } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
 
-export class LbpBuyService {
+export class LbpBuyService implements LbpBuyServiceInterface {
   private provider: anchor.Provider;
 
   private programId: PublicKey;
@@ -49,7 +49,7 @@ export class LbpBuyService {
   public async createSwapAssetsForExactSharesInstruction({
     keys,
     args,
-  }: BuyOperationParams): Promise<TransactionInstruction> {
+  }: BuyExactSharesOperationParams): Promise<TransactionInstruction> {
     // Fetch the Solana network URL based on the provided network.
     const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
     const connection = new anchor.web3.Connection(solanaNetwork);
@@ -96,7 +96,7 @@ export class LbpBuyService {
     this.logger.debug('sharesAmountOut', sharesAmountOut);
     this.logger.debug('shareTokenDivisor', shareTokenDivisor);
 
-    const formattedSharesAmountOut: anchor.BN = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
+    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
 
     this.logger.debug('Formatted shares amount out:', formattedSharesAmountOut.toString());
 
@@ -109,15 +109,9 @@ export class LbpBuyService {
 
     this.logger.debug('Pool state:', pool);
 
-    // Check that the shares amount out is less than or equal to the maximum shares out.
-    // if (formattedSharesAmountOut.gt(maxSharesOut)) {
-    //   this.logger.error('Invalid shares amount out - exceeds the maximum shares out.');
-    //   throw new Error('Invalid shares amount out - exceeds the maximum shares out.');
-    // }
-
     const mockSigner = Keypair.generate();
 
-    let expectedAssetsIn: anchor.BN;
+    let expectedAssetsIn: BigNumber;
 
     // Create the swap transaction preview.
     // Get expected shares out by reading a view function's emitted event.
@@ -136,7 +130,7 @@ export class LbpBuyService {
         })
         .signers([mockSigner])
         .simulate()
-        .then((data) => data.events[0].data.assetsIn as anchor.BN);
+        .then((data) => data.events[0].data.assetsIn as BigNumber);
     } catch (error: any) {
       this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
       throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
