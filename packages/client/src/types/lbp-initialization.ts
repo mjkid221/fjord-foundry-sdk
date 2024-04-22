@@ -37,6 +37,11 @@ export interface BuySellOperationPublicKeys {
   };
 }
 
+/**
+ * Arguments for a "buy exact shares" operation.
+ * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
+ * @property {BigNumber} sharesAmountOut - The desired quantity of shares to receive.
+ */
 export interface BuyExactSharesOperationArgs {
   args: {
     poolPda: PublicKey;
@@ -44,6 +49,11 @@ export interface BuyExactSharesOperationArgs {
   };
 }
 
+/**
+ * Arguments for a "buy shares with exact assets" operation.
+ * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
+ * @property {BigNumber} assetsAmountIn - The exact quantity of assets to use in the swap.
+ */
 export interface BuySharesWithExactAssetsOperationArgs {
   args: {
     poolPda: PublicKey;

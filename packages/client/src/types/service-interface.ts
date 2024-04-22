@@ -64,4 +64,32 @@ export interface LbpBuyServiceInterface {
     keys,
     args,
   }: BuyExactSharesOperationParams): Promise<TransactionInstruction>;
+
+  /**
+   * Asynchronously creates a Solana TransactionInstruction for a "swap exact assets for shares"
+   * operation within a liquidity pool. This instruction allows users to exchange a specified
+   * quantity of an asset for pool shares.
+   *
+   * @param {BuySharesWithExactAssetsOperationParams} params - Parameters for the swap operation:
+   * @param {Object} params.keys - Solana PublicKeys:
+   * @param {PublicKey} params.keys.userPublicKey - Public key of the user.
+   * @param {PublicKey} params.keys.creator - Public key of the pool creator.
+   * @param {PublicKey} params.keys.referrer - Public key of the referrer (optional).
+   * @param {PublicKey} params.keys.shareTokenMint - Mint of the pool's share tokens.
+   * @param {PublicKey} params.keys.assetTokenMint - Mint of the asset token accepted by the pool.
+   * @param {Object} params.args - Arguments for the swap operation:
+   * @param {PublicKey} params.args.poolPda - Program Derived Address (PDA) of the pool.
+   * @param {BigNumber} params.args.assetsAmountIn - Exact quantity of assets to use in the swap.
+   *
+   * @returns {Promise<TransactionInstruction>} - A Promise resolving to the swap TransactionInstruction.
+   *
+   * @throws {Error} - Throws an error if:
+   *   * The provided pool PDA doesn't match the calculated PDA based on mints and creator.
+   *   * The previewing of the swap transaction fails.
+   *   * The generation of the program instruction fails.
+   */
+  createSwapExactAssetsForSharesInstruction({
+    keys,
+    args,
+  }: BuySharesWithExactAssetsOperationParams): Promise<TransactionInstruction>;
 }
