@@ -1,7 +1,12 @@
 import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
-import { InitializePoolParams, InitializePoolResponse, BuyExactSharesOperationParams } from './lbp-initialization';
+import {
+  InitializePoolParams,
+  InitializePoolResponse,
+  BuyExactSharesOperationParams,
+  BuySharesWithExactAssetsOperationParams,
+} from './lbp-initialization';
 export interface PublicClientServiceInterface {
   /**
    * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.

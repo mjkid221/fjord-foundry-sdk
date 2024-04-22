@@ -3,7 +3,7 @@ import { SwapAssetsForSharesParams } from '@/types';
 import { BN } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 
-export const swapAssetsForExactShares = async ({
+export const swapExactAssetsForShares = async ({
   formData,
   connection,
   provider,
@@ -13,8 +13,8 @@ export const swapAssetsForExactShares = async ({
     throw new Error('Wallet not connected');
   }
 
-  if (!formData.args.sharesAmountOut) {
-    throw new Error('Shares amount out is required');
+  if (!formData.args.assetsAmountIn) {
+    throw new Error('Assets amount in is required');
   }
 
   // Get the program address
@@ -24,7 +24,7 @@ export const swapAssetsForExactShares = async ({
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
   const poolPda = new PublicKey(formData.args.poolPda);
-  const sharesAmountOut = new BN(formData.args.sharesAmountOut);
+  const assetsAmountIn = new BN(formData.args.assetsAmountIn);
 
   const keys = {
     userPublicKey,
@@ -33,14 +33,12 @@ export const swapAssetsForExactShares = async ({
     assetTokenMint,
   };
 
-  console.log('keys', keys.assetTokenMint.toString());
-
   const args = {
     poolPda,
-    sharesAmountOut,
+    assetsAmountIn,
   };
 
-  const transaction = await sdkClient.createSwapAssetsForExactSharesTransaction({
+  const transaction = await sdkClient.createSwapExactAssetsForSharesTransaction({
     programId: programAddressPublicKey,
     keys,
     args,

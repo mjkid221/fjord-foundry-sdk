@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import { PoolDataValueKey, ReadFunction } from './enums';
 import { getTokenDivisor, formatEpochDate } from './helpers';
@@ -26,6 +26,7 @@ import {
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
   CreateBuyExactSharesInstructionClientParams,
+  CreateBuySharesWithExactAssetsInstructionClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -92,7 +93,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     programId,
     provider,
-  }: CreateBuyExactSharesInstructionClientParams): Promise<any> {
+  }: CreateBuyExactSharesInstructionClientParams): Promise<TransactionInstruction> {
     if (!this.isSolana || !this.solanaNetwork) {
       this.logger.error('LbpBuyService method not supported for this client');
       throw new Error('LbpBuyService method not supported for this client');
@@ -101,6 +102,24 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
 
     const transaction = await this.lbpBuyService.createSwapAssetsForExactSharesInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  public async createSwapExactAssetsForSharesTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: CreateBuySharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpBuyService method not supported for this client');
+      throw new Error('LbpBuyService method not supported for this client');
+    }
+
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpBuyService.createSwapExactAssetsForSharesInstruction({ keys, args });
 
     return transaction;
   }

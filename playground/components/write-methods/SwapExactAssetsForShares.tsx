@@ -1,8 +1,7 @@
-// /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { signAndSendSwapTransaction } from '@/helpers';
-import { getPoolDataValue, swapAssetsForExactShares } from '@/helpers/pool-initialization';
+import { getPoolDataValue, swapExactAssetsForShares } from '@/helpers/pool-initialization';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { swapAssetsForSharesArgsSchema } from '@/types';
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
@@ -16,7 +15,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import WalletNotConnected from '../WalletNotConnected';
 
-const SwapAssetsForExactShares = () => {
+const SwapExactAssetsForShares = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
   const { sendTransaction } = useWallet();
@@ -72,7 +71,7 @@ const SwapAssetsForExactShares = () => {
   });
 
   const swapAssetsForExactSharesMutation = useMutation({
-    mutationFn: swapAssetsForExactShares,
+    mutationFn: swapExactAssetsForShares,
     onSuccess: async (data) => {
       const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
       console.log('Success', confirmation);
@@ -99,13 +98,14 @@ const SwapAssetsForExactShares = () => {
           <TextField label="user address" placeholder="user" {...register('args.userPublicKey', { required: true })} />
         </FormControl>
         <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="shares-to-buy">Quantity to buy</FormLabel>
+          <FormLabel htmlFor="assets-to-pay">Asset quantity to use to pay</FormLabel>
           <TextField
-            label="shares to buy"
-            placeholder="shares to buy"
-            {...register('args.sharesAmountOut', { required: true })}
+            label="assets to use"
+            placeholder="assets to pay with"
+            {...register('args.assetsAmountIn', { required: true })}
           />
         </FormControl>
+
         <Button variant="contained" type="submit" disabled={!wallet}>
           Submit
         </Button>
@@ -115,4 +115,4 @@ const SwapAssetsForExactShares = () => {
   );
 };
 
-export default SwapAssetsForExactShares;
+export default SwapExactAssetsForShares;

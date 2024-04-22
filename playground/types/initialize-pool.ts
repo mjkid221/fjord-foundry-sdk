@@ -1,4 +1,6 @@
-import { PublicKey } from '@solana/web3.js';
+import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { AnchorProvider } from '@project-serum/anchor';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
 export const swapAssetsForSharesArgsSchema = z.object({
@@ -54,7 +56,8 @@ export const swapAssetsForSharesArgsSchema = z.object({
       },
       { message: 'Pool must be a valid Solana public key' },
     ),
-    sharesAmountOut: z.string(),
+    sharesAmountOut: z.string().optional(),
+    assetsAmountIn: z.string().optional(),
   }),
 });
 
@@ -111,3 +114,10 @@ export const initializePoolArgsSchema = z.object({
 
 export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
 export interface SwapAssetsForSharesArgsType extends z.TypeOf<typeof swapAssetsForSharesArgsSchema> {}
+
+export type SwapAssetsForSharesParams = {
+  formData: z.infer<typeof swapAssetsForSharesArgsSchema>;
+  connection: Connection;
+  provider: AnchorProvider;
+  sdkClient: FjordClientSdk;
+};
