@@ -149,16 +149,21 @@ export interface InitializePoolResponse {
 
 export interface GetPoolDataResponse {
   assetToken: string;
+  closed: string;
   creator: string;
   endWeightBasisPoints: number;
-  maxAssetsIn: number;
+  maxAssetsIn: string;
   maxSharePrice: string;
-  maxSharesOut: number;
+  maxSharesOut: string;
   saleEndTime: string;
   saleStartTime: string;
   sellingAllowed: string;
   shareToken: string;
   startWeightBasisPoints: number;
+  totalPurchased: string;
+  totalReferred: string;
+  totalSwapFeesAsset: string;
+  totalSwapFeesShare: string;
   vestCliff: string;
   vestEnd: string;
   virtualAssets: string;

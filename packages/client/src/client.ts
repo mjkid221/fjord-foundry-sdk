@@ -148,6 +148,8 @@ export class FjordClientSdk implements ClientSdkInterface {
     // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
 
+    this.logger.debug('Pool data retrieved', poolData);
+
     // Format pool data
     const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
     const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
@@ -155,8 +157,8 @@ export class FjordClientSdk implements ClientSdkInterface {
     const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
     const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
 
-    const formattedMaxSharesOut = poolData.maxSharesOut.toNumber() / shareTokenDivisor;
-    const formattedMaxAssetsIn = poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
+    const formattedMaxSharesOut: string = poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
+    const formattedMaxAssetsIn: string = poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
 
     const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
     const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
@@ -165,12 +167,17 @@ export class FjordClientSdk implements ClientSdkInterface {
       ...poolData,
       assetToken: poolData.assetToken.toBase58(),
       creator: poolData.creator.toBase58(),
+      closed: poolData.closed.toString(),
       shareToken: poolData.shareToken.toBase58(),
       maxSharesOut: formattedMaxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
       maxAssetsIn: formattedMaxAssetsIn,
       saleEndTime: formattedSaleEndTime,
       saleStartTime: formattedSaleStartTime,
+      totalPurchased: poolData.totalPurchased.toString(),
+      totalReferred: poolData.totalReferred.toString(),
+      totalSwapFeesAsset: poolData.totalSwapFeesAsset.toString(),
+      totalSwapFeesShare: poolData.totalSwapFeesShare.toString(),
       vestCliff: poolData.vestCliff.toString(),
       vestEnd: poolData.vestEnd.toString(),
       virtualAssets: poolData.virtualAssets.toString(),
@@ -213,19 +220,21 @@ export class FjordClientSdk implements ClientSdkInterface {
         return poolData.assetToken.toBase58();
       case PoolDataValueKey.Creator:
         return poolData.creator.toBase58();
+      case PoolDataValueKey.Closed:
+        return poolData.closed.toString();
       case PoolDataValueKey.EndWeightBasisPoints:
         return poolData.endWeightBasisPoints;
       case PoolDataValueKey.MaxAssetsIn: {
         const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
         const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-        return poolData.maxAssetsIn.toNumber() / assetTokenDivisor;
+        return poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
       }
       case PoolDataValueKey.MaxSharePrice:
         return poolData.maxSharePrice.toString();
       case PoolDataValueKey.MaxSharesOut: {
         const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
         const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-        return poolData.maxSharesOut.toNumber() / shareTokenDivisor;
+        return poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
       }
       case PoolDataValueKey.SaleEndTime:
         return formatEpochDate(poolData.saleEndTime);
@@ -237,6 +246,14 @@ export class FjordClientSdk implements ClientSdkInterface {
         return poolData.shareToken.toBase58();
       case PoolDataValueKey.StartWeightBasisPoints:
         return poolData.startWeightBasisPoints;
+      case PoolDataValueKey.TotalPurchased:
+        return poolData.totalPurchased.toString();
+      case PoolDataValueKey.TotalReferred:
+        return poolData.totalReferred.toString();
+      case PoolDataValueKey.TotalSwapFeesAsset:
+        return poolData.totalSwapFeesAsset.toString();
+      case PoolDataValueKey.TotalSwapFeesShare:
+        return poolData.totalSwapFeesShare.toString();
       case PoolDataValueKey.VestCliff:
         return poolData.vestCliff.toString();
       case PoolDataValueKey.VestEnd:

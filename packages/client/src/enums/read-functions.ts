@@ -14,6 +14,7 @@ export enum ReadFunction {
 
 export enum PoolDataValueKey {
   AssetToken = 'assetToken',
+  Closed = 'closed',
   Creator = 'creator',
   EndWeightBasisPoints = 'endWeightBasisPoints',
   MaxAssetsIn = 'maxAssetsIn',
@@ -24,6 +25,10 @@ export enum PoolDataValueKey {
   SellingAllowed = 'sellingAllowed',
   ShareToken = 'shareToken',
   StartWeightBasisPoints = 'startWeightBasisPoints',
+  TotalPurchased = 'totalPurchased',
+  TotalReferred = 'totalReferred',
+  TotalSwapFeesAsset = 'totalSwapFeesAsset',
+  TotalSwapFeesShare = 'totalSwapFeesShare',
   VestCliff = 'vestCliff',
   VestEnd = 'vestEnd',
   VirtualAssets = 'virtualAssets',
