@@ -14,7 +14,7 @@ import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const BuyShares = () => {
+const SwapAssetsForExactShares = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
   const { sendTransaction } = useWallet();
@@ -140,4 +140,4 @@ const BuyShares = () => {
   );
 };
 
-export default BuyShares;
+export default SwapAssetsForExactShares;

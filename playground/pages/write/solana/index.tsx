@@ -6,6 +6,7 @@ const SolanaWrite = () => {
     <Container maxWidth="md" sx={{ paddingY: '30px' }}>
       <Stack>
         <Link href={`solana/create-pool`}>Create LBP</Link>
+        <Link href={'solana/buy/assets-for-exact-shares'}>Swap Assets For Exact Shares</Link>
       </Stack>
     </Container>
   );
