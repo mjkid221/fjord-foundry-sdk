@@ -74,6 +74,8 @@ const CreateLbp = () => {
     mutationFn: createPool,
     onSuccess: async (data) => {
       setPoolAddress(data.poolPda.toBase58());
+      console.log('Data', data);
+
       const confirmation = await signAndSendCreatePoolTransaction(data.transactionInstruction);
       console.log('Success', confirmation);
     },

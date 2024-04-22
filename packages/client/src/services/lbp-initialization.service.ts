@@ -97,12 +97,12 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const zeroBn = new anchor.BN(0);
 
     // Format the provided parameters to BN values.
-    const formattedAssets = new anchor.BN(assets * assetTokenDivisor);
-    const formattedShares = new anchor.BN(shares * shareTokenDivisor);
-    const formattedVirtualAssets = virtualAssets ? new anchor.BN(virtualAssets * assetTokenDivisor) : zeroBn;
-    const formattedVirtualShares = virtualShares ? new anchor.BN(virtualShares * shareTokenDivisor) : zeroBn;
-    const formattedMaxAssetsIn = new anchor.BN(maxAssetsIn * assetTokenDivisor);
-    const formattedMaxSharesOut = new anchor.BN(maxSharesOut * shareTokenDivisor);
+    const formattedAssets = assets.mul(new anchor.BN(assetTokenDivisor));
+    const formattedShares = shares.mul(new anchor.BN(shareTokenDivisor));
+    const formattedVirtualAssets = virtualAssets ? virtualAssets.mul(new anchor.BN(assetTokenDivisor)) : zeroBn;
+    const formattedVirtualShares = virtualShares ? virtualShares.mul(new anchor.BN(shareTokenDivisor)) : zeroBn;
+    const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
+    const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const [poolPda] = findProgramAddressSync(

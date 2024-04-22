@@ -32,11 +32,13 @@ const SinglePoolDataValue = () => {
       return data;
     },
   });
-  console.log(data);
+
   return (
     <>
       <Typography variant="h3">Single Data Value</Typography>
-      <Typography variant="h4">{/* {query.value}: {data ?? ''} */}</Typography>
+      <Typography variant="h4">
+        {query.value}: {data ?? ''}
+      </Typography>
     </>
   );
 };

@@ -1,22 +1,21 @@
+// /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { getPoolDataValue } from '@/helpers/pool-initialization';
+import { getPoolDataValue, swapAssetsForExactShares } from '@/helpers/pool-initialization';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { swapAssetsForSharesArgsSchema } from '@/types';
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, FormControl, FormLabel, Stack, TextField, Typography } from '@mui/material';
+import { Button, FormControl, FormLabel, Stack, TextField } from '@mui/material';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
-import { useQuery } from '@tanstack/react-query';
-import { useContext, useState } from 'react';
+import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const BuyShares = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
-  const [shareTokenAddress, setShareTokenAddress] = useState<PublicKey>();
-  const [assetTokenAddress, setAssetTokenAddress] = useState<PublicKey>();
 
   const { sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -29,7 +28,7 @@ const BuyShares = () => {
     resolver: zodResolver(swapAssetsForSharesArgsSchema),
   });
 
-  const { data: shareTokenPda } = useQuery({
+  useQuery({
     queryKey: ['shareTokenAddress'],
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
@@ -42,7 +41,6 @@ const BuyShares = () => {
         sdkClient,
         valueKey: PoolDataValueKey.ShareToken,
       });
-      setShareTokenAddress(new PublicKey(data));
       setValue('args.shareTokenMint', data as string);
       setValue('args.poolPda', poolAddress);
 
@@ -51,7 +49,7 @@ const BuyShares = () => {
     enabled: !!poolAddress,
   });
 
-  const { data: assetTokenPda } = useQuery({
+  useQuery({
     queryKey: ['assetTokenAddress'],
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
@@ -64,7 +62,6 @@ const BuyShares = () => {
         sdkClient,
         valueKey: PoolDataValueKey.AssetToken,
       });
-      setAssetTokenAddress(new PublicKey(data));
       setValue('args.assetTokenMint', data as string);
 
       return data;
@@ -72,8 +69,49 @@ const BuyShares = () => {
     enabled: !!poolAddress,
   });
 
-  const onSubmit = (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
+  const signAndSendSwapTransaction = async (transactionInstruction: TransactionInstruction) => {
+    const transaction = new Transaction().add(transactionInstruction);
+
+    if (!wallet) {
+      throw new Error('Wallet not connected');
+    }
+
+    const {
+      context: { slot: minContextSlot },
+      value: { blockhash, lastValidBlockHeight },
+    } = await connection.getLatestBlockhashAndContext();
+
+    try {
+      if (!transaction || !sendTransaction) throw new Error('Transaction not found');
+
+      const txid = await sendTransaction(transaction, connection, { minContextSlot });
+
+      console.log(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
+
+      const confirmation = await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature: txid });
+
+      console.log('Transaction confirmed:', confirmation);
+      return { txid, confirmation };
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const swapAssetsForExactSharesMutation = useMutation({
+    mutationFn: swapAssetsForExactShares,
+    onSuccess: async (data) => {
+      const confirmation = await signAndSendSwapTransaction(data);
+      console.log('Success', confirmation);
+    },
+    onError: (error) => console.log('Error', error),
+  });
+
+  const onSubmit = async (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
+    if (!connection || !provider || !sdkClient) {
+      throw new Error('Wallet not connected');
+    }
     console.log(data);
+    swapAssetsForExactSharesMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

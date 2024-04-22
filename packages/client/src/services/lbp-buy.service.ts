@@ -88,11 +88,17 @@ export class LbpBuyService {
     // const assetTokenData = await connection.getTokenSupply(assetTokenMint);
     const shareTokenData = await connection.getTokenSupply(shareTokenMint);
 
+    this.logger.debug('shareTokenData', shareTokenData);
+
     // Calculate the token divisors for the asset and share tokens.
     const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
     // const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
+    this.logger.debug('sharesAmountOut', sharesAmountOut);
+    this.logger.debug('shareTokenDivisor', shareTokenDivisor);
 
-    const formattedSharesAmountOut = new anchor.BN(sharesAmountOut * shareTokenDivisor);
+    const formattedSharesAmountOut: anchor.BN = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
+
+    this.logger.debug('Formatted shares amount out:', formattedSharesAmountOut.toString());
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
@@ -101,36 +107,47 @@ export class LbpBuyService {
     // Get the pool state account.
     const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
 
-    const { maxSharesOut } = pool;
+    this.logger.debug('Pool state:', pool);
 
     // Check that the shares amount out is less than or equal to the maximum shares out.
-    if (formattedSharesAmountOut.gt(maxSharesOut)) {
-      this.logger.error('Invalid shares amount out - exceeds the maximum shares out.');
-      throw new Error('Invalid shares amount out - exceeds the maximum shares out.');
-    }
+    // if (formattedSharesAmountOut.gt(maxSharesOut)) {
+    //   this.logger.error('Invalid shares amount out - exceeds the maximum shares out.');
+    //   throw new Error('Invalid shares amount out - exceeds the maximum shares out.');
+    // }
+
+    const mockSigner = Keypair.generate();
+
+    let expectedAssetsIn: anchor.BN;
 
     // Create the swap transaction preview.
     // Get expected shares out by reading a view function's emitted event.
-    const expectedAssetsIn: anchor.BN = await this.program.methods
-      .previewAssetsIn(
-        // Shares Out
-        sharesAmountOut,
-      )
-      .accounts({
-        assetTokenMint,
-        shareTokenMint,
-        pool: poolPda,
-        poolAssetTokenAccount,
-        poolShareTokenAccount,
-      })
-      .signers([Keypair.generate()])
-      .simulate()
-      .then((data) => data.events[0].data.assetsIn as anchor.BN);
+    try {
+      expectedAssetsIn = await this.program.methods
+        .previewAssetsIn(
+          // Shares Out
+          sharesAmountOut,
+        )
+        .accounts({
+          assetTokenMint,
+          shareTokenMint,
+          pool: poolPda,
+          poolAssetTokenAccount,
+          poolShareTokenAccount,
+        })
+        .signers([mockSigner])
+        .simulate()
+        .then((data) => data.events[0].data.assetsIn as anchor.BN);
+    } catch (error: any) {
+      this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
+      throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
+    }
+
+    this.logger.debug('Expected assets in:', expectedAssetsIn.toString());
 
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapAssetsForExactShares(formattedSharesAmountOut, expectedAssetsIn, null, referrer ?? null)
+        .swapAssetsForExactShares(sharesAmountOut, expectedAssetsIn, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,

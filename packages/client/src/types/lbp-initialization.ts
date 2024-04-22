@@ -38,7 +38,7 @@ export type BuySellOperationPublicKeys = {
 export type BuyOperationArgs = {
   args: {
     poolPda: PublicKey;
-    sharesAmountOut: number;
+    sharesAmountOut: BN;
   };
 };
 
@@ -70,13 +70,13 @@ export interface CreateBuyInstructionClientParams extends BuyOperationParams {
  */
 export type InitializePoolArgs = {
   args: {
-    assets: number;
-    shares: number;
-    virtualAssets?: number;
-    virtualShares?: number;
+    assets: BN;
+    shares: BN;
+    virtualAssets?: BN;
+    virtualShares?: BN;
     maxSharePrice: BN;
-    maxSharesOut: number;
-    maxAssetsIn: number;
+    maxSharesOut: BN;
+    maxAssetsIn: BN;
     startWeightBasisPoints: number;
     endWeightBasisPoints: number;
     saleStartTime: BN;
