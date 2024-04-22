@@ -1,6 +1,63 @@
 import { PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
+export const swapAssetsForSharesArgsSchema = z.object({
+  args: z.object({
+    userPublicKey: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'User must be a valid Solana public key' },
+    ),
+    creator: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Creator must be a valid Solana public key' },
+    ),
+    referrer: z.string().optional(),
+    shareTokenMint: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Share Token Mint must be a valid Solana public key' },
+    ),
+    assetTokenMint: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Asset Token Mint must be a valid Solana public key' },
+    ),
+    poolPda: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Pool must be a valid Solana public key' },
+    ),
+    sharesAmountOut: z.string(),
+  }),
+});
+
 // Validation for InitializePoolArgs
 export const initializePoolArgsSchema = z.object({
   args: z.object({
@@ -53,3 +110,4 @@ export const initializePoolArgsSchema = z.object({
 });
 
 export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
+export interface SwapAssetsForSharesArgsType extends z.TypeOf<typeof swapAssetsForSharesArgsSchema> {}
