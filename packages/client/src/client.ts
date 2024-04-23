@@ -88,6 +88,8 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
+  // Buy Functions
+
   public async createSwapAssetsForExactSharesTransaction({
     keys,
     args,
@@ -105,8 +107,6 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     return transaction;
   }
-
-  // Buy Functions
 
   public async createSwapExactAssetsForSharesTransaction({
     keys,

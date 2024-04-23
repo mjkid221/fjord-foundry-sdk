@@ -1,4 +1,3 @@
-// /* eslint-disable @typescript-eslint/no-unused-vars */
 import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { signAndSendSwapTransaction } from '@/helpers';
