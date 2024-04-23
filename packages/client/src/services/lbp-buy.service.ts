@@ -239,6 +239,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
 
+    const tokenDivisor = await this.getTokenDivisorFromSupply(assetTokenMint, this.connection);
+
+    const formattedAssetsAmountIn: BigNumber = assetsAmountIn.mul(new anchor.BN(tokenDivisor));
+
     let expectedSharesOut: BigNumber;
 
     // Create the swap transaction preview.
@@ -247,7 +251,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       const ix = await this.program.methods
         .previewSharesOut(
           // Assets In
-          assetsAmountIn,
+          formattedAssetsAmountIn,
         )
         .accounts({
           assetTokenMint,
@@ -266,7 +270,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
     try {
       const swapInstruction = await this.program.methods
-        .swapExactAssetsForShares(assetsAmountIn, expectedSharesOut, null, referrer ?? null)
+        .swapExactAssetsForShares(formattedAssetsAmountIn, expectedSharesOut, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
