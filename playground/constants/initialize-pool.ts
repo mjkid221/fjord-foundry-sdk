@@ -11,4 +11,5 @@ export const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + T
 
 export const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
 
-export const INITIALIZE_LBP_ADDRESS = 'CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW';
+// export const INITIALIZE_LBP_ADDRESS = 'CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW';
+export const INITIALIZE_LBP_ADDRESS = 'HK6KFuWu9ZzEaiKy16LDcaQ2u1G1NAhib7pvNxzA3jKr';

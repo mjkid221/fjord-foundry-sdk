@@ -74,7 +74,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     );
 
     if (transactionSimulation.value.err) {
-      this.logger.error('Unable to simulate preview transaction');
+      this.logger.error('Unable to simulate preview transaction', transactionSimulation.value.err);
       throw new Error('Unable to simulate preview transaction');
     }
 
@@ -146,6 +146,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
 
+    const tokenDivisor = await this.getTokenDivisorFromSupply(shareTokenMint, this.connection);
+
+    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(tokenDivisor));
+
     let expectedAssetsIn: BigNumber;
 
     // Create the swap transaction preview.
@@ -154,7 +158,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
-          sharesAmountOut,
+          formattedSharesAmountOut,
         )
         .accounts({
           assetTokenMint,
@@ -174,7 +178,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapAssetsForExactShares(sharesAmountOut, expectedAssetsIn, null, referrer ?? null)
+        .swapAssetsForExactShares(formattedSharesAmountOut, expectedAssetsIn, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
