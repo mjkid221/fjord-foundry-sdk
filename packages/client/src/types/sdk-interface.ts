@@ -10,12 +10,10 @@ import {
   RetrieveSinglePoolDataValueParams,
 } from './client';
 import {
-  CreateBuyExactSharesInstructionClientParams,
-  CreateBuySharesWithExactAssetsInstructionClientParams,
-  CreatePoolClientParams,
-  GetPoolDataResponse,
-  InitializePoolResponse,
-} from './lbp-initialization';
+  SwapExactSharesForAssetsInstructionClientParams,
+  SwapSharesWithExactAssetsInstructionClientParams,
+} from './lbp-buy-sell';
+import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -47,7 +45,7 @@ export interface ClientSdkInterfaceSolana {
   /**
    * Creates a transaction for swapping assets for an exact amount of LBP shares on the Solana blockchain.
    *
-   * @param {CreateBuyExactSharesInstructionClientParams} options - The options for creating the swap transaction.
+   * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
    * @param options.programId - The public key of the program governing the LBP.
@@ -59,12 +57,12 @@ export interface ClientSdkInterfaceSolana {
     args,
     programId,
     provider,
-  }: CreateBuyExactSharesInstructionClientParams): Promise<TransactionInstruction>;
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain.
    *
-   * @param {CreateBuySharesWithExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param {SwapSharesWithExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
    * @param options.programId - The public key of the program governing the LBP.
@@ -76,7 +74,7 @@ export interface ClientSdkInterfaceSolana {
     args,
     programId,
     provider,
-  }: CreateBuySharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+  }: SwapSharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

@@ -1,12 +1,8 @@
 import { Connection, TransactionInstruction } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
-import {
-  InitializePoolParams,
-  InitializePoolResponse,
-  BuyExactSharesOperationParams,
-  BuySharesWithExactAssetsOperationParams,
-} from './lbp-initialization';
+import { SwapExactSharesForAssetsOperationParams, SwapSharesWithExactAssetsOperationParams } from './lbp-buy-sell';
+import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 export interface PublicClientServiceInterface {
   /**
    * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
@@ -47,7 +43,7 @@ export interface LbpBuyServiceInterface {
    * operation within a liquidity pool. This instruction allows users to exchange an input asset
    * for a specified quantity of pool shares.
    *
-   * @param {BuyExactSharesOperationParams} params - Parameters for the swap operation:
+   * @param {SwapExactSharesForAssetsOperationParams} params - Parameters for the swap operation:
    * @param {Object} params.keys - Solana PublicKeys:
    * @param {PublicKey} params.keys.userPublicKey - Public key of the user.
    * @param {PublicKey} params.keys.creator - Public key of the pool creator.
@@ -68,14 +64,14 @@ export interface LbpBuyServiceInterface {
   createSwapAssetsForExactSharesInstruction({
     keys,
     args,
-  }: BuyExactSharesOperationParams): Promise<TransactionInstruction>;
+  }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction>;
 
   /**
    * Asynchronously creates a Solana TransactionInstruction for a "swap exact assets for shares"
    * operation within a liquidity pool. This instruction allows users to exchange a specified
    * quantity of an asset for pool shares.
    *
-   * @param {BuySharesWithExactAssetsOperationParams} params - Parameters for the swap operation:
+   * @param {SwapSharesWithExactAssetsOperationParams} params - Parameters for the swap operation:
    * @param {Object} params.keys - Solana PublicKeys:
    * @param {PublicKey} params.keys.userPublicKey - Public key of the user.
    * @param {PublicKey} params.keys.creator - Public key of the pool creator.
@@ -96,5 +92,5 @@ export interface LbpBuyServiceInterface {
   createSwapExactAssetsForSharesInstruction({
     keys,
     args,
-  }: BuySharesWithExactAssetsOperationParams): Promise<TransactionInstruction>;
+  }: SwapSharesWithExactAssetsOperationParams): Promise<TransactionInstruction>;
 }

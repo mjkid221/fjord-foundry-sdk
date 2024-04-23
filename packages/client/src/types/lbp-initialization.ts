@@ -19,65 +19,6 @@ export interface InitializePoolPublicKeys {
 }
 
 /**
- * Defines the public keys required for performing a buy or sell operation.
- *
- * @property {PublicKey} userPublicKey - The public key of the wallet performing the swap.
- * @property {PublicKey} creator - The public key of the wallet that created the pool.
- * @property {PublicKey} [referrer] - (Optional) The public key of the referrer (if applicable).
- * @property {PublicKey} shareTokenMint - The public key of the mint for the pool's share tokens.
- * @property {PublicKey} assetTokenMint - The public key of the mint for the pool's underlying asset.
- */
-export interface BuySellOperationPublicKeys {
-  keys: {
-    userPublicKey: PublicKey;
-    creator: PublicKey;
-    referrer?: PublicKey;
-    shareTokenMint: PublicKey;
-    assetTokenMint: PublicKey;
-  };
-}
-
-/**
- * Arguments for a "buy exact shares" operation.
- * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
- * @property {BigNumber} sharesAmountOut - The desired quantity of shares to receive.
- */
-export interface BuyExactSharesOperationArgs {
-  args: {
-    poolPda: PublicKey;
-    sharesAmountOut: BigNumber;
-  };
-}
-
-/**
- * Arguments for a "buy shares with exact assets" operation.
- * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
- * @property {BigNumber} assetsAmountIn - The exact quantity of assets to use in the swap.
- */
-export interface BuySharesWithExactAssetsOperationArgs {
-  args: {
-    poolPda: PublicKey;
-    assetsAmountIn: BigNumber;
-  };
-}
-
-export interface BuyExactSharesOperationParams extends BuySellOperationPublicKeys, BuyExactSharesOperationArgs {}
-
-export interface BuySharesWithExactAssetsOperationParams
-  extends BuySellOperationPublicKeys,
-    BuySharesWithExactAssetsOperationArgs {}
-
-export interface CreateBuyExactSharesInstructionClientParams extends BuyExactSharesOperationParams {
-  programId: PublicKey;
-  provider: AnchorProvider;
-}
-
-export interface CreateBuySharesWithExactAssetsInstructionClientParams extends BuySharesWithExactAssetsOperationParams {
-  programId: PublicKey;
-  provider: AnchorProvider;
-}
-
-/**
  * Defines the configuration parameters for initializing a new LBP pool.
  *
  * @property {BigNumber} assets - The amount of asset tokens to be deposited into the pool.

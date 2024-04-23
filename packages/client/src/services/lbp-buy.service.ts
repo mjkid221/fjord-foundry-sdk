@@ -8,9 +8,9 @@ import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import {
   BigNumber,
-  BuyExactSharesOperationParams,
-  BuySharesWithExactAssetsOperationParams,
   LbpBuyServiceInterface,
+  SwapExactSharesForAssetsOperationParams,
+  SwapSharesWithExactAssetsOperationParams,
 } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -39,6 +39,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
    * Asynchronously creates an instance of LbpBuyService.
    * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
+   * @param {WalletAdapterNetwork} network - The Solana network.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpBuyService.
    */
   static async create(
@@ -54,7 +55,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   public async createSwapAssetsForExactSharesInstruction({
     keys,
     args,
-  }: BuyExactSharesOperationParams): Promise<TransactionInstruction> {
+  }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction> {
     // Fetch the Solana network URL based on the provided network.
     const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
     const connection = new anchor.web3.Connection(solanaNetwork);
@@ -167,7 +168,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   public async createSwapExactAssetsForSharesInstruction({
     keys,
     args,
-  }: BuySharesWithExactAssetsOperationParams): Promise<TransactionInstruction> {
+  }: SwapSharesWithExactAssetsOperationParams): Promise<TransactionInstruction> {
     // Fetch the Solana network URL based on the provided network.
     const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
     const connection = new anchor.web3.Connection(solanaNetwork);
