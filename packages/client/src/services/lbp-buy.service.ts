@@ -108,13 +108,6 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     return getTokenDivisor(tokenData.value.decimals);
   }
 
-  private async getConnection(): Promise<Connection> {
-    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
-    const connection = new anchor.web3.Connection(solanaNetwork);
-
-    return connection;
-  }
-
   public async createSwapAssetsForExactSharesInstruction({
     keys,
     args,
@@ -175,8 +168,6 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
       throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
     }
-
-    this.logger.debug('Expected assets in:', expectedAssetsIn.toString());
 
     // Create the program instruction.
     try {
