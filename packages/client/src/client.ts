@@ -7,6 +7,7 @@ import { formatEpochDate, getTokenDivisor } from './helpers';
 import {
   LbpBuyService,
   LbpInitializationService,
+  LbpSellService,
   Logger,
   LoggerLike,
   PublicClientService,
@@ -26,7 +27,7 @@ import {
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
   SwapExactSharesForAssetsInstructionClientParams,
-  SwapSharesWithExactAssetsInstructionClientParams,
+  SwapSharesForExactAssetsInstructionClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -35,6 +36,8 @@ export class FjordClientSdk implements ClientSdkInterface {
   private lbpInitializationService!: LbpInitializationService;
 
   private lbpBuyService!: LbpBuyService;
+
+  private lbpSellService!: LbpSellService;
 
   private isSolana: boolean;
 
@@ -67,6 +70,8 @@ export class FjordClientSdk implements ClientSdkInterface {
     client.logger.debug('SolanaSdkClient initialized');
     return client;
   }
+
+  // Pool Creation Function
 
   public async createPoolTransaction({
     keys,
@@ -106,12 +111,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
+  // Buy Functions
+
   public async createSwapExactAssetsForSharesTransaction({
     keys,
     args,
     programId,
     provider,
-  }: SwapSharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
     if (!this.isSolana || !this.solanaNetwork) {
       this.logger.error('LbpBuyService method not supported for this client');
       throw new Error('LbpBuyService method not supported for this client');
@@ -120,6 +127,42 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
 
     const transaction = await this.lbpBuyService.createSwapExactAssetsForSharesInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  public async createSwapSharesForExactAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpBuyService method not supported for this client');
+      throw new Error('LbpBuyService method not supported for this client');
+    }
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpSellService.createSwapSharesForExactAssetsInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  // Sell Functions
+
+  public async createSwapExactSharesForAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpBuyService method not supported for this client');
+      throw new Error('LbpBuyService method not supported for this client');
+    }
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpSellService.createSwapExactSharesForAssetsInstruction({ keys, args });
 
     return transaction;
   }

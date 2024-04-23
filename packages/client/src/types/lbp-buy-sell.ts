@@ -27,7 +27,7 @@ export interface BuySellOperationPublicKeys {
  * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
  * @property {BigNumber} sharesAmountOut - The desired quantity of shares to receive.
  */
-export interface SwapExactSharesWithAssetsOperationArgs {
+export interface SwapExactSharesForAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
     sharesAmountOut: BigNumber;
@@ -39,7 +39,7 @@ export interface SwapExactSharesWithAssetsOperationArgs {
  * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
  * @property {BigNumber} assetsAmountIn - The exact quantity of assets to use in the swap.
  */
-export interface SwapSharesWithExactAssetsOperationArgs {
+export interface SwapSharesForExactAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
     assetsAmountIn: BigNumber;
@@ -48,18 +48,18 @@ export interface SwapSharesWithExactAssetsOperationArgs {
 
 export interface SwapExactSharesForAssetsOperationParams
   extends BuySellOperationPublicKeys,
-    SwapExactSharesWithAssetsOperationArgs {}
+    SwapExactSharesForAssetsOperationArgs {}
 
-export interface SwapSharesWithExactAssetsOperationParams
+export interface SwapSharesForExactAssetsOperationParams
   extends BuySellOperationPublicKeys,
-    SwapSharesWithExactAssetsOperationArgs {}
+    SwapSharesForExactAssetsOperationArgs {}
 
 export interface SwapExactSharesForAssetsInstructionClientParams extends SwapExactSharesForAssetsOperationParams {
   programId: PublicKey;
   provider: AnchorProvider;
 }
 
-export interface SwapSharesWithExactAssetsInstructionClientParams extends SwapSharesWithExactAssetsOperationParams {
+export interface SwapSharesForExactAssetsInstructionClientParams extends SwapSharesForExactAssetsOperationParams {
   programId: PublicKey;
   provider: AnchorProvider;
 }

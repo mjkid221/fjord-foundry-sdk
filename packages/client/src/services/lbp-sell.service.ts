@@ -1,12 +1,21 @@
 import * as anchor from '@project-serum/anchor';
+import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
+import { getTokenDivisor } from '../helpers';
+import {
+  BigNumber,
+  LbpSellServiceInterface,
+  SwapExactSharesForAssetsOperationParams,
+  SwapSharesForExactAssetsOperationParams,
+} from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
 
-export class LbpSellService {
+export class LbpSellService implements LbpSellServiceInterface {
   private provider: anchor.Provider;
 
   private programId: PublicKey;
@@ -43,5 +52,193 @@ export class LbpSellService {
     return service;
   }
 
-  // public async createSwapExactSharesForAssetsInstruction({}): Promise<TransactionInstruction> {}
+  private async getPoolPda(
+    shareTokenMint: PublicKey,
+    assetTokenMint: PublicKey,
+    creator: PublicKey,
+  ): Promise<PublicKey> {
+    const [poolPda] = findProgramAddressSync(
+      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
+      this.program.programId,
+    );
+
+    return poolPda;
+  }
+
+  private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
+    const tokenData = await connection.getTokenSupply(tokenMint);
+
+    return getTokenDivisor(tokenData.value.decimals);
+  }
+
+  private async getConnection(): Promise<Connection> {
+    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
+    const connection = new anchor.web3.Connection(solanaNetwork);
+
+    return connection;
+  }
+
+  public async createSwapExactSharesForAssetsInstruction({
+    keys,
+    args,
+  }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction> {
+    // Fetch the Solana network URL based on the provided network.
+    // const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
+    // const connection = new anchor.web3.Connection(solanaNetwork);
+
+    const connection = await this.getConnection();
+
+    // Destructure the provided keys and arguments.
+    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+
+    const { poolPda, sharesAmountOut: incomingSharesAmount } = args;
+
+    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+
+    // Check that the poolPda is valid.
+    if (!poolPda.equals(poolPdaFromParams)) {
+      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
+      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
+    }
+
+    // Get the user PDA for the pool.
+    const [userPoolPda] = findProgramAddressSync(
+      [userPublicKey.toBuffer(), poolPda.toBuffer()],
+      this.program.programId,
+    );
+
+    // Find the associated token accounts for the pool and creator.
+    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+    // Get the user's associated token accounts for the pool.
+    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+
+    const shareTokenDivisor = await this.getTokenDivisorFromSupply(shareTokenMint, connection);
+
+    const formattedIncomingSharesAmount = incomingSharesAmount.mul(new anchor.BN(shareTokenDivisor));
+
+    let minOutgoingAssetAmount: BigNumber;
+
+    // create the swap preview
+    try {
+      minOutgoingAssetAmount = await this.program.methods
+        .previewAssetsOut(formattedIncomingSharesAmount)
+        .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
+        .simulate()
+        .then((data) => data.events[0].data.assetsOut as BigNumber);
+    } catch (error: any) {
+      this.logger.error('Error previewing assets out:', error);
+      throw new Error('Error previewing assets out', error);
+    }
+
+    this.logger.debug('Expected min assets outgoing:', minOutgoingAssetAmount.toString());
+
+    // Create the instruction.
+    try {
+      const swapInstruction = await this.program.methods
+        .swapExactSharesForAssets(formattedIncomingSharesAmount, minOutgoingAssetAmount, null, null)
+        .accounts({
+          assetTokenMint,
+          shareTokenMint,
+          user: userPublicKey,
+          pool: poolPda,
+          poolAssetTokenAccount,
+          poolShareTokenAccount,
+          userAssetTokenAccount,
+          userShareTokenAccount,
+          userStateInPool: userPoolPda,
+        })
+        .instruction();
+
+      return swapInstruction;
+    } catch (error: any) {
+      this.logger.error('Error creating swap instruction:', error);
+      throw new Error('Error creating swap instruction', error);
+    }
+  }
+
+  public async createSwapSharesForExactAssetsInstruction({
+    keys,
+    args,
+  }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction> {
+    // Fetch the Solana network URL based on the provided network.
+    // const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
+    // const connection = new anchor.web3.Connection(solanaNetwork);
+
+    const connection = await this.getConnection();
+
+    // Destructure the provided keys and arguments.
+    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+
+    const { poolPda, assetsAmountIn: outgoingAssetsAmount } = args;
+
+    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+
+    // Check that the poolPda is valid.
+    if (!poolPda.equals(poolPdaFromParams)) {
+      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
+      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
+    }
+
+    // Get the user PDA for the pool.
+    const [userPoolPda] = findProgramAddressSync(
+      [userPublicKey.toBuffer(), poolPda.toBuffer()],
+      this.program.programId,
+    );
+
+    // Find the associated token accounts for the pool and creator.
+    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+    // Get the user's associated token accounts for the pool.
+    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+
+    const assetTokenDivisor = await this.getTokenDivisorFromSupply(assetTokenMint, connection);
+
+    const formattedOutgoingAssetsAmount: BigNumber = outgoingAssetsAmount.mul(new anchor.BN(assetTokenDivisor));
+
+    let maxIncomingSharesAmount: BigNumber;
+
+    // create the swap preview
+    try {
+      maxIncomingSharesAmount = await this.program.methods
+        .previewSharesIn(formattedOutgoingAssetsAmount)
+        .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
+        .simulate()
+        .then((data) => data.events[0].data.sharesIn as BigNumber);
+    } catch (error: any) {
+      this.logger.error('Error previewing shares in:', error);
+      throw new Error('Error previewing shares in', error);
+    }
+
+    this.logger.debug('Expected max shares incoming:', maxIncomingSharesAmount.toString());
+
+    // Create the instruction.
+    try {
+      const swapInstruction = await this.program.methods
+        .swapSharesForExactAssets(formattedOutgoingAssetsAmount, maxIncomingSharesAmount, null, null)
+        .accounts({
+          assetTokenMint,
+          shareTokenMint,
+          user: userPublicKey,
+          pool: poolPda,
+          poolAssetTokenAccount,
+          poolShareTokenAccount,
+          userAssetTokenAccount,
+          userShareTokenAccount,
+          userStateInPool: userPoolPda,
+        })
+        .instruction();
+
+      return swapInstruction;
+    } catch (error: any) {
+      this.logger.error('Error creating swap instruction:', error);
+      throw new Error('Error creating swap instruction', error);
+    }
+  }
 }

@@ -11,7 +11,7 @@ import {
 } from './client';
 import {
   SwapExactSharesForAssetsInstructionClientParams,
-  SwapSharesWithExactAssetsInstructionClientParams,
+  SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
 
@@ -62,7 +62,7 @@ export interface ClientSdkInterfaceSolana {
   /**
    * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain.
    *
-   * @param {SwapSharesWithExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
    * @param options.programId - The public key of the program governing the LBP.
@@ -74,7 +74,45 @@ export interface ClientSdkInterfaceSolana {
     args,
     programId,
     provider,
-  }: SwapSharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain. This function
+   * acts as a wrapper, delegating the actual creation process to the `LbpSellService`.
+   *
+   * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  createSwapSharesForExactAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Creates a transaction for swapping an exact amount of LBP shares for assets on the Solana blockchain. This function
+   * acts as a wrapper, delegating the actual creation process to the `LbpSellService`.
+   *
+   * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  createSwapExactSharesForAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.
