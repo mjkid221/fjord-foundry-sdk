@@ -11,6 +11,9 @@
 - [API](#api)
   - [Write Methods Solana](#write-methods-solana)
     - [Initialize Liquidity Bootstrap Pool](#initialize-liquidity-bootstrap-pool)
+    - [Buy Operations](#buy-operations)
+      - [Swap Assets For Exact Shares](#createswapassetsforexactsharestransaction)
+      - [Swap Exact Assets For Shares](#createswapexactassetsforsharestransaction)
   - [Read Methods Solana](#read-methods-solana)
     - [Retrieve All Pool Data](#retrieve-all-pool-data)
     - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
@@ -229,6 +232,320 @@ export const createPool = async ({
     createPoolMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
 
+```
+
+### Buy Operations
+
+#### `createSwapAssetsForExactSharesTransaction`
+
+This method prepares a Solana transaction instruction for performing a "swap assets for exact shares" operation within a Fjord liquidity bootstrapping pool (LBP). This allows a user to exchange a known quantity of the pool's underlying asset for a precise amount of pool shares.
+
+**Parameters**
+
+- `keys` (SwapExactSharesForAssetsOperationPublicKeys):
+  - `userPublicKey`: The public key of the wallet performing the swap.
+  - `creator`: The public key of the wallet that created the pool.
+  - `referrer` (Optional): The public key of the referrer (if applicable).
+  - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+  - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+- `args` (SwapExactSharesForAssetsOperationArgs):
+  - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `sharesAmountOut`: The desired quantity of shares to receive.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for swapping assets for exact shares within the specified LBP. This needs to be signed and submitted to the network for execution.
+
+**Prerequisites**
+
+- Solana-Based Client: This method is only available when your `FjordClientSdk` was created with `useSolana: true`.
+- Connected Wallet: A connected Solana wallet is required.
+
+**Examples**
+
+```ts
+// Helper Function
+export const swapAssetsForExactShares = async ({
+  formData,
+  connection,
+  provider,
+  sdkClient,
+}: SwapAssetsForSharesParams): Promise<TransactionInstruction> => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
+  const creator = new PublicKey(formData.args.creator);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey); 
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const poolPda = new PublicKey(formData.args.poolPda);
+  const sharesAmountOut = new BN(formData.args.sharesAmountOut);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+    sharesAmountOut,
+  };
+
+  const transaction = await sdkClient.createSwapAssetsForExactSharesTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transaction;
+};
+
+export const getPoolDataValue = async ({ poolPda, programId, sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
+  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, programId, valueKey });
+};
+
+```
+
+```ts
+// Front-end implementation
+import { swapAssetsForExactShares, getPoolDataValue } from "path-to-your-helpers"
+
+const SwapAssetsForExactShares = () => {
+  const poolAddress = usePoolAddressStore((state) => state.poolAddress);
+
+  const { sendTransaction } = useWallet();
+  const { connection } = useConnection();
+
+  const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+
+  const wallet = useAnchorWallet();
+
+  const { register, handleSubmit, setValue } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
+    resolver: zodResolver(swapAssetsForSharesArgsSchema),
+  });
+  
+
+  useQuery({
+    queryKey: ['shareTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.ShareToken,
+      });
+      setValue('args.shareTokenMint', data as string);
+      setValue('args.poolPda', poolAddress);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  useQuery({
+    queryKey: ['assetTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.AssetToken,
+      });
+      setValue('args.assetTokenMint', data as string);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  const swapAssetsForExactSharesMutation = useMutation({
+    mutationFn: swapAssetsForExactShares,
+    onSuccess: async (data) => {
+      const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
+      console.log('Success', confirmation);
+    },
+    onError: (error) => console.log('Error', error),
+  });
+
+  const onSubmit = async (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
+    if (!connection || !provider || !sdkClient) {
+      throw new Error('Wallet not connected');
+    }
+    swapAssetsForExactSharesMutation.mutate({ formData: data, connection, provider, sdkClient });
+  };
+  return ( **Your Form Logic Here** )
+}
+```
+
+#### `createSwapExactAssetsForSharesTransaction`
+
+This method prepares a Solana transaction instruction for performing a "swap exact assets for shares" operation within a Fjord liquidity bootstrapping pool (LBP). This allows a user to exchange a precise quantity of the pool's underlying asset for a calculated amount of pool shares.
+
+**Parameters**
+
+- `keys` (SwapSharesForExactAssetsOperationPublicKeys):
+  - `userPublicKey`: The public key of the wallet performing the swap.
+  - `creator`: The public key of the wallet that created the pool.
+  - `referrer` (Optional): The public key of the referrer (if applicable).
+  - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+  - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+- `args` (SwapSharesForExactAssetsOperationArgs):
+  - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `assetsAmountIn`: The exact quantity of assets to use in the swap.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for swapping exact assets for a calculated amount of shares within the specified LBP. This needs to be signed and submitted to the network for execution.
+
+**Prerequisites**
+
+- Solana-Based Client: This method is only available when your `FjordClientSdk` was created with `useSolana: true`.
+- Connected Wallet: A connected Solana wallet is required.
+
+**Examples**
+
+```ts
+// Helper functions
+
+export const swapExactAssetsForShares = async ({
+  formData,
+  connection,
+  provider,
+  sdkClient,
+}: SwapAssetsForSharesParams): Promise<TransactionInstruction> => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
+  const creator = new PublicKey(formData.args.creator);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey);
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const poolPda = new PublicKey(formData.args.poolPda);
+  const assetsAmountIn = new BN(formData.args.assetsAmountIn);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+    assetsAmountIn,
+  };
+
+  const transaction = await sdkClient.createSwapExactAssetsForSharesTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transaction;
+};
+
+export const getPoolDataValue = async ({ poolPda, programId, sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
+  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, programId, valueKey });
+};
+```
+
+```ts
+// Front-end example
+import { swapExactAssetsForShares, getPoolDataValue } from "path-to-your-helpers"
+
+const SwapExactAssetsForShares = () => {
+  const poolAddress = usePoolAddressStore((state) => state.poolAddress);
+
+  const { sendTransaction } = useWallet();
+  const { connection } = useConnection();
+
+  const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+
+  const wallet = useAnchorWallet();
+
+  const { register, handleSubmit, setValue } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
+    resolver: zodResolver(swapAssetsForSharesArgsSchema),
+  });
+  
+
+  useQuery({
+    queryKey: ['shareTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.ShareToken,
+      });
+      setValue('args.shareTokenMint', data as string);
+      setValue('args.poolPda', poolAddress);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  useQuery({
+    queryKey: ['assetTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.AssetToken,
+      });
+      setValue('args.assetTokenMint', data as string);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  const swapAssetsForExactSharesMutation = useMutation({
+    mutationFn: swapExactAssetsForShares,
+    onSuccess: async (data) => {
+      const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
+      console.log('Success', confirmation);
+    },
+    onError: (error) => console.log('Error', error),
+  });
+
+  const onSubmit = async (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
+    if (!connection || !provider || !sdkClient) {
+      throw new Error('Wallet not connected');
+    }
+    swapAssetsForExactSharesMutation.mutate({ formData: data, connection, provider, sdkClient });
+  };
+  return ( **Your Form Logic Here** )
+}
 ```
 
 ## Read Methods Solana

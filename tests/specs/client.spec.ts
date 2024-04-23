@@ -26,8 +26,8 @@ const incorrectContractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBa';
  * @see https://explorer.solana.com/address/4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF?cluster=devnet
  * @see https://explorer.solana.com/address/AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm?cluster=devnet
  */
-const solanaPoolPda = new PublicKey('4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF');
-const programAddress = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
+const solanaPoolPda = new PublicKey('ECn1vFpDcd7CWTGaXiacPzCapc4uEL27rsdZdNg34bji');
+const programAddress = new PublicKey('CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW');
 
 describe('FjordClientSdk Solana Read Functions', () => {
   let sdk: FjordClientSdk;
@@ -94,7 +94,7 @@ describe('FjordClientSdk Solana Read Functions', () => {
     });
 
     expect(response).toBeDefined();
-    expect(typeof response).toBe('number');
+    expect(typeof response).toBe('string');
   });
 
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.Creator and return the correct response', async () => {
@@ -138,7 +138,7 @@ describe('FjordClientSdk Solana Read Functions', () => {
     });
 
     expect(response).toBeDefined();
-    expect(typeof response).toBe('number');
+    expect(typeof response).toBe('string');
   });
 
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.SaleEndTime and return the correct response', async () => {
