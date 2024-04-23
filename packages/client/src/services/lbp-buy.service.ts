@@ -1,8 +1,14 @@
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
@@ -22,6 +28,8 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
   private program: anchor.Program<FjordLbp>;
 
+  private connection: Connection;
+
   private network: WalletAdapterNetwork;
 
   private logger: LoggerLike;
@@ -30,6 +38,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
+    this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
     this.network = network;
     this.logger = Logger('LbpBuyService', true);
     this.logger.debug('LbpBuyService initialized');
@@ -49,6 +58,35 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     const service = await Promise.resolve(new LbpBuyService(programId, provider, network));
 
     return service;
+  }
+
+  async simulatePreviewsAndReturnValue(ix: TransactionInstruction, user: PublicKey): Promise<BigNumber> {
+    const transactionSimulation = await this.connection.simulateTransaction(
+      new VersionedTransaction(
+        new TransactionMessage({
+          payerKey: user,
+          recentBlockhash: (await this.connection.getLatestBlockhash()).blockhash,
+          instructions: [ix],
+        }).compileToV0Message(),
+      ),
+    );
+
+    if (transactionSimulation.value.err) {
+      this.logger.error('Unable to simulate preview transaction');
+      throw new Error('Unable to simulate preview transaction');
+    }
+
+    if (transactionSimulation.value.returnData?.data) {
+      return base64ToBN(transactionSimulation?.value?.returnData?.data[0]);
+    } else {
+      // Read through all the transaction logs.
+      const returnPrefix = `Program return: ${this.program.programId} `;
+      const returnLogEntry = transactionSimulation.value.logs!.find((log) => log.startsWith(returnPrefix));
+
+      if (returnLogEntry) {
+        return base64ToBN(returnLogEntry.slice(returnPrefix.length));
+      }
+    }
   }
 
   public async createSwapAssetsForExactSharesInstruction({
@@ -110,14 +148,12 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
     this.logger.debug('Pool state:', pool);
 
-    const mockSigner = Keypair.generate();
-
     let expectedAssetsIn: BigNumber;
 
     // Create the swap transaction preview.
     // Get expected shares out by reading a view function's emitted event.
     try {
-      expectedAssetsIn = await this.program.methods
+      const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
           formattedSharesAmountOut,
@@ -129,9 +165,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
           poolAssetTokenAccount,
           poolShareTokenAccount,
         })
-        .signers([mockSigner])
-        .simulate()
-        .then((data) => data.events[0].data.assetsIn as BigNumber);
+        .instruction();
+
+      expectedAssetsIn = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
     } catch (error: any) {
       this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
       throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
@@ -218,14 +254,12 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
     this.logger.debug('Pool state:', pool);
 
-    const mockSigner = Keypair.generate();
-
     let expectedSharesOut: BigNumber;
 
     // Create the swap transaction preview.
     // Get expected shares out by reading a view function's emitted event.
     try {
-      expectedSharesOut = await this.program.methods
+      const ix = await this.program.methods
         .previewSharesOut(
           // Assets In
           formattedAssetsAmountIn,
@@ -237,9 +271,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
           poolAssetTokenAccount,
           poolShareTokenAccount,
         })
-        .signers([mockSigner])
-        .simulate()
-        .then((data) => data.events[0].data.sharesOut as BigNumber);
+        .instruction();
+
+      expectedSharesOut = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
     } catch (error: any) {
       this.logger.error('Failed to create swap exact assets for shares instruction preview.', error);
       throw new Error('Failed to create swap exact assets for shares instruction preview.', error);
@@ -267,4 +301,16 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to create swap exact assets for shares instruction.', error);
     }
   }
+}
+
+// TODO: Move this to a global utility file.
+function base64ToBN(base64: string): BigNumber {
+  // Decode the base64 string to a buffer
+  const buffer = Buffer.from(base64, 'base64');
+  let value = BigInt(0);
+  for (let i = 0; i < buffer.length; i++) {
+    value += BigInt(buffer[i]) << (BigInt(i) * BigInt(8));
+  }
+
+  return new anchor.BN(value);
 }
