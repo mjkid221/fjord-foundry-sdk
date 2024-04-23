@@ -1,5 +1,5 @@
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
