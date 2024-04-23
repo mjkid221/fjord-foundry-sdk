@@ -25,8 +25,8 @@ import {
   ReadContractRequest,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
-  CreateBuyExactSharesInstructionClientParams,
-  CreateBuySharesWithExactAssetsInstructionClientParams,
+  SwapExactSharesForAssetsInstructionClientParams,
+  SwapSharesForExactAssetsInstructionClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -93,7 +93,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     programId,
     provider,
-  }: CreateBuyExactSharesInstructionClientParams): Promise<TransactionInstruction> {
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
     if (!this.isSolana || !this.solanaNetwork) {
       this.logger.error('LbpBuyService method not supported for this client');
       throw new Error('LbpBuyService method not supported for this client');
@@ -106,12 +106,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
+  // Buy Functions
+
   public async createSwapExactAssetsForSharesTransaction({
     keys,
     args,
     programId,
     provider,
-  }: CreateBuySharesWithExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
     if (!this.isSolana || !this.solanaNetwork) {
       this.logger.error('LbpBuyService method not supported for this client');
       throw new Error('LbpBuyService method not supported for this client');
