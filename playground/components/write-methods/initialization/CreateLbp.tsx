@@ -24,7 +24,7 @@ import { z } from 'zod';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
-import WalletNotConnected from '../WalletNotConnected';
+import WalletNotConnected from '../../WalletNotConnected';
 
 const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();

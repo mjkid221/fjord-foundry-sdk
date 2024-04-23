@@ -1,21 +1,20 @@
+import WalletNotConnected from '@/components/WalletNotConnected';
 import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { signAndSendSwapTransaction } from '@/helpers';
-import { getPoolDataValue, swapExactAssetsForShares } from '@/helpers/pool-initialization';
+import { getPoolDataValue, signAndSendSwapTransaction, swapSharesForExactAssets } from '@/helpers';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { swapAssetsForSharesArgsSchema } from '@/types';
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, FormControl, FormLabel, Stack, TextField } from '@mui/material';
-import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Stack, FormControl, FormLabel, TextField, Button } from '@mui/material';
+import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import WalletNotConnected from '../WalletNotConnected';
 
-const SwapExactAssetsForShares = () => {
+const SwapSharesForExactAssets = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
   const { sendTransaction } = useWallet();
@@ -71,7 +70,7 @@ const SwapExactAssetsForShares = () => {
   });
 
   const swapAssetsForExactSharesMutation = useMutation({
-    mutationFn: swapExactAssetsForShares,
+    mutationFn: swapSharesForExactAssets,
     onSuccess: async (data) => {
       const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
       console.log('Success', confirmation);
@@ -98,10 +97,10 @@ const SwapExactAssetsForShares = () => {
           <TextField label="user address" placeholder="user" {...register('args.userPublicKey', { required: true })} />
         </FormControl>
         <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="assets-to-pay">Asset quantity to use to pay</FormLabel>
+          <FormLabel htmlFor="shares-from-user">Asset quantity to use to pay</FormLabel>
           <TextField
-            label="assets to use"
-            placeholder="assets to pay with"
+            label="assets to receive"
+            placeholder="user wants to recieve this amount of asset tokens"
             {...register('args.assetsAmountIn', { required: true })}
           />
         </FormControl>
@@ -115,4 +114,4 @@ const SwapExactAssetsForShares = () => {
   );
 };
 
-export default SwapExactAssetsForShares;
+export default SwapSharesForExactAssets;
