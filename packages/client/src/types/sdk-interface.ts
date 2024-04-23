@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import {
   GetContractArgsResponse,
@@ -9,6 +9,10 @@ import {
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
 } from './client';
+import {
+  SwapExactSharesForAssetsInstructionClientParams,
+  SwapSharesForExactAssetsInstructionClientParams,
+} from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
 
 export interface ClientSdkInterfaceSolana {
@@ -37,6 +41,40 @@ export interface ClientSdkInterfaceSolana {
    * ```
    */
   createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
+
+  /**
+   * Creates a transaction for swapping assets for an exact amount of LBP shares on the Solana blockchain.
+   *
+   * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   */
+  createSwapAssetsForExactSharesTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain.
+   *
+   * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   */
+  createSwapExactAssetsForSharesTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

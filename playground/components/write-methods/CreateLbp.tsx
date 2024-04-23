@@ -24,6 +24,7 @@ import { z } from 'zod';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
+import WalletNotConnected from '../WalletNotConnected';
 
 const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();
@@ -214,9 +215,13 @@ const CreateLbp = () => {
             <MenuItem value="true">True</MenuItem>
           </Select>
         </FormControl>
-        <Button variant="contained" type="submit">
+        <Button variant="contained" type="submit" disabled={!wallet}>
           Submit
         </Button>
+        <Button variant="contained" type="submit" disabled={!wallet}>
+          Submit
+        </Button>
+        {!wallet && <WalletNotConnected />}
         {poolAddress && <Typography>Newly created pool address: {poolAddress}</Typography>}
       </Stack>
     </form>

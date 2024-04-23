@@ -3,7 +3,7 @@
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
-      "cache": false
+      "cache": true
     },
     "package": {
       "dependsOn": ["^package"],

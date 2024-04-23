@@ -14,9 +14,9 @@ import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import {
   BigNumber,
-  BuyExactSharesOperationParams,
-  BuySharesWithExactAssetsOperationParams,
   LbpBuyServiceInterface,
+  SwapExactSharesForAssetsOperationParams,
+  SwapSharesForExactAssetsOperationParams,
 } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -48,6 +48,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
    * Asynchronously creates an instance of LbpBuyService.
    * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
+   * @param {WalletAdapterNetwork} network - The Solana network.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpBuyService.
    */
   static async create(
@@ -88,25 +89,43 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       }
     }
   }
+  private async getPoolPda(
+    shareTokenMint: PublicKey,
+    assetTokenMint: PublicKey,
+    creator: PublicKey,
+  ): Promise<PublicKey> {
+    const [poolPda] = findProgramAddressSync(
+      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
+      this.program.programId,
+    );
+
+    return poolPda;
+  }
+
+  private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
+    const tokenData = await connection.getTokenSupply(tokenMint);
+
+    return getTokenDivisor(tokenData.value.decimals);
+  }
+
+  private async getConnection(): Promise<Connection> {
+    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
+    const connection = new anchor.web3.Connection(solanaNetwork);
+
+    return connection;
+  }
 
   public async createSwapAssetsForExactSharesInstruction({
     keys,
     args,
-  }: BuyExactSharesOperationParams): Promise<TransactionInstruction> {
-    // Fetch the Solana network URL based on the provided network.
-    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
-    const connection = new anchor.web3.Connection(solanaNetwork);
-
+  }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
     const { userPublicKey, creator, referrer, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda, sharesAmountOut } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const [poolPdaFromParams] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
+    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
@@ -127,26 +146,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Get the user's associated token accounts for the pool.
     const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
     const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    // Fetch the token supply data for the asset and share tokens.
-    const shareTokenData = await connection.getTokenSupply(shareTokenMint);
-
-    // Calculate the token divisors for the asset and share tokens.
-    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-    this.logger.debug('sharesAmountOut', sharesAmountOut);
-    this.logger.debug('shareTokenDivisor', shareTokenDivisor);
-
-    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
-
-    this.logger.debug('Formatted shares amount out:', formattedSharesAmountOut.toString());
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
-
-    // Get the pool state account.
-    const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-
-    this.logger.debug('Pool state:', pool);
 
     let expectedAssetsIn: BigNumber;
 
@@ -156,7 +159,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
-          formattedSharesAmountOut,
+          sharesAmountOut,
         )
         .accounts({
           assetTokenMint,
@@ -178,7 +181,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapAssetsForExactShares(formattedSharesAmountOut, expectedAssetsIn, null, referrer ?? null)
+        .swapAssetsForExactShares(sharesAmountOut, expectedAssetsIn, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
@@ -203,21 +206,14 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   public async createSwapExactAssetsForSharesInstruction({
     keys,
     args,
-  }: BuySharesWithExactAssetsOperationParams): Promise<TransactionInstruction> {
-    // Fetch the Solana network URL based on the provided network.
-    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
-    const connection = new anchor.web3.Connection(solanaNetwork);
-
+  }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
     const { userPublicKey, creator, referrer, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda, assetsAmountIn } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const [poolPdaFromParams] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
+    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
@@ -238,21 +234,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Get the user's associated token accounts for the pool.
     const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
     const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    // Fetch the token supply data for the asset and share tokens.
-    const assetTokenData = await connection.getTokenSupply(assetTokenMint);
-
-    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-    const formattedAssetsAmountIn: BigNumber = assetsAmountIn.mul(new anchor.BN(assetTokenDivisor));
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
-
-    // Get the pool state account.
-    const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-
-    this.logger.debug('Pool state:', pool);
 
     let expectedSharesOut: BigNumber;
 
@@ -262,7 +247,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       const ix = await this.program.methods
         .previewSharesOut(
           // Assets In
-          formattedAssetsAmountIn,
+          assetsAmountIn,
         )
         .accounts({
           assetTokenMint,
@@ -281,7 +266,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
     try {
       const swapInstruction = await this.program.methods
-        .swapExactAssetsForShares(formattedAssetsAmountIn, expectedSharesOut, null, referrer ?? null)
+        .swapExactAssetsForShares(assetsAmountIn, expectedSharesOut, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,

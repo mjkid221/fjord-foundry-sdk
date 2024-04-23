@@ -399,6 +399,7 @@ All read methods require the following arguments:
 Defines keys used to access specific data within an LBP.
 
 - **AssetToken**: Key for the asset token mint.
+- **Closed**: Key for determining if the pool is closed.
 - **Creator**: Key for the address of the pool's creator.
 - **EndWeightBasisPoints**: Key for the pool's ending weight (in basis points).
 - **MaxAssetsIn**: Key for the maximum amount of assets allowed into the pool.
@@ -409,6 +410,10 @@ Defines keys used to access specific data within an LBP.
 - **SellingAllowed**: Key indicating whether selling assets is currently permitted.
 - **ShareToken**: Key for the share token mint.
 - **StartWeightBasisPoints**: Key for the pool's starting weight (in basis points).
+- **TotalPurchased**: Key for the total number of shares purchased.
+- **TotalReferred**: Key for the total number of shares referred.
+- **TotalSwapFeesAsset**: Key for the total number of fees charged for asset swaps.
+- **TotalSwapFeesShare**: Key for the total number of fess charged for share swaps.
 - **VestCliff**: Key for the vesting cliff timestamp (if applicable).
 - **VestEnd**: Key for the vesting end timestamp (if applicable).
 - **VirtualAssets**: Key for the amount of virtual assets (if applicable).
