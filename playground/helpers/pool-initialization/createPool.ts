@@ -1,5 +1,5 @@
 import { FjordClientSdk, InitializePoolResponse } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider, BN } from '@project-serum/anchor';
+import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 

@@ -883,7 +883,7 @@ export type FjordLbp = {
         },
         {
           name: 'pool';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -910,17 +910,17 @@ export type FjordLbp = {
         },
         {
           name: 'poolAssetTokenAccount';
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: 'poolShareTokenAccount';
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: 'config';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -1029,7 +1029,7 @@ export type FjordLbp = {
         },
         {
           name: 'pool';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -1056,17 +1056,17 @@ export type FjordLbp = {
         },
         {
           name: 'poolAssetTokenAccount';
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: 'poolShareTokenAccount';
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: 'config';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -2602,7 +2602,7 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'pool',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [
@@ -2629,17 +2629,17 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'poolAssetTokenAccount',
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: 'poolShareTokenAccount',
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: 'config',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [
@@ -2748,7 +2748,7 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'pool',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [
@@ -2775,17 +2775,17 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'poolAssetTokenAccount',
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: 'poolShareTokenAccount',
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: 'config',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [

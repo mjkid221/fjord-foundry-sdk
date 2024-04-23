@@ -1,5 +1,4 @@
-import * as anchor from '@project-serum/anchor';
-import { Address, AnchorProvider } from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 export type BigNumber = anchor.BN;
@@ -64,17 +63,17 @@ export interface InitializePoolParams extends InitializePoolPublicKeys, Initiali
 
 export interface CreatePoolClientParams extends InitializePoolParams {
   programId: PublicKey;
-  provider: AnchorProvider;
+  provider: anchor.AnchorProvider;
 }
 
 export type Accounts = {
-  creator: Address | undefined;
-  shareTokenMint: Address | undefined;
-  assetTokenMint: Address | undefined;
-  poolShareTokenAccount: Address | undefined;
-  poolAssetTokenAccount: Address | undefined;
-  creatorShareTokenAccount: Address | undefined;
-  creatorAssetTokenAccount: Address | undefined;
+  creator: anchor.Address | undefined;
+  shareTokenMint: anchor.Address | undefined;
+  assetTokenMint: anchor.Address | undefined;
+  poolShareTokenAccount: anchor.Address | undefined;
+  poolAssetTokenAccount: anchor.Address | undefined;
+  creatorShareTokenAccount: anchor.Address | undefined;
+  creatorAssetTokenAccount: anchor.Address | undefined;
 };
 
 /**
