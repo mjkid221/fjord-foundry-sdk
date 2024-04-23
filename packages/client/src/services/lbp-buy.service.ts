@@ -18,6 +18,7 @@ import {
   SwapExactSharesForAssetsOperationParams,
   SwapSharesForExactAssetsOperationParams,
 } from '../types';
+import { base64ToBN } from '../utils';
 
 import { Logger, LoggerLike } from './logger.service';
 
@@ -61,7 +62,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     return service;
   }
 
-  async simulatePreviewsAndReturnValue(ix: TransactionInstruction, user: PublicKey): Promise<BigNumber> {
+  private async simulatePreviewsAndReturnValue(ix: TransactionInstruction, user: PublicKey): Promise<BigNumber> {
     const transactionSimulation = await this.connection.simulateTransaction(
       new VersionedTransaction(
         new TransactionMessage({
@@ -89,6 +90,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       }
     }
   }
+
   private async getPoolPda(
     shareTokenMint: PublicKey,
     assetTokenMint: PublicKey,
@@ -281,16 +283,4 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to create swap exact assets for shares instruction.', error);
     }
   }
-}
-
-// TODO: Move this to a global utility file.
-function base64ToBN(base64: string): BigNumber {
-  // Decode the base64 string to a buffer
-  const buffer = Buffer.from(base64, 'base64');
-  let value = BigInt(0);
-  for (let i = 0; i < buffer.length; i++) {
-    value += BigInt(buffer[i]) << (BigInt(i) * BigInt(8));
-  }
-
-  return new anchor.BN(value);
 }
