@@ -13,6 +13,7 @@ import {
   PublicClientService,
   SolanaConnectionService,
 } from './services';
+import { LbpRedemptionService } from './services/lbp-redemption.service';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
@@ -38,6 +39,8 @@ export class FjordClientSdk implements ClientSdkInterface {
   private lbpBuyService!: LbpBuyService;
 
   private lbpSellService!: LbpSellService;
+
+  private lbpRedemptionService!: LbpRedemptionService;
 
   private isSolana: boolean;
 
@@ -131,6 +134,8 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
+  // Sell Functions
+
   public async createSwapSharesForExactAssetsTransaction({
     keys,
     args,
@@ -148,8 +153,6 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
-  // Sell Functions
-
   public async createSwapExactSharesForAssetsTransaction({
     keys,
     args,
@@ -163,6 +166,27 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork);
 
     const transaction = await this.lbpSellService.createSwapExactSharesForAssetsInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  // Close Pool Function
+  public async closePoolTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams) {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    // Create a new instance of the LbpInitializationService
+    this.lbpRedemptionService = await LbpRedemptionService.create(programId, provider, this.solanaNetwork);
+
+    // Call the closePool method from the LbpInitializationService
+    const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
 
     return transaction;
   }

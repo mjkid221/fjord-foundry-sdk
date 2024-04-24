@@ -89,6 +89,9 @@ export class LbpSellService implements LbpSellServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
+
+    this.logger.error('Unable to find return data in logs');
+    throw new Error('Unable to find return data in logs');
   }
 
   private async getPoolPda(
@@ -239,23 +242,19 @@ export class LbpSellService implements LbpSellServiceInterface {
     const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
     const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
 
+    const shareTokenBalance = await this.connection.getTokenAccountBalance(userShareTokenAccount);
+
+    this.logger.debug('User share token balance:', shareTokenBalance.value.amount.toString());
+
     const assetTokenDivisor = await this.getTokenDivisorFromSupply(assetTokenMint, this.connection);
 
     const formattedOutgoingAssetsAmount: BigNumber = outgoingAssetsAmount.mul(new anchor.BN(assetTokenDivisor));
 
+    this.logger.debug('Formatted outgoing assets amount:', formattedOutgoingAssetsAmount.toString());
+
     let maxIncomingSharesAmount: BigNumber;
 
     // create the swap preview
-    // try {
-    //   maxIncomingSharesAmount = await this.program.methods
-    //     .previewSharesIn(formattedOutgoingAssetsAmount)
-    //     .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
-    //     .simulate()
-    //     .then((data) => data.events[0].data.sharesIn as BigNumber);
-    // } catch (error: any) {
-    //   this.logger.error('Error previewing shares in:', error);
-    //   throw new Error('Error previewing shares in', error);
-    // }
 
     try {
       const ix = await this.program.methods

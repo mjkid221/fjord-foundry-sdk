@@ -89,6 +89,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
+
+    this.logger.error('Unable to find return data in logs');
+    throw new Error('Unable to find return data in logs');
   }
 
   private async getPoolPda(
@@ -134,6 +137,8 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       this.program.programId,
     );
 
+    const [ownerConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+
     // Find the associated token accounts for the pool and creator.
     const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
     const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
@@ -146,9 +151,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
 
-    const tokenDivisor = await this.getTokenDivisorFromSupply(shareTokenMint, this.connection);
+    const shareTokenDivisor = await this.getTokenDivisorFromSupply(shareTokenMint, this.connection);
+    const assetTokenDivisor = await this.getTokenDivisorFromSupply(assetTokenMint, this.connection);
 
-    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(tokenDivisor));
+    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
 
     let expectedAssetsIn: BigNumber;
 
@@ -174,7 +180,11 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
       throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
     }
+    this.logger.debug('Expected assets in:', expectedAssetsIn.toString());
 
+    const formattedExpectedAssetsIn: BigNumber = expectedAssetsIn.div(new anchor.BN(assetTokenDivisor));
+
+    this.logger.debug('Formatted expected assets in:', formattedExpectedAssetsIn.toString());
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
@@ -190,6 +200,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
           userShareTokenAccount,
           referrerStateInPool: referrerPda,
           userStateInPool: userPoolPda,
+          config: ownerConfigPda,
         })
         .instruction();
 
@@ -223,6 +234,8 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       [userPublicKey.toBuffer(), poolPda.toBuffer()],
       this.program.programId,
     );
+
+    const [ownerConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
 
     // Find the associated token accounts for the pool and creator.
     const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
@@ -279,6 +292,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
           userShareTokenAccount,
           referrerStateInPool: referrerPda,
           userStateInPool: userPoolPda,
+          config: ownerConfigPda,
         })
         .instruction();
       return swapInstruction;

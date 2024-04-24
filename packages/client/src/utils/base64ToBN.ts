@@ -10,5 +10,5 @@ export const base64ToBN = (base64: string): BigNumber => {
     value += BigInt(buffer[i]) << (BigInt(i) * BigInt(8));
   }
 
-  return new anchor.BN(value);
+  return new anchor.BN(value.toString());
 };
