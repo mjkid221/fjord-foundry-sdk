@@ -91,6 +91,7 @@ export interface GetPoolDataResponse {
   assetToken: string;
   closed: string;
   creator: string;
+  paused: string;
   endWeightBasisPoints: number;
   maxAssetsIn: string;
   maxSharePrice: string;

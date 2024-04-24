@@ -276,6 +276,7 @@ export class FjordClientSdk implements ClientSdkInterface {
       assetToken: poolData.assetToken.toBase58(),
       creator: poolData.creator.toBase58(),
       closed: poolData.closed.toString(),
+      paused: poolData.paused.toString(),
       shareToken: poolData.shareToken.toBase58(),
       maxSharesOut: formattedMaxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
@@ -330,6 +331,8 @@ export class FjordClientSdk implements ClientSdkInterface {
         return poolData.creator.toBase58();
       case PoolDataValueKey.Closed:
         return poolData.closed.toString();
+      case PoolDataValueKey.Paused:
+        return poolData.paused.toString();
       case PoolDataValueKey.EndWeightBasisPoints:
         return poolData.endWeightBasisPoints;
       case PoolDataValueKey.MaxAssetsIn: {
