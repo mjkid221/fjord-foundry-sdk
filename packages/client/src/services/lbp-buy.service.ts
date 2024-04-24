@@ -90,8 +90,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       }
     }
 
-    this.logger.error('Unable to find return data in logs');
-    throw new Error('Unable to find return data in logs');
+    this.logger.error('Unable to find return data in logs. Returning 0.');
+
+    return new anchor.BN(0); // Return 0 if no data is found.
   }
 
   private async getPoolPda(
