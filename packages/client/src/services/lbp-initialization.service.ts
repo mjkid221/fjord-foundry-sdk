@@ -67,6 +67,12 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     // Destructure the provided keys and arguments.
     const { creator, shareTokenMint, assetTokenMint } = keys;
 
+    this.logger.debug('Initializing pool with the following keys:', {
+      creator: creator.toBase58(),
+      shareTokenMint: shareTokenMint.toBase58(),
+      assetTokenMint: assetTokenMint.toBase58(),
+    });
+
     const {
       assets,
       shares,
@@ -103,6 +109,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const formattedVirtualShares = virtualShares ? virtualShares.mul(new anchor.BN(shareTokenDivisor)) : zeroBn;
     const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
     const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
+    const formattedMaxSharePrice = maxSharePrice.mul(new anchor.BN(shareTokenDivisor));
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const [poolPda] = findProgramAddressSync(
@@ -128,6 +135,24 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       creatorAssetTokenAccount,
     };
 
+    this.logger.debug('Initializing pool with the following parameters:', {
+      assets: formattedAssets.toString(),
+      shares: formattedShares.toString(),
+      virtualAssets: formattedVirtualAssets.toString(),
+      virtualShares: formattedVirtualShares.toString(),
+      maxSharePrice: formattedMaxSharePrice.toString(),
+      maxSharesOut: formattedMaxSharesOut.toString(),
+      maxAssetsIn: formattedMaxAssetsIn.toString(),
+      startWeightBasisPoints: startWeightBasisPoints.toString(),
+      endWeightBasisPoints: endWeightBasisPoints.toString(),
+      saleStartTime: saleStartTime.toString(),
+      saleEndTime: saleEndTime.toString(),
+      vestCliff: vestCliff?.toString(),
+      vestEnd: vestEnd?.toString(),
+      whitelistMerkleRoot: whitelistMerkleRoot?.toString(),
+      sellingAllowed: sellingAllowed ? sellingAllowed.toString() : false,
+    });
+
     // Initialize the pool with the provided parameters.
     try {
       const transactionInstruction = await this.program.methods
@@ -136,7 +161,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
           formattedShares,
           formattedVirtualAssets,
           formattedVirtualShares,
-          maxSharePrice,
+          formattedMaxSharePrice,
           formattedMaxSharesOut,
           formattedMaxAssetsIn,
           startWeightBasisPoints,

@@ -235,8 +235,6 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       this.program.programId,
     );
 
-    const [ownerConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
-
     // Find the associated token accounts for the pool and creator.
     const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
     const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
@@ -292,7 +290,6 @@ export class LbpBuyService implements LbpBuyServiceInterface {
           userShareTokenAccount,
           referrerStateInPool: referrerPda,
           userStateInPool: userPoolPda,
-          config: ownerConfigPda,
         })
         .instruction();
       return swapInstruction;

@@ -74,7 +74,7 @@ export class LbpSellService implements LbpSellServiceInterface {
     );
 
     if (transactionSimulation.value.err) {
-      this.logger.error('Unable to simulate preview transaction');
+      this.logger.error('Unable to simulate preview transaction', transactionSimulation.value.err);
       throw new Error('Unable to simulate preview transaction');
     }
 
@@ -185,6 +185,20 @@ export class LbpSellService implements LbpSellServiceInterface {
       this.logger.error('Failed to create swap exact shares for assets instruction preview.', error);
       throw new Error('Failed to create swap exact shares for assets instruction preview.', error);
     }
+
+    this.logger.debug('creating swap instruction:', {
+      formattedIncomingSharesAmount,
+      minOutgoingAssetAmount,
+      assetTokenMint,
+      shareTokenMint,
+      userPublicKey,
+      poolPda,
+      poolAssetTokenAccount,
+      poolShareTokenAccount,
+      userAssetTokenAccount,
+      userShareTokenAccount,
+      userPoolPda,
+    });
 
     // Create the instruction.
     try {
