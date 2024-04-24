@@ -88,6 +88,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
+    return new anchor.BN(0); // Return 0 if no data is found.
   }
   private async getPoolPda(
     shareTokenMint: PublicKey,
@@ -292,5 +293,5 @@ function base64ToBN(base64: string): BigNumber {
     value += BigInt(buffer[i]) << (BigInt(i) * BigInt(8));
   }
 
-  return new anchor.BN(value);
+  return new anchor.BN(value.toString());
 }
