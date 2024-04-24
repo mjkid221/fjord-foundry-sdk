@@ -89,6 +89,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
+    return new anchor.BN(0); // Return 0 if no data is found.
   }
 
   private async getPoolPda(
