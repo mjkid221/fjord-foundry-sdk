@@ -14,7 +14,7 @@ import {
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
-import { PausePoolClientParams } from './lbp-management';
+import { CreateNewOwnerNominationClientParams, PausePoolClientParams } from './lbp-management';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -144,6 +144,28 @@ export interface ClientSdkInterfaceSolana {
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated unpause transaction instruction.
    */
   unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the nomination of a new owner for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to nominate a new owner for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet to be nominated as the new owner.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for nominating a new owner. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  nominateNewOwner({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

@@ -175,4 +175,22 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       throw new Error('Error unpausing pool');
     }
   }
+
+  public async createNewOwnerNomination({
+    newOwnerPublicKey,
+  }: {
+    newOwnerPublicKey: PublicKey;
+  }): Promise<TransactionInstruction> {
+    try {
+      const transactionInstruction = await this.program.methods
+        .nominateNewOwner(newOwnerPublicKey)
+        .accounts({})
+        .instruction();
+
+      return transactionInstruction;
+    } catch (error) {
+      this.logger.error('Error nominating new owner', error);
+      throw new Error('Error nominating new owner');
+    }
+  }
 }

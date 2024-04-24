@@ -1,4 +1,4 @@
-import { Connection, TransactionInstruction } from '@solana/web3.js';
+import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 import { createPublicClient } from 'viem';
 
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
@@ -202,4 +202,21 @@ export interface LbpManagementServiceInterface {
    *
    */
   unPauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint }: PausePoolParams): Promise<TransactionInstruction>;
+
+  /**
+   * Initiates the process of transferring ownership of the LBP smart contract to a new wallet. This method
+   * generates a Solana transaction instruction that likely calls a `nominateNewOwner` method within your smart contract.
+   *
+   * **Important:**
+   *  * This method only begins the ownership transfer process.
+   *  * The nominated will need to accept the ownership transfer.
+   *  * Before using this method, ensure the connected wallet has the authority to nominate a new owner for the pool.
+   *
+   * @param {PublicKey} newOwnerPublicKey - The public key of the wallet that will become the nominated new owner of the LBP.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction for
+   *                                          nominating a new owner. After calling this method, you will need to
+   *                                          sign and submit the transaction to the Solana network.
+   *
+   */
+  createNewOwnerNomination({ newOwnerPublicKey }: { newOwnerPublicKey: PublicKey }): Promise<TransactionInstruction>;
 }

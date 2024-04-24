@@ -1,6 +1,11 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { PublicKey } from '@solana/web3.js';
 
+interface ProgramIdAndProvider {
+  programId: PublicKey;
+  provider: AnchorProvider;
+}
+
 export interface PausePoolParams {
   poolPda: PublicKey;
   creator: PublicKey;
@@ -8,8 +13,10 @@ export interface PausePoolParams {
   assetTokenMint: PublicKey;
 }
 
-export interface PausePoolClientParams {
+export interface PausePoolClientParams extends ProgramIdAndProvider {
   args: PausePoolParams;
-  programId: PublicKey;
-  provider: AnchorProvider;
+}
+
+export interface CreateNewOwnerNominationClientParams extends ProgramIdAndProvider {
+  newOwnerPublicKey: PublicKey;
 }

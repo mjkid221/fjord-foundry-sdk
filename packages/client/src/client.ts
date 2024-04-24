@@ -31,6 +31,7 @@ import {
   SwapExactSharesForAssetsInstructionClientParams,
   SwapSharesForExactAssetsInstructionClientParams,
   PausePoolClientParams,
+  CreateNewOwnerNominationClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -228,6 +229,23 @@ export class FjordClientSdk implements ClientSdkInterface {
       shareTokenMint,
       assetTokenMint,
     });
+
+    return transaction;
+  }
+
+  public async nominateNewOwner({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey });
 
     return transaction;
   }
