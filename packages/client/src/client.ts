@@ -7,13 +7,14 @@ import { formatEpochDate, getTokenDivisor } from './helpers';
 import {
   LbpBuyService,
   LbpInitializationService,
+  LbpManagementService,
+  LbpRedemptionService,
   LbpSellService,
   Logger,
   LoggerLike,
   PublicClientService,
   SolanaConnectionService,
 } from './services';
-import { LbpRedemptionService } from './services/lbp-redemption.service';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
@@ -29,6 +30,7 @@ import {
   RetrieveSinglePoolDataValueParams,
   SwapExactSharesForAssetsInstructionClientParams,
   SwapSharesForExactAssetsInstructionClientParams,
+  PausePoolClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -41,6 +43,8 @@ export class FjordClientSdk implements ClientSdkInterface {
   private lbpSellService!: LbpSellService;
 
   private lbpRedemptionService!: LbpRedemptionService;
+
+  private lbpManagementService!: LbpManagementService;
 
   private isSolana: boolean;
 
@@ -187,6 +191,43 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     // Call the closePool method from the LbpInitializationService
     const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
+
+    return transaction;
+  }
+
+  // Pool Management Tools
+
+  public async pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+
+    const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
+
+    const transaction = await this.lbpManagementService.pauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint });
+
+    return transaction;
+  }
+
+  public async unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+
+    const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
+
+    const transaction = await this.lbpManagementService.unPauseLbp({
+      poolPda,
+      creator,
+      shareTokenMint,
+      assetTokenMint,
+    });
 
     return transaction;
   }

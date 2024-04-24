@@ -3,6 +3,7 @@ import { createPublicClient } from 'viem';
 
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
+import { PausePoolParams } from './lbp-management';
 export interface PublicClientServiceInterface {
   /**
    * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
@@ -149,4 +150,56 @@ export interface LbpSellServiceInterface {
     keys,
     args,
   }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction>;
+}
+
+export interface LbpManagementServiceInterface {
+  /**
+   * Pauses the liquidity bootstrapping pool (LBP) by disabling the ability to buy or sell pool shares.
+   * This method generates a Solana transaction instruction that calls the `togglePause` method
+   * of the LBP smart contract.
+   *
+   * **Important:**
+   * * This method performs pre-transaction validation to ensure data consistency:
+   *    - Verifies that the provided `poolPda` matches the calculated PDA based on token mints and creator.
+   *    - Checks if the pool is already paused.
+   *    - Confirms that the provided creator and token mints match the pool's state on the blockchain.
+   * * Before using this method, ensure the connected wallet has the authority to pause the pool
+   *   (usually this requires the connected wallet to be the pool's creator).
+   *
+   * @param {PausePoolParams} params - Parameters for pausing the pool.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.creator - The public key of the wallet that created the pool.
+   * @param {PublicKey} params.shareTokenMint - The public key of the mint for the pool's share tokens.
+   * @param {PublicKey} params.assetTokenMint - The public key of the mint for the pool's underlying asset.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction
+   *                                           instruction for pausing the pool. After calling this method,
+   *                                           you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  pauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint }: PausePoolParams): Promise<TransactionInstruction>;
+
+  /**
+   * Unpauses a liquidity bootstrapping pool (LBP), re-enabling the ability to buy or sell pool shares.
+   * This method generates a Solana transaction instruction that calls the `togglePause` method (likely
+   * the same method used for pausing) of the LBP smart contract.
+   *
+   * **Important:**
+   * * This method performs pre-transaction validation to ensure data consistency:
+   *    - Verifies that the provided `poolPda` matches the calculated PDA based on token mints and creator.
+   *    - Checks if the pool is already unpaused.
+   *    - Confirms that the provided creator and token mints match the pool's state on the blockchain.
+   * * Before using this method, ensure the connected wallet has the authority to unpause the pool
+   *   (usually this requires the connected wallet to be the pool's creator).
+   *
+   * @param {PausePoolParams} params - Parameters for unpausing the pool.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.creator - The public key of the wallet that created the pool.
+   * @param {PublicKey} params.shareTokenMint - The public key of the mint for the pool's share tokens.
+   * @param {PublicKey} params.assetTokenMint - The public key of the mint for the pool's underlying asset.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction
+   *                                           instruction for unpausing the pool. After calling this method,
+   *                                           you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  unPauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint }: PausePoolParams): Promise<TransactionInstruction>;
 }

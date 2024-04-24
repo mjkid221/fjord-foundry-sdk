@@ -64,7 +64,12 @@ export class LbpRedemptionService {
 
   public async closeLbpPool({ keys, args }: SwapSharesForExactAssetsOperationParams) {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+    const {
+      // userPublicKey,
+      creator,
+      shareTokenMint,
+      assetTokenMint,
+    } = keys;
 
     const { poolPda } = args;
 
@@ -78,15 +83,15 @@ export class LbpRedemptionService {
     }
 
     // Get the user PDA for the pool.
-    const [userPoolPda] = findProgramAddressSync(
-      [userPublicKey.toBuffer(), poolPda.toBuffer()],
-      this.program.programId,
-    );
+    // const [userPoolPda] = findProgramAddressSync(
+    //   [userPublicKey.toBuffer(), poolPda.toBuffer()],
+    //   this.program.programId,
+    // );
     // TODO: Add types for the keys and args
     // Get the treasury account
     const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
 
-    const [ownerConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+    // const [ownerConfigPda] = PublicKey.findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
 
     // Get the treasury account info
     const treasuryAccount = await this.connection.getAccountInfo(treasuryPda);
@@ -100,7 +105,7 @@ export class LbpRedemptionService {
     const treasury = await this.program.account.treasury.fetch(treasuryPda);
 
     // Get the owner config
-    const ownerConfig = await this.program.account.ownerConfig.fetch(ownerConfigPda);
+    // const ownerConfig = await this.program.account.ownerConfig.fetch(ownerConfigPda);
 
     // Get fee recipient informations.
     // !NOTE - There are two types of fee recipients in the treasury.
@@ -150,13 +155,13 @@ export class LbpRedemptionService {
     this.logger.debug('Total swap fees in asset token', pool.totalSwapFeesAsset.toString());
     this.logger.debug('Total assets in pool', totalAssetsInPool.toString());
 
-    const MAX_FEE_BASIS_POINTS = 10000; // TODO: Why this number?
+    // const MAX_FEE_BASIS_POINTS = 10000; // TODO: Why this number?
 
-    const platformFees = totalAssetsInPool
-      .mul(new anchor.BN(ownerConfig.platformFee))
-      .div(new anchor.BN(MAX_FEE_BASIS_POINTS));
+    // const platformFees = totalAssetsInPool
+    //   .mul(new anchor.BN(ownerConfig.platformFee))
+    //   .div(new anchor.BN(MAX_FEE_BASIS_POINTS));
 
-    const totalAssetsMinusFees = totalAssetsInPool.sub(platformFees).sub(pool.totalReferred);
+    // const totalAssetsMinusFees = totalAssetsInPool.sub(platformFees).sub(pool.totalReferred);
 
     return {
       pool,

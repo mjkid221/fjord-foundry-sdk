@@ -14,6 +14,7 @@ import {
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
+import { PausePoolClientParams } from './lbp-management';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -113,6 +114,36 @@ export interface ClientSdkInterfaceSolana {
     programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Pauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for pausing the pool.
+   * @param options.args - The arguments for pausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated pause transaction instruction.
+   */
+  pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Unpauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for unpausing the pool.
+   * @param options.args - The arguments for unpausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated unpause transaction instruction.
+   */
+  unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.
