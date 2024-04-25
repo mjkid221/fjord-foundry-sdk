@@ -14,7 +14,11 @@ import {
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
-import { CreateNewOwnerNominationClientParams, PausePoolClientParams } from './lbp-management';
+import {
+  CreateNewOwnerNominationClientParams,
+  PausePoolClientParams,
+  SetNewPoolFeesClientParams,
+} from './lbp-management';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -166,6 +170,52 @@ export interface ClientSdkInterfaceSolana {
     provider,
     newOwnerPublicKey,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the acceptance of a new owner nomination for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to accept a new owner nomination for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination acceptance process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet nominated as the new owner.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for accepting a new owner nomination. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  acceptNewOwnerNomination({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+ * Facilitates updating the fees of a liquidity bootstrapping pool (LBP). This function leverages the 
+ * `LbpManagementService` to generate the necessary Solana transaction instruction and provides a higher-level
+ * interface for interacting with fee management.
+
+ * **Important:**
+ * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+ * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the 
+ *    connected wallet to be the pool's owner).
+
+ * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
+ * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+ * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+ * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
+ *    * params.feeParams.platformFee (optional): The new platform fee.
+ *    * params.feeParams.referralFee (optional): The new referral fee.
+ *    * params.feeParams.swapFee (optional): The new swap fee. 
+ *    * params.feeParams.ownerPublicKey: The public key of the wallet authorized to modify fees. 
+ * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
+ *                                          for updating the pool's fees. After calling this method, you will 
+ *                                          need to sign and submit the transaction to the Solana network.
+ */
+  setNewPoolFees({ feeParams, programId, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

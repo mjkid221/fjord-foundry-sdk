@@ -20,3 +20,14 @@ export interface PausePoolClientParams extends ProgramIdAndProvider {
 export interface CreateNewOwnerNominationClientParams extends ProgramIdAndProvider {
   newOwnerPublicKey: PublicKey;
 }
+
+export interface NewFeeParams {
+  platformFee?: number;
+  referralFee?: number;
+  swapFee?: number;
+  ownerPublicKey: PublicKey;
+}
+
+export interface SetNewPoolFeesClientParams extends ProgramIdAndProvider {
+  feeParams: NewFeeParams;
+}

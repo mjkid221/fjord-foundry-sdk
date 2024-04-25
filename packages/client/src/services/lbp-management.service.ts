@@ -4,7 +4,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { LbpManagementServiceInterface, PausePoolParams } from '../types';
+import { LbpManagementServiceInterface, NewFeeParams, PausePoolParams } from '../types';
 
 import { LoggerLike, Logger } from './logger.service';
 
@@ -191,6 +191,48 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     } catch (error) {
       this.logger.error('Error nominating new owner', error);
       throw new Error('Error nominating new owner');
+    }
+  }
+
+  public async acceptOwnerNomination({
+    newOwnerPublicKey,
+  }: {
+    newOwnerPublicKey: PublicKey;
+  }): Promise<TransactionInstruction> {
+    try {
+      const transactionInstruction = await this.program.methods
+        .acceptNewOwner()
+        .accounts({ newOwner: newOwnerPublicKey })
+        .instruction();
+
+      return transactionInstruction;
+    } catch (error) {
+      this.logger.error('Error accepting new owner', error);
+      throw new Error('Error accepting new owner');
+    }
+  }
+
+  public async setPoolFees({
+    platformFee,
+    referralFee,
+    swapFee,
+    ownerPublicKey,
+  }: NewFeeParams): Promise<TransactionInstruction> {
+    if (!platformFee && !referralFee && !swapFee) {
+      this.logger.error('No fees provided');
+      throw new Error('No fees provided');
+    }
+
+    try {
+      const transactionInstruction = await this.program.methods
+        .setFees(platformFee ?? null, referralFee ?? null, swapFee ?? null)
+        .accounts({ owner: ownerPublicKey })
+        .instruction();
+
+      return transactionInstruction;
+    } catch (error) {
+      this.logger.error('Error setting fees', error);
+      throw new Error('Error setting fees');
     }
   }
 }

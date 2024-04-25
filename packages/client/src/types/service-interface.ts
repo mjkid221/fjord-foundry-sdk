@@ -3,7 +3,7 @@ import { createPublicClient } from 'viem';
 
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
-import { PausePoolParams } from './lbp-management';
+import { NewFeeParams, PausePoolParams } from './lbp-management';
 export interface PublicClientServiceInterface {
   /**
    * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
@@ -219,4 +219,40 @@ export interface LbpManagementServiceInterface {
    *
    */
   createNewOwnerNomination({ newOwnerPublicKey }: { newOwnerPublicKey: PublicKey }): Promise<TransactionInstruction>;
+
+  /**
+   * Allows the nominated new owner of a liquidity bootstrapping pool (LBP) to accept ownership.
+   * This method generates a Solana transaction instruction, likely calling an `acceptNewOwner` method within your smart contract.
+   *
+   * **Important:**
+   * * This method assumes a previous nomination of a new owner was made (e.g., using the `createNewOwnerNomination`  function).
+   * * Before using this method, ensure the connected wallet corresponds to the nominated owner's public key (`newOwnerPublicKey`).
+   *
+   * @param {Object} params - Parameters for accepting the new owner nomination.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the nominated owner (this wallet should be the connected wallet).
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for accepting the new owner nomination. After calling this method,
+   *                                          you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  acceptOwnerNomination({ newOwnerPublicKey }: { newOwnerPublicKey: PublicKey }): Promise<TransactionInstruction>;
+
+  /**
+   * Updates the fees associated with a liquidity bootstrapping pool (LBP). This method generates a Solana transaction
+   * instruction that likely calls a `setFees` method in your smart contract. Fees can be updated individually or all at once.
+   *
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the
+   *      connected wallet to be the pool's owner).
+   *
+   * @param {NewFeeParams} params - Parameters for updating the pool's fees.
+   * @param {number} [params.platformFee] - The new platform fee (optional).
+   * @param {number} [params.referralFee] - The new referral fee (optional).
+   * @param {number} [params.swapFee] - The new swap fee (optional).
+   * @param {PublicKey} params.ownerPublicKey - The public key of the wallet authorized to modify fees (likely the pool owner).
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction
+   *                                            for updating the pool's fees. After calling this method, you will
+   *                                            need to sign and submit the transaction to the Solana network.
+   */
+  setPoolFees({ platformFee, referralFee, swapFee, ownerPublicKey }: NewFeeParams): Promise<TransactionInstruction>;
 }

@@ -32,6 +32,7 @@ import {
   SwapSharesForExactAssetsInstructionClientParams,
   PausePoolClientParams,
   CreateNewOwnerNominationClientParams,
+  SetNewPoolFeesClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -246,6 +247,47 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
 
     const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey });
+
+    return transaction;
+  }
+
+  public async acceptNewOwnerNomination({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+
+    const transaction = await this.lbpManagementService.acceptOwnerNomination({ newOwnerPublicKey });
+
+    return transaction;
+  }
+
+  public async setNewPoolFees({
+    feeParams,
+    programId,
+    provider,
+  }: SetNewPoolFeesClientParams): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpInitializationService method not supported for this client');
+      throw new Error('LbpInitializationService method not supported for this client');
+    }
+
+    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+
+    const { platformFee, referralFee, swapFee, ownerPublicKey } = feeParams;
+
+    const transaction = await this.lbpManagementService.setPoolFees({
+      platformFee,
+      referralFee,
+      swapFee,
+      ownerPublicKey,
+    });
 
     return transaction;
   }
