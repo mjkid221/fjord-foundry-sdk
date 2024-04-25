@@ -2,7 +2,6 @@ export * from './lbp-buy.service';
 export * from './lbp-initialization.service';
 export * from './lbp-sell.service';
 export * from './logger.service';
-export * from './public-client.service';
 export * from './solana-connection.service';
 export * from './lbp-redemption.service';
 export * from './lbp-management.service';

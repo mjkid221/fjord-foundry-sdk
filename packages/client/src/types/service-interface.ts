@@ -17,7 +17,7 @@ export interface SolanaConnectionServiceInterface {
    * Gets the Solana connection object.
    * @returns {Connection} - The Solana connection object.
    */
-  getConnection?(): Connection;
+  getConnection(): Connection;
 }
 
 export interface ClientServiceInterface extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}

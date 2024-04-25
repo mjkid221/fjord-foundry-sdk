@@ -469,4 +469,4 @@ export interface ClientSdkInterfaceEvm {
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
 
-export interface ClientSdkInterface extends ClientSdkInterfaceSolana, ClientSdkInterfaceEvm {}
+export interface ClientSdkInterface extends ClientSdkInterfaceSolana {}

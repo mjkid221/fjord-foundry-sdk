@@ -89,6 +89,8 @@ export class LbpBuyService implements LbpBuyServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
+    this.logger.error('Unable to find return data in logs');
+    throw new Error('Unable to find return data in logs');
   }
 
   private async getPoolPda(
