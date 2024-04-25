@@ -158,22 +158,6 @@ export class LbpSellService implements LbpSellServiceInterface {
 
     let minOutgoingAssetAmount: BigNumber;
 
-    // // create the swap preview
-    // try {
-    //   minOutgoingAssetAmount = await this.program.methods
-    //     .previewAssetsOut(formattedIncomingSharesAmount)
-    //     .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
-    //     .simulate()
-    //     .then((data) => data.events[0].data.assetsOut as BigNumber);
-    // } catch (error: any) {
-    //   this.logger.error('Error previewing assets out:', error);
-    //   throw new Error('Error previewing assets out', error);
-    // }
-
-    // this.logger.debug('Expected min assets outgoing:', minOutgoingAssetAmount.toString());
-
-    // Create the swap transaction preview.
-    // Get expected shares out by reading a view function's emitted event.
     try {
       const ix = await this.program.methods
         .previewAssetsOut(formattedIncomingSharesAmount)
@@ -185,20 +169,6 @@ export class LbpSellService implements LbpSellServiceInterface {
       this.logger.error('Failed to create swap exact shares for assets instruction preview.', error);
       throw new Error('Failed to create swap exact shares for assets instruction preview.', error);
     }
-
-    this.logger.debug('creating swap instruction:', {
-      formattedIncomingSharesAmount,
-      minOutgoingAssetAmount,
-      assetTokenMint,
-      shareTokenMint,
-      userPublicKey,
-      poolPda,
-      poolAssetTokenAccount,
-      poolShareTokenAccount,
-      userAssetTokenAccount,
-      userShareTokenAccount,
-      userPoolPda,
-    });
 
     // Create the instruction.
     try {
@@ -214,6 +184,7 @@ export class LbpSellService implements LbpSellServiceInterface {
           userAssetTokenAccount,
           userShareTokenAccount,
           userStateInPool: userPoolPda,
+          referrerStateInPool: null,
         })
         .instruction();
 
@@ -272,7 +243,7 @@ export class LbpSellService implements LbpSellServiceInterface {
 
     try {
       const ix = await this.program.methods
-        .previewSharesOut(formattedOutgoingAssetsAmount)
+        .previewSharesIn(formattedOutgoingAssetsAmount)
         .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
         .instruction();
 
@@ -283,7 +254,6 @@ export class LbpSellService implements LbpSellServiceInterface {
     }
 
     this.logger.debug('Expected max shares incoming:', maxIncomingSharesAmount.toString());
-
     // Create the instruction.
     try {
       const swapInstruction = await this.program.methods
@@ -298,6 +268,7 @@ export class LbpSellService implements LbpSellServiceInterface {
           userAssetTokenAccount,
           userShareTokenAccount,
           userStateInPool: userPoolPda,
+          referrerStateInPool: null,
         })
         .instruction();
 
