@@ -55,14 +55,21 @@ export const closePoolArgsSchema = z.object({
       },
       { message: 'Pool must be a valid Solana public key' },
     ),
+  }),
+});
+
+export const redeemPoolArgsSchema = closePoolArgsSchema.extend({
+  args: closePoolArgsSchema.shape.args.extend({
     isReferred: z.boolean(),
   }),
 });
 
 export interface ClosePoolArgsType extends z.TypeOf<typeof closePoolArgsSchema> {}
+export interface RedeemTokensArgsType extends z.TypeOf<typeof redeemPoolArgsSchema> {}
 export type ClosePoolParams = {
   formData: z.infer<typeof closePoolArgsSchema>;
   connection: Connection;
   provider: AnchorProvider;
   sdkClient: FjordClientSdk;
 };
+export type RedeemTokensParams = Omit<ClosePoolParams, 'formData'> & { formData: z.infer<typeof redeemPoolArgsSchema> };
