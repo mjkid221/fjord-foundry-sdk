@@ -259,9 +259,11 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       throw new Error('Creator does not match owner config');
     }
 
+    const formattedFee = (fee: number | undefined) => (fee ? fee * 100 : null); // Convert fee to basis points
+
     try {
       const transactionInstruction = await this.program.methods
-        .setFees(platformFee ?? null, referralFee ?? null, swapFee ?? null)
+        .setFees(formattedFee(platformFee), formattedFee(referralFee), formattedFee(swapFee))
         .accounts({ owner: ownerPublicKey })
         .instruction();
 
