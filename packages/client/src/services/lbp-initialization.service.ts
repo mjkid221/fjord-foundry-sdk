@@ -1,10 +1,10 @@
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 
-import { FjordLbp, INITIALIZE_LBP_IDL } from '../constants';
+import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import { Accounts, InitializePoolParams, InitializePoolResponse, LbpInitializationServiceInterface } from '../types';
 
@@ -37,7 +37,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
   constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
     this.provider = provider;
     this.programId = programId;
-    this.program = new anchor.Program(INITIALIZE_LBP_IDL, programId, provider);
+    this.program = new anchor.Program(IDL, programId, provider);
     this.network = network;
     this.logger = Logger('LbpInitializationService', true);
     this.logger.debug('LbpInitializationService initialized');
@@ -97,12 +97,13 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const zeroBn = new anchor.BN(0);
 
     // Format the provided parameters to BN values.
-    const formattedAssets = new anchor.BN(assets * assetTokenDivisor);
-    const formattedShares = new anchor.BN(shares * shareTokenDivisor);
-    const formattedVirtualAssets = virtualAssets ? new anchor.BN(virtualAssets * assetTokenDivisor) : zeroBn;
-    const formattedVirtualShares = virtualShares ? new anchor.BN(virtualShares * shareTokenDivisor) : zeroBn;
-    const formattedMaxAssetsIn = new anchor.BN(maxAssetsIn * assetTokenDivisor);
-    const formattedMaxSharesOut = new anchor.BN(maxSharesOut * shareTokenDivisor);
+    const formattedAssets = assets.mul(new anchor.BN(assetTokenDivisor));
+    const formattedShares = shares.mul(new anchor.BN(shareTokenDivisor));
+    const formattedVirtualAssets = virtualAssets ? virtualAssets.mul(new anchor.BN(assetTokenDivisor)) : zeroBn;
+    const formattedVirtualShares = virtualShares ? virtualShares.mul(new anchor.BN(shareTokenDivisor)) : zeroBn;
+    const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
+    const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
+    const formattedMaxSharePrice = maxSharePrice.mul(new anchor.BN(shareTokenDivisor));
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const [poolPda] = findProgramAddressSync(
@@ -136,7 +137,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
           formattedShares,
           formattedVirtualAssets,
           formattedVirtualShares,
-          maxSharePrice,
+          formattedMaxSharePrice,
           formattedMaxSharesOut,
           formattedMaxAssetsIn,
           startWeightBasisPoints,

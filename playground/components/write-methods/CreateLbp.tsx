@@ -24,6 +24,7 @@ import { z } from 'zod';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
+import WalletNotConnected from '../WalletNotConnected';
 
 const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();
@@ -74,15 +75,16 @@ const CreateLbp = () => {
     mutationFn: createPool,
     onSuccess: async (data) => {
       setPoolAddress(data.poolPda.toBase58());
+
       const confirmation = await signAndSendCreatePoolTransaction(data.transactionInstruction);
-      console.log('Success', confirmation);
+      console.log('Success', confirmation); // Log the confirmation tx and signature
     },
     onError: (error) => console.log('Error', error),
   });
 
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
     if (!connection || !provider || !sdkClient) {
-      throw new Error('Wallet not connected');
+      throw new Error('Required connetion, provider or sdkClient not found');
     }
     const formattedData = {
       args: {
@@ -212,9 +214,13 @@ const CreateLbp = () => {
             <MenuItem value="true">True</MenuItem>
           </Select>
         </FormControl>
-        <Button variant="contained" type="submit">
+        <Button variant="contained" type="submit" disabled={!wallet}>
           Submit
         </Button>
+        <Button variant="contained" type="submit" disabled={!wallet}>
+          Submit
+        </Button>
+        {!wallet && <WalletNotConnected />}
         {poolAddress && <Typography>Newly created pool address: {poolAddress}</Typography>}
       </Stack>
     </form>

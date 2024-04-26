@@ -1,5 +1,5 @@
 import { FjordClientSdk, InitializePoolResponse } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider, BN } from '@project-serum/anchor';
+import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
@@ -64,18 +64,18 @@ export const createPool = async ({
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
 
-  const assets = Number(formData.args.assets);
-  const shares = Number(formData.args.shares);
-  const maxAssetsIn = Number(formData.args.maxAssetsIn);
+  const assets = new BN(formData.args.assets);
+  const shares = new BN(formData.args.shares);
+  const maxAssetsIn = new BN(formData.args.maxAssetsIn);
   const maxSharePrice = new BN(formData.args.maxSharePrice);
-  const maxSharesOut = Number(formData.args.maxSharesOut);
+  const maxSharesOut = new BN(formData.args.maxSharesOut);
   const startWeightBasisPoints = Number(formData.args.startWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const endWeightBasisPoints = Number(formData.args.endWeightBasisPoints) * PERCENTAGE_BASIS_POINTS;
   const saleStartTime = new BN(formData.args.saleStartTime);
   const saleEndTime = new BN(formData.args.saleEndTime);
   const sellingAllowed = formData.args.sellingAllowed ?? false;
-  const virtualAssets = formData.args.virtualAssets ? Number(formData.args.virtualAssets) : undefined;
-  const virtualShares = formData.args.virtualShares ? Number(formData.args.virtualShares) : undefined;
+  const virtualAssets = formData.args.virtualAssets ? new BN(formData.args.virtualAssets) : undefined;
+  const virtualShares = formData.args.virtualShares ? new BN(formData.args.virtualShares) : undefined;
 
   const keys = {
     creator,

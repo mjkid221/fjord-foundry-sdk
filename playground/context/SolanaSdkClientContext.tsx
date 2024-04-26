@@ -1,5 +1,5 @@
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { createContext } from 'react';
 
 export interface SolanaSdkClientContext {

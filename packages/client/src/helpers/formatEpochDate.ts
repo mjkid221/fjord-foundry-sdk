@@ -1,4 +1,4 @@
-import { BN } from '@project-serum/anchor';
+import { BN } from '@coral-xyz/anchor';
 
 /**
  * Helper function to format a Solana epoch timestamp into a readable date string.
