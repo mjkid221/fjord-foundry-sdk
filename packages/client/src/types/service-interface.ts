@@ -3,6 +3,7 @@ import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
+import { GetPoolFeesResponse } from './lbp-read';
 
 export interface SolanaConnectionServiceInterface {
   /**
@@ -274,4 +275,21 @@ export interface LbpManagementServiceInterface {
     feeRecipients,
     creator,
   }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction>;
+}
+
+export interface LbpReadServiceInterface {
+  /**
+   * Retrieves the fees associated with a liquidity bootstrapping pool (LBP). This method fetches the platform fee, referral fee, and swap fee
+   * from the pool's owner configuration account.
+   *
+   * @returns {Promise<GetPoolFeesResponse>} - A promise that resolves with an object containing the platform fee, referral fee, and swap fee.
+   */
+  getPoolFees(): Promise<GetPoolFeesResponse>;
+
+  /**
+   * Retrieves the owner of the parent LBP program. This method fetches the public key of the wallet that administers the pool management.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the pool's owner.
+   */
+  getPoolOwner(): Promise<PublicKey>;
 }

@@ -8,6 +8,7 @@ import {
   LbpBuyService,
   LbpInitializationService,
   LbpManagementService,
+  LbpReadService,
   LbpRedemptionService,
   LbpSellService,
   Logger,
@@ -42,6 +43,8 @@ export class FjordClientSdk implements ClientSdkInterface {
   private lbpRedemptionService!: LbpRedemptionService;
 
   private lbpManagementService!: LbpManagementService;
+
+  private lbpReadService!: LbpReadService;
 
   private solanaNetwork: WalletAdapterNetwork;
 
@@ -422,5 +425,62 @@ export class FjordClientSdk implements ClientSdkInterface {
       throw new Error('getConnection method not supported for this client');
     }
     return await this.clientService.getConnection().getAccountInfoAndContext(address);
+  }
+
+  public async readPoolFees(programId: PublicKey) {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const poolFees = await this.lbpReadService.getPoolFees();
+
+    return poolFees;
+  }
+
+  public async readPoolOwner(programId: PublicKey) {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const poolOwner = await this.lbpReadService.getPoolOwner();
+
+    return poolOwner;
+  }
+
+  public async readFeeRecipients(programId: PublicKey) {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const feeRecipients = await this.lbpReadService.getFeeRecipients();
+
+    return feeRecipients;
   }
 }
