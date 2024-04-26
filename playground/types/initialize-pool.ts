@@ -121,3 +121,55 @@ export type SwapAssetsForSharesParams = {
   provider: AnchorProvider;
   sdkClient: FjordClientSdk;
 };
+
+export const nominateNewOwnerArgsSchema = z.object({
+  args: z.object({
+    creator: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Creator must be a valid Solana public key' },
+    ),
+    newOwnerPublicKey: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'User must be a valid Solana public key' },
+    ),
+  }),
+});
+
+export const acceptOwnershipParamsSchema = z.object({
+  args: z.object({
+    newOwnerPublicKey: z.string().refine(
+      (val) => {
+        try {
+          return new PublicKey(val);
+        } catch (error) {
+          return false;
+        }
+      },
+      { message: 'Creator must be a valid Solana public key' },
+    ),
+  }),
+});
+
+export type NominateNewOwnerParams = {
+  formData: z.infer<typeof nominateNewOwnerArgsSchema>;
+  provider: AnchorProvider;
+  sdkClient: FjordClientSdk;
+};
+
+export type AcceptOwnershipParams = {
+  formData: z.infer<typeof acceptOwnershipParamsSchema>;
+  provider: AnchorProvider;
+  sdkClient: FjordClientSdk;
+};

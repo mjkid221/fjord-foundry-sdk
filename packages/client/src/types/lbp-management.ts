@@ -19,6 +19,7 @@ export interface PausePoolClientParams extends ProgramIdAndProvider {
 
 export interface CreateNewOwnerNominationClientParams extends ProgramIdAndProvider {
   newOwnerPublicKey: PublicKey;
+  creator?: PublicKey;
 }
 
 export interface NewFeeParams {

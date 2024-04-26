@@ -185,9 +185,26 @@ export class LbpManagementService implements LbpManagementServiceInterface {
 
   public async createNewOwnerNomination({
     newOwnerPublicKey,
+    creator,
   }: {
     newOwnerPublicKey: PublicKey;
+    creator: PublicKey;
   }): Promise<TransactionInstruction> {
+    if (!creator) {
+      this.logger.error('No creator provided');
+      throw new Error('No creator provided');
+    }
+    // Get the program address for the owner config
+    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+    // Get the owner config
+    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+    // Verify that the creator matches the owner config
+    if (!ownerConfig.owner.equals(creator)) {
+      this.logger.error('Creator does not match owner config');
+      throw new Error('Creator does not match owner config');
+    }
+
     try {
       const transactionInstruction = await this.program.methods
         .nominateNewOwner(newOwnerPublicKey)

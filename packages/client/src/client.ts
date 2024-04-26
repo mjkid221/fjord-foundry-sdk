@@ -199,7 +199,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
     newOwnerPublicKey,
+    creator,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    if (!creator) {
+      throw new Error('Creator public key is required');
+    }
+
     this.lbpManagementService = await LbpManagementService.create(
       programId,
       provider,
@@ -207,7 +212,7 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.loggerEnabled,
     );
 
-    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey });
+    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey, creator });
 
     return transaction;
   }
