@@ -9,26 +9,26 @@
   - [pnpm](#pnpm)
 - [Usage](#usage)
 - [API](#api)
-  - [Write Methods Solana](#write-methods-solana)
+  - [Write Methods](#write-methods)
     - [Initialize Liquidity Bootstrap Pool](#initialize-liquidity-bootstrap-pool)
     - [Buy Operations](#buy-operations)
       - [Swap Assets For Exact Shares](#createswapassetsforexactsharestransaction)
       - [Swap Exact Assets For Shares](#createswapexactassetsforsharestransaction)
-  - [Read Methods Solana](#read-methods-solana)
+    - [Sell Operation](#sell-operations)
+      - [Swap Exact Shares for Assets](#createswapexactsharesforassetsinstruction)
+      - [Swap Shares for Exact Assets](#createswapsharesforexactassetsinstruction)
+    -[Pool Management](#pool-management)
+      -[Pause/Unpause](#pausepool-and-unpausepool)
+    - [Admin](#admin)
+      - [Nominate New Owner](#nominatenewowner)
+      - [Accept New Owner Nomination](#acceptnewownernomination)
+      - [Set New Pool Fees](#setnewpoolfees)
+      - [Set Treasury Fee Recipients](#settreasuryfeerecipients)
+  - [Read Methods](#read-methods)
     - [Retrieve All Pool Data](#retrieve-all-pool-data)
     - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
-  - [Read Methods EVM](#read-methods-evm)
-    - [getContractArgs](#get-contract-arguments)
-    - [getContractManagerAddress](#get-contract-manager-address)
-    - [isPoolClosed](#is-pool-closed)
-    - [isSellingAllowed](#is-selling-allowed)
-    - [getMaxTotalAssetsIn](#get-max-total-assets-in)
-    - [getMaxTotalSharesOut](#get-max-total-shares-out)
-    - [getVestingState](#get-vesting-state)
-    - [getTotalSharesPurchased](#get-total-shares-purchased)
-    - [getReservesAndWeights](#get-reserves-and-weights)
 - [Enums](#enums)
-  -[PoolDataValueKey](#pooldatavaluekey)
+  - [PoolDataValueKey](#pooldatavaluekey)
 - [Features](#features)
 - [License](#license)
 
@@ -70,12 +70,10 @@ Then, you need to initialize the client using the `create` method.
 
 **Parameters**
 
-- `useSolana` (boolean):
-  - true: Creates a Solana-based client enabling interactions with the Solana blockchain.
-  - false: Creates a client limited to public, non-Solana operations.
-- `solanaNetwork` (WalletAdapterNetwork, optional):
-  - Required when useSolana is true.
+- `solanaNetwork` (WalletAdapterNetwork):
   - Specifies the Solana network (e.g., 'mainnet-beta', 'devnet', or 'testnet').
+- `loggingEnabled` (boolean)
+  - (optional: default = `false`) An optional boolean that enables sdk logging for debugging purposes.
 
 **Returns**
 
@@ -87,16 +85,7 @@ Then, you need to initialize the client using the `create` method.
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 
-const clientSdk = new FjordClientSdk(true, WalletAdapterNetwork.Devnet)
-
-```
-
-**Example (EVM Chain)**
-
-```ts
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
-
-const myPublicSdk = await FjordClientSdk.create(false); 
+const clientSdk = new FjordClientSdk(WalletAdapterNetwork.Devnet)
 
 ```
 
@@ -104,7 +93,7 @@ const myPublicSdk = await FjordClientSdk.create(false);
 
 The FjordClientSdk provides a suite of methods to interact with blockchain contracts, specifically tailored for LBP (Liquidity Bootstrapping Pool) operations. Below are the methods available in the SDK:
 
-## Write Methods Solana
+## Write Methods
 
 ### Initialize Liquidity Bootstrap Pool
 
@@ -128,7 +117,6 @@ This method is responsible for initializing a new liquidity bootstrapping pool (
 
 **Prerequisites**
 
-- Solana-Based Client: This method is only available when your FjordClientSdk was created with useSolana: true.
 - Connected Wallet: A connected Solana wallet is required.
 
 **Important Notes**
@@ -260,7 +248,6 @@ This method prepares a Solana transaction instruction for performing a "swap ass
 
 **Prerequisites**
 
-- Solana-Based Client: This method is only available when your `FjordClientSdk` was created with `useSolana: true`.
 - Connected Wallet: A connected Solana wallet is required.
 
 **Examples**
@@ -416,7 +403,6 @@ This method prepares a Solana transaction instruction for performing a "swap exa
 
 **Prerequisites**
 
-- Solana-Based Client: This method is only available when your `FjordClientSdk` was created with `useSolana: true`.
 - Connected Wallet: A connected Solana wallet is required.
 
 **Examples**
@@ -548,7 +534,404 @@ const SwapExactAssetsForShares = () => {
 }
 ```
 
-## Read Methods Solana
+### Sell Operations
+
+#### `createSwapExactSharesForAssetsInstruction`
+
+This method prepares a Solana transaction instruction for performing a "swap exact shares for assets" operation within a Fjord liquidity bootstrapping pool (LBP). This allows a user to exchange a precise quantity of the pool's share token from their pool balance for a calculated amount of asset tokens.
+
+**Parameters**
+
+- `keys` (SwapExactSharesForAssetsOperationPublicKeys):
+  - `userPublicKey`: The public key of the wallet performing the swap.
+  - `creator`: The public key of the wallet that created the pool.
+  - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+  - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+- `args` (SwapExactSharesForAssetsOperationArgs):
+  - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `sharesAmountOut`: The exact quantity of shares to use in the swap.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for swapping exact shares for a calculated amount of assets within the specified LBP. This needs to be signed and submitted to the network for execution.
+
+**Prerequisites**
+
+- Connected Wallet: A connected Solana wallet is required.
+
+**Example**
+
+```ts
+export const swapExactSharesForAssets = async ({
+  formData,
+  connection,
+  provider,
+  sdkClient,
+}: SwapAssetsForSharesParams): Promise<TransactionInstruction> => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
+  const creator = new PublicKey(formData.args.creator);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey); 
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const poolPda = new PublicKey(formData.args.poolPda);
+  const sharesAmountOut = new BN(formData.args.sharesAmountOut);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+    sharesAmountOut,
+  };
+
+  const transaction = await sdkClient.createSwapExactSharesForAssetsTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transaction;
+};
+
+```
+
+#### `createSwapSharesForExactAssetsInstruction`
+
+This method prepares a Solana transaction instruction for performing a "swap shares for exact assets" operation within a Fjord liquidity bootstrapping pool (LBP). This allows a user to exchange a precise quantity of the pool's asset token  for a calculated amount of share tokens from their pool balance.
+
+**Parameters**
+
+- `keys` (SwapSharesForExactAssetsOperationPublicKeys):
+  - `userPublicKey`: The public key of the wallet performing the swap.
+  - `creator`: The public key of the wallet that created the pool.
+  - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+  - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+- `args` (SwapSharesForExactAssetsOperationArgs):
+  - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `assetsAmountIn`: The exact quantity of assets to use in the swap.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for swapping shares for a calculated amount of exact assets within the specified LBP. This needs to be signed and submitted to the network for execution.
+
+**Prerequisites**
+
+- Connected Wallet: A connected Solana wallet is required.
+
+**Example**
+
+```ts
+export const swapSharesForExactAssets = async ({
+  formData,
+  connection,
+  provider,
+  sdkClient,
+}: SwapAssetsForSharesParams): Promise<TransactionInstruction> => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
+  const creator = new PublicKey(formData.args.creator);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey); 
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const poolPda = new PublicKey(formData.args.poolPda);
+  const assetsAmountIn = new BN(formData.args.assetsAmountIn);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+    assetsAmountIn,
+  };
+
+  const transaction = await sdkClient.createSwapSharesForExactAssetsTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transaction;
+};
+
+```
+
+### Pool Management
+
+#### `pausePool` and `unPausePool`
+
+This methods enables an LBP creator to pause or unpause the buy/sell operations of their pool.
+
+**Parameters**
+
+- `args` (PausePoolParams):
+  - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `creator`: The public key of the wallet that created the pool.
+  - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+  - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for pausing or unpausing the specified LBP. This needs to be signed and submitted to the network for execution.
+
+**Prerequisites**
+
+- Connected Wallet: A connected Solana wallet is required.
+
+**Example**
+
+```ts
+export const pausePool = async ({ provider, sdkClient, args }: PausePoolParams) => {
+  if (!provider || !sdkClient) {
+    throw new Error('Required  provider, and sdkClient');
+  }
+
+  // Get the program address
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+  const creator = new PublicKey(args.creator);
+  const shareTokenMint = new PublicKey(args.shareTokenMint);
+  const assetTokenMint = new PublicKey(args.assetTokenMint);
+  const poolPda = new PublicKey(args.poolPda);
+
+  const pausePoolArgs = {
+    poolPda,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const transaction = await sdkClient.pausePool({ programId: programAddressPublicKey, args: pausePoolArgs, provider });
+
+  return transaction;
+};
+
+export const unpausePool = async ({ provider, sdkClient, args }: PausePoolParams) => {
+  if (!provider || !sdkClient) {
+    throw new Error('Required  provider, and sdkClient');
+  }
+
+  // Get the program address
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+  const creator = new PublicKey(args.creator);
+  const shareTokenMint = new PublicKey(args.shareTokenMint);
+  const assetTokenMint = new PublicKey(args.assetTokenMint);
+  const poolPda = new PublicKey(args.poolPda);
+
+  const unPausePoolArgs = {
+    poolPda,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const transaction = await sdkClient.unPausePool({
+    programId: programAddressPublicKey,
+    args: unPausePoolArgs,
+    provider,
+  });
+
+  return transaction;
+};
+
+```
+
+### Admin
+
+#### `nominateNewOwner`
+
+This method facilitates the nomination of a new owner for the Fjord Foundry liquidity bootstrapping pool (LBP) on Solana. Please ensure the connected wallet has the authority to nominate a new owner for the pool. After the transaction is confirmed, the nominee must run `acceptNewOwnerNomination` in order for the process to be completed.
+
+**Parameters**
+
+- `newOwnerPublicKey`: The public key of the prospective new owner
+- `creator`: The public key of the wallet that created the pool.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for transferring the ownership of the protocol to prospective new address. This needs to be signed and submitted to the network for execution.
+
+**Example**
+
+```ts
+export const nominateNewOwner = async ({ formData, provider, sdkClient }: NominateNewOwnerParams) => {
+  const { creator, newOwnerPublicKey } = formData.args;
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS); // The LBP program address
+
+  const keys = {
+    creator: new PublicKey(creator),
+    newOwnerPublicKey: new PublicKey(newOwnerPublicKey),
+  };
+
+  const transaction = await sdkClient.nominateNewOwner({
+    programId: programAddressPublicKey,
+    provider,
+    newOwnerPublicKey: keys.newOwnerPublicKey,
+    creator: keys.creator,
+  });
+
+  return transaction;
+};
+```
+
+#### `acceptNewOwnerNomination`
+
+This method facilitates the acceptance of a new owner nomination for a liquidity bootstrapping pool (LBP). The `nominateNewOwner` program method must have been completed before this can be run. Ensure the connected wallet has the authority to accept a new owner nomination for the pool.
+
+**Parameters**
+
+- `newOwnerPublicKey`: The public key of the prospective new owner
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for transferring the ownership of the protocol to the new address. This needs to be signed and submitted to the network for execution.
+
+**Example**
+
+```ts
+export const acceptOwnershipNomination = async ({ formData, provider, sdkClient }: AcceptOwnershipParams) => {
+  const { newOwnerPublicKey } = formData.args;
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+  const keys = {
+    newOwnerPublicKey: new PublicKey(newOwnerPublicKey),
+  };
+
+  const transaction = await sdkClient.acceptNewOwnerNomination({
+    programId: programAddressPublicKey,
+    provider,
+    newOwnerPublicKey: keys.newOwnerPublicKey,
+  });
+
+  return transaction;
+};
+```
+
+#### `setNewPoolFees`
+
+This method acilitates updating the fees of a liquidity bootstrapping pool (LBP). Please ensure the connected wallet has the authority to modify fees for the pool.
+
+**Parameters**
+
+- `feeParams` (NewFeeParams): Parameters for updating pool fees.
+  - `platformFee`(optional): The new platform fee.
+  - `referralFee` (optional): The new referral fee.
+  - `swapFee` (optional): The new swap fee.
+  - `ownerPublicKey`: The public key of the wallet authorized to modify fees.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+*Note*: At least one of the `feeParams` are required.
+
+**Returns**
+
+A transaction instruction for updating the pool's fees. After calling this method, you will need to sign and submit the transaction to the Solana network.
+
+**Example**
+
+```ts
+export const setNewPoolFees = async ({ formData, provider, sdkClient }: SetNewPoolFeesParams) => {
+  const { ownerPublicKey, platformFee, referralFee, swapFee } = formData;
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+  const keys = {
+    ownerPublicKey: new PublicKey(ownerPublicKey),
+  };
+
+  const transaction = await sdkClient.setNewPoolFees({
+    programId: programAddressPublicKey,
+    provider,
+    feeParams: {
+      ownerPublicKey: keys.ownerPublicKey,
+      platformFee: platformFee ? parseFloat(platformFee) : undefined,
+      referralFee: referralFee ? parseFloat(referralFee) : undefined,
+      swapFee: swapFee ? parseFloat(swapFee) : undefined,
+    },
+  });
+
+  return transaction;
+};
+```
+
+#### `setTreasuryFeeRecipients`
+
+This method facilitates updating the treasury fee recipients and distribution for a liquidity bootstrapping pool (LBP).
+
+**Parameters**
+
+- `treasuryFeeRecipientsParams` (TreasuryFeeRecipientsParams): Parameters for updating treasury fee recipients.
+  - `swapFeeRecipient` - Public key of the wallet designated to receive swap fees.
+  - `feeRecipients` - An array of fee recipient details:
+    - `feeRecipient`: The public key of the wallet receiving a portion of fees.
+    - `feePercentage`: The percentage of fees (0-100) allocated to this recipient.
+  - `creator` - Public key of the wallet authorized to modify fee distribution.
+- `programId` (PublicKey): The PublicKey of your Solana program.
+- `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+A transaction instruction for updating treasury fee recipients. After calling this method, you will need to sign and submit the transaction to the Solana network.
+
+**Example**
+
+```ts
+export const setNewTreasuryFeeRecipients = async ({
+  formData,
+  provider,
+  sdkClient,
+}: SetTreasuryFeeRecipientsParams) => {
+  const { swapFeeRecipient, feeRecipients, creator } = formData;
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+  const keys = {
+    swapFeeRecipient: new PublicKey(swapFeeRecipient),
+    creator: new PublicKey(creator),
+    feeRecipients: feeRecipients.map(({ feeRecipient, feePercentage }) => ({
+      feeRecipient: new PublicKey(feeRecipient),
+      feePercentage: parseFloat(feePercentage),
+    })),
+  };
+
+  const transaction = await sdkClient.setTreasuryFeeRecipients({
+    programId: programAddressPublicKey,
+    provider,
+    feeParams: {
+      swapFeeRecipient: keys.swapFeeRecipient,
+      feeRecipients: keys.feeRecipients,
+      creator: keys.creator,
+    },
+  });
+
+  return transaction;
+};
+```
+
+## Read Methods
 
 ### Retrieve All Pool Data
 
@@ -640,75 +1023,6 @@ const { data } = useQuery({
 - **`PoolDataValueKey` Enum:** Ensure that the `PoolDataValueKey` enum contains all the possible data values that can be retrieved from an LBP pool.
 - **Error Handling:**  The `default` case in the `switch` statement throws an error for invalid `valueKey` values.
 
-## Read Methods EVM
-
-All read methods require the following arguments:
-
-- `request: ReadContractRequest` - Contains the contract address and ABI.
-
-### Get Contract Arguments
-
-#### `async getContractArgs(request: ReadContractRequest): Promise<GetContractArgsResponse>`
-
-- Retrieves contract arguments for a specified LBP contract.
-- **Returns:** A promise resolving to `GetContractArgsResponse`.
-
-### Get Contract Manager Address
-
-#### `async getContractManagerAddress(request: ReadContractRequest): Promise<GetContractManagerAddressResponse>`
-
-- Fetches the manager address of a specified contract.
-- **Returns:** A promise with the manager's blockchain address.
-
-### Is Pool Closed
-
-#### `async isPoolClosed(request: ReadContractRequest): Promise<boolean>`
-
-- Determines if a particular LBP is closed.
-- **Returns:** Boolean value indicating the pool's status.
-
-### Is Selling Allowed
-
-#### `async isSellingAllowed(request: ReadContractRequest): Promise<boolean>`
-
-- Checks if selling operations are permitted for a specific LBP.
-- **Returns:** Boolean value reflecting selling permissions.
-
-### Get Max Total Assets In
-
-#### `async getMaxTotalAssetsIn(request: ReadContractRequest): Promise<bigint>`
-
-- Retrieves the maximum total assets allowed in a given LBP.
-- **Returns:** Maximum total assets as a `bigint`.
-
-### Get Max Total Shares Out
-
-#### `async getMaxTotalSharesOut(request: ReadContractRequest): Promise<bigint>`
-
-- Fetches the maximum total shares out for a specified LBP.
-- **Returns:** Maximum total shares as a `bigint`.
-
-### Get Vesting State
-
-#### `async getVestingState(request: ReadContractRequest): Promise<GetVestingStateResponse>`
-
-- Retrieves the vesting state for a given LBP.
-- **Returns:** Object containing the vesting state details.
-
-### Get Total Shares Purchased
-
-#### `async getTotalSharesPurchased(request: ReadContractRequest): Promise<bigint>`
-
-- Fetches the total number of shares purchased in a specific LBP.
-- **Returns:** Total shares as a `bigint`.
-
-### Get Reserves And Weights
-
-#### `async getReservesAndWeights(request: ReadContractRequest): Promise<GetReservesAndWeightsResponse>`
-
-- Retrieves the reserves and weights for a given LBP.
-- **Returns:** Object containing the reserves and weights details.
-
 ## Enums
 
 ### PoolDataValueKey
@@ -718,6 +1032,7 @@ Defines keys used to access specific data within an LBP.
 - **AssetToken**: Key for the asset token mint.
 - **Closed**: Key for determining if the pool is closed.
 - **Creator**: Key for the address of the pool's creator.
+- **Paused**: Key for the paused status of the pool.
 - **EndWeightBasisPoints**: Key for the pool's ending weight (in basis points).
 - **MaxAssetsIn**: Key for the maximum amount of assets allowed into the pool.
 - **MaxSharePrice**: Key for the maximum price per share.

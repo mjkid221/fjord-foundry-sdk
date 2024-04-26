@@ -4,3 +4,4 @@ export * from './pool-initialization';
 export * from './buy';
 export * from './sell';
 export * from './redemption';
+export * from './management';

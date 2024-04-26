@@ -27,13 +27,18 @@ export class LbpRedemptionService {
 
   private logger: LoggerLike;
 
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
+  constructor(
+    programId: PublicKey,
+    provider: anchor.AnchorProvider,
+    network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
+  ) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
     this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
     this.network = network;
-    this.logger = Logger('LbpRedemptionService', true);
+    this.logger = Logger('LbpRedemptionService', loggerEnabled);
     this.logger.debug('LbpRedemptionService initialized');
   }
 
@@ -48,8 +53,9 @@ export class LbpRedemptionService {
     programId: PublicKey,
     provider: anchor.AnchorProvider,
     network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
   ): Promise<LbpRedemptionService> {
-    const service = await Promise.resolve(new LbpRedemptionService(programId, provider, network));
+    const service = await Promise.resolve(new LbpRedemptionService(programId, provider, network, loggerEnabled));
 
     return service;
   }
@@ -73,6 +79,7 @@ export class LbpRedemptionService {
    */
   public async closeLbpPool({ keys, args }: Omit<CloseOperationPublicKeys, 'provider' | 'programId'>) {
     // Destructure the provided keys and arguments.
+
     const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda } = args;

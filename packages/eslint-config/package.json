@@ -1,6 +1,6 @@
 {
   "name": "@fjord-foundry/solana-sdk-eslint-config",
-  "version": "1.1.0-rc.3",
+  "version": "1.1.0-rc.4",
   "private": true,
   "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
   "license": "Apache-2.0",

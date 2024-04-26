@@ -1,25 +1,18 @@
-import { Connection, TransactionInstruction } from '@solana/web3.js';
-import { createPublicClient } from 'viem';
+import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
-export interface PublicClientServiceInterface {
-  /**
-   * This method returns the public client instance. TODO: This will be refactored to use Solana requirements.
-   * @returns {ReturnType<typeof createPublicClient>} The public client instance.
-   */
-  getPublicClient?(): ReturnType<typeof createPublicClient>;
-}
+import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
 
 export interface SolanaConnectionServiceInterface {
   /**
    * Gets the Solana connection object.
    * @returns {Connection} - The Solana connection object.
    */
-  getConnection?(): Connection;
+  getConnection(): Connection;
 }
 
-export interface ClientServiceInterface extends PublicClientServiceInterface, SolanaConnectionServiceInterface {}
+export interface ClientServiceInterface extends SolanaConnectionServiceInterface {}
 
 export interface LbpInitializationServiceInterface {
   /**
@@ -149,4 +142,136 @@ export interface LbpSellServiceInterface {
     keys,
     args,
   }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction>;
+}
+
+export interface LbpManagementServiceInterface {
+  /**
+   * Pauses the liquidity bootstrapping pool (LBP) by disabling the ability to buy or sell pool shares.
+   * This method generates a Solana transaction instruction that calls the `togglePause` method
+   * of the LBP smart contract.
+   *
+   * **Important:**
+   * * This method performs pre-transaction validation to ensure data consistency:
+   *    - Verifies that the provided `poolPda` matches the calculated PDA based on token mints and creator.
+   *    - Checks if the pool is already paused.
+   *    - Confirms that the provided creator and token mints match the pool's state on the blockchain.
+   * * Before using this method, ensure the connected wallet has the authority to pause the pool
+   *   (usually this requires the connected wallet to be the pool's creator).
+   *
+   * @param {PausePoolParams} params - Parameters for pausing the pool.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.creator - The public key of the wallet that created the pool.
+   * @param {PublicKey} params.shareTokenMint - The public key of the mint for the pool's share tokens.
+   * @param {PublicKey} params.assetTokenMint - The public key of the mint for the pool's underlying asset.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction
+   *                                           instruction for pausing the pool. After calling this method,
+   *                                           you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  pauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint }: PausePoolParams): Promise<TransactionInstruction>;
+
+  /**
+   * Unpauses a liquidity bootstrapping pool (LBP), re-enabling the ability to buy or sell pool shares.
+   * This method generates a Solana transaction instruction that calls the `togglePause` method (likely
+   * the same method used for pausing) of the LBP smart contract.
+   *
+   * **Important:**
+   * * This method performs pre-transaction validation to ensure data consistency:
+   *    - Verifies that the provided `poolPda` matches the calculated PDA based on token mints and creator.
+   *    - Checks if the pool is already unpaused.
+   *    - Confirms that the provided creator and token mints match the pool's state on the blockchain.
+   * * Before using this method, ensure the connected wallet has the authority to unpause the pool
+   *   (usually this requires the connected wallet to be the pool's creator).
+   *
+   * @param {PausePoolParams} params - Parameters for unpausing the pool.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.creator - The public key of the wallet that created the pool.
+   * @param {PublicKey} params.shareTokenMint - The public key of the mint for the pool's share tokens.
+   * @param {PublicKey} params.assetTokenMint - The public key of the mint for the pool's underlying asset.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction
+   *                                           instruction for unpausing the pool. After calling this method,
+   *                                           you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  unPauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint }: PausePoolParams): Promise<TransactionInstruction>;
+
+  /**
+   * Initiates the process of transferring ownership of the LBP smart contract to a new wallet. This method
+   * generates a Solana transaction instruction that likely calls a `nominateNewOwner` method within your smart contract.
+   *
+   * **Important:**
+   *  * This method only begins the ownership transfer process.
+   *  * The nominated will need to accept the ownership transfer.
+   *  * Before using this method, ensure the connected wallet has the authority to nominate a new owner for the pool.
+   *
+   * @param {PublicKey} newOwnerPublicKey - The public key of the wallet that will become the nominated new owner of the LBP.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction for
+   *                                          nominating a new owner. After calling this method, you will need to
+   *                                          sign and submit the transaction to the Solana network.
+   *
+   */
+  createNewOwnerNomination({ newOwnerPublicKey }: { newOwnerPublicKey: PublicKey }): Promise<TransactionInstruction>;
+
+  /**
+   * Allows the nominated new owner of a liquidity bootstrapping pool (LBP) to accept ownership.
+   * This method generates a Solana transaction instruction, likely calling an `acceptNewOwner` method within your smart contract.
+   *
+   * **Important:**
+   * * This method assumes a previous nomination of a new owner was made (e.g., using the `createNewOwnerNomination`  function).
+   * * Before using this method, ensure the connected wallet corresponds to the nominated owner's public key (`newOwnerPublicKey`).
+   *
+   * @param {Object} params - Parameters for accepting the new owner nomination.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the nominated owner (this wallet should be the connected wallet).
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for accepting the new owner nomination. After calling this method,
+   *                                          you will need to sign and submit the transaction to the Solana network.
+   *
+   */
+  acceptOwnerNomination({ newOwnerPublicKey }: { newOwnerPublicKey: PublicKey }): Promise<TransactionInstruction>;
+
+  /**
+   * Updates the fees associated with a liquidity bootstrapping pool (LBP). This method generates a Solana transaction
+   * instruction that likely calls a `setFees` method in your smart contract. Fees can be updated individually or all at once.
+   *
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the
+   *      connected wallet to be the pool's owner).
+   *
+   * @param {NewFeeParams} params - Parameters for updating the pool's fees.
+   * @param {number} [params.platformFee] - The new platform fee (optional).
+   * @param {number} [params.referralFee] - The new referral fee (optional).
+   * @param {number} [params.swapFee] - The new swap fee (optional).
+   * @param {PublicKey} params.ownerPublicKey - The public key of the wallet authorized to modify fees (likely the pool owner).
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction
+   *                                            for updating the pool's fees. After calling this method, you will
+   *                                            need to sign and submit the transaction to the Solana network.
+   */
+  setPoolFees({ platformFee, referralFee, swapFee, ownerPublicKey }: NewFeeParams): Promise<TransactionInstruction>;
+
+  /**
+   * Updates the distribution of fees collected by a liquidity bootstrapping pool (LBP). This function generates 
+   * a Solana transaction instruction to modify the fee recipients and their respective percentages, likely
+   * calling a `setTreasuryFeeRecipients` method in your smart contract. 
+
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fee distribution for the pool (usually this 
+   *   requires the connected wallet to be the pool's creator).
+   * * The total percentage allocated across all `feeRecipients` cannot exceed `MAX_FEE_BASIS_POINTS`.
+   * * This method likely involves a Program Derived Address (PDA) associated with the pool's treasury. 
+ 
+   * @param {SetTreasuryFeeRecipientsParams} params - Parameters for updating treasury fee recipients.
+   * @param {PublicKey} params.swapFeeRecipient - The public key of the wallet designated to receive swap fees.
+   * @param {TreasuryFeeRecipientParams[]} params.feeRecipients - An array of fee recipient details:
+   *    * params.feeRecipients[].feeRecipient: The public key of the wallet receiving a portion of fees.
+   *    * params.feeRecipients[].feePercentage: The percentage of fees (0-1) allocated to this recipient.
+   * @param {PublicKey} params.creator - The public key of the wallet authorized to modify fee distribution (likely the pool creator).
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
+   *                                          for updating treasury fee recipients. After calling this method,  
+   *                                          you will need to sign and submit the transaction to the Solana network.
+   */
+  setTreasuryFeeRecipients({
+    swapFeeRecipient,
+    feeRecipients,
+    creator,
+  }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction>;
 }
