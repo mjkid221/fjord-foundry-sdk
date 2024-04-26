@@ -75,17 +75,16 @@ const CreateLbp = () => {
     mutationFn: createPool,
     onSuccess: async (data) => {
       setPoolAddress(data.poolPda.toBase58());
-      console.log('Data', data);
 
       const confirmation = await signAndSendCreatePoolTransaction(data.transactionInstruction);
-      console.log('Success', confirmation);
+      console.log('Success', confirmation); // Log the confirmation tx and signature
     },
     onError: (error) => console.log('Error', error),
   });
 
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
     if (!connection || !provider || !sdkClient) {
-      throw new Error('Wallet not connected');
+      throw new Error('Required connetion, provider or sdkClient not found');
     }
     const formattedData = {
       args: {

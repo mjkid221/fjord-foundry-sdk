@@ -1,7 +1,5 @@
 import SwapExactAssetsForShares from '@/components/write-methods/SwapExactAssetsForShares';
 
-const ExactAssetsForShares = () => {
-  return <SwapExactAssetsForShares />;
-};
+const ExactAssetsForShares = () => <SwapExactAssetsForShares />;
 
 export default ExactAssetsForShares;
