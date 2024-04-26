@@ -50,16 +50,16 @@ export class FjordClientSdk implements ClientSdkInterface {
   private loggerEnabled: boolean;
 
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientServiceInterface, network: WalletAdapterNetwork, loggerEnabled = false) {
+  constructor(clientService: ClientServiceInterface, network: WalletAdapterNetwork, loggerEnabled: boolean) {
     this.clientService = clientService;
     this.solanaNetwork = network;
     this.logger = Logger('SolanaSdkClient', loggerEnabled);
     this.loggerEnabled = loggerEnabled;
   }
 
-  static async create(solanaNetwork: WalletAdapterNetwork): Promise<FjordClientSdk> {
+  static async create(solanaNetwork: WalletAdapterNetwork, enableLogging = false): Promise<FjordClientSdk> {
     const service = await SolanaConnectionService.create(solanaNetwork);
-    const client = new FjordClientSdk(service, solanaNetwork);
+    const client = new FjordClientSdk(service, solanaNetwork, enableLogging);
     client.logger.debug('SolanaSdkClient initialized');
     return client;
   }
@@ -199,7 +199,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
     newOwnerPublicKey,
+    creator,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    if (!creator) {
+      throw new Error('Creator public key is required');
+    }
+
     this.lbpManagementService = await LbpManagementService.create(
       programId,
       provider,
@@ -207,7 +212,7 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.loggerEnabled,
     );
 
-    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey });
+    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey, creator });
 
     return transaction;
   }
