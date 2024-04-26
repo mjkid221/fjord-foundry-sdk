@@ -1,10 +1,11 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
+import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { LbpManagementServiceInterface, NewFeeParams, PausePoolParams } from '../types';
+import { LbpManagementServiceInterface, NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from '../types';
 
 import { LoggerLike, Logger } from './logger.service';
 
@@ -21,13 +22,18 @@ export class LbpManagementService implements LbpManagementServiceInterface {
 
   private logger: LoggerLike;
 
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
+  constructor(
+    programId: PublicKey,
+    provider: anchor.AnchorProvider,
+    network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
+  ) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
     this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
     this.network = network;
-    this.logger = Logger('LbpManagementService', true);
+    this.logger = Logger('LbpManagementService', loggerEnabled);
     this.logger.debug('LbpManagementService initialized');
   }
 
@@ -62,8 +68,9 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     programId: PublicKey,
     provider: anchor.AnchorProvider,
     network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
   ): Promise<LbpManagementService> {
-    const service = await Promise.resolve(new LbpManagementService(programId, provider, network));
+    const service = await Promise.resolve(new LbpManagementService(programId, provider, network, loggerEnabled));
 
     return service;
   }
@@ -233,6 +240,42 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     } catch (error) {
       this.logger.error('Error setting fees', error);
       throw new Error('Error setting fees');
+    }
+  }
+
+  public async setTreasuryFeeRecipients({
+    swapFeeRecipient,
+    feeRecipients,
+    creator,
+  }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction> {
+    // Get the treasury PDA
+    const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
+
+    const newFeeRecipients: PublicKey[] = [];
+    const newFeePercentages: number[] = [];
+
+    for (const feeRecipient of feeRecipients) {
+      newFeeRecipients.push(feeRecipient.feeRecipient);
+      newFeePercentages.push(feeRecipient.feePercentage * 100); // Convert percentage to basis points
+    }
+
+    // Ensure that the total fee percentage does not exceed the maximum
+    if (newFeePercentages.reduce((a, b) => a + b, 0) > MAX_FEE_BASIS_POINTS) {
+      this.logger.error('Total fee percentage exceeds maximum');
+      throw new Error('Total fee percentage exceeds maximum');
+    }
+
+    // Create the transaction instruction
+    try {
+      const transactionInstruction = await this.program.methods
+        .setTreasuryFeeRecipients(swapFeeRecipient, newFeeRecipients, newFeePercentages)
+        .accounts({ owner: creator, treasury: treasuryPda })
+        .instruction();
+
+      return transactionInstruction;
+    } catch (error) {
+      this.logger.error('Error setting treasury fee recipients', error);
+      throw new Error('Error setting treasury fee recipients');
     }
   }
 }

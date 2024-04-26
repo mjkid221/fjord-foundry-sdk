@@ -31,3 +31,17 @@ export interface NewFeeParams {
 export interface SetNewPoolFeesClientParams extends ProgramIdAndProvider {
   feeParams: NewFeeParams;
 }
+
+export interface TreasuryFeeRecipientParams {
+  feeRecipient: PublicKey;
+  feePercentage: number;
+}
+export interface SetTreasuryFeeRecipientsParams {
+  swapFeeRecipient: PublicKey;
+  feeRecipients: TreasuryFeeRecipientParams[];
+  creator: PublicKey;
+}
+
+export interface SetTreasuryFeeRecipientsClientParams extends ProgramIdAndProvider {
+  feeParams: SetTreasuryFeeRecipientsParams;
+}

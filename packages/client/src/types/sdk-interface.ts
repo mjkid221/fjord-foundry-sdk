@@ -18,6 +18,7 @@ import {
   CreateNewOwnerNominationClientParams,
   PausePoolClientParams,
   SetNewPoolFeesClientParams,
+  SetTreasuryFeeRecipientsClientParams,
 } from './lbp-management';
 
 export interface ClientSdkInterfaceSolana {
@@ -194,28 +195,58 @@ export interface ClientSdkInterfaceSolana {
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
 
   /**
- * Facilitates updating the fees of a liquidity bootstrapping pool (LBP). This function leverages the 
- * `LbpManagementService` to generate the necessary Solana transaction instruction and provides a higher-level
- * interface for interacting with fee management.
+   * Facilitates updating the fees of a liquidity bootstrapping pool (LBP). This function leverages the 
+   * `LbpManagementService` to generate the necessary Solana transaction instruction and provides a higher-level
+   * interface for interacting with fee management.
 
- * **Important:**
- * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
- * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the 
- *    connected wallet to be the pool's owner).
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the 
+   *    connected wallet to be the pool's owner).
 
- * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
- * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
- * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
- * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
- *    * params.feeParams.platformFee (optional): The new platform fee.
- *    * params.feeParams.referralFee (optional): The new referral fee.
- *    * params.feeParams.swapFee (optional): The new swap fee. 
- *    * params.feeParams.ownerPublicKey: The public key of the wallet authorized to modify fees. 
- * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
- *                                          for updating the pool's fees. After calling this method, you will 
- *                                          need to sign and submit the transaction to the Solana network.
- */
+   * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
+   *    * params.feeParams.platformFee (optional): The new platform fee.
+   *    * params.feeParams.referralFee (optional): The new referral fee.
+   *    * params.feeParams.swapFee (optional): The new swap fee. 
+   *    * params.feeParams.ownerPublicKey: The public key of the wallet authorized to modify fees. 
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
+   *                                          for updating the pool's fees. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
   setNewPoolFees({ feeParams, programId, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates updating the treasury fee recipients and distribution for a liquidity bootstrapping pool (LBP). 
+   * This function leverages the `LbpManagementService` to generate the necessary Solana transaction instruction and 
+   * provides a higher-level interface for interacting with fee recipient management.
+
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fee distribution for the pool (usually this 
+   *   requires the connected wallet to be the pool's creator).
+   * * The total percentage allocated across all `feeRecipients` cannot exceed `MAX_FEE_BASIS_POINTS`.
+
+   * @param {SetTreasuryFeeRecipientsClientParams} params - Parameters for updating treasury fee recipients.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {SetTreasuryFeeRecipientsParams} params.feeParams - Fee recipient details:
+   *    * params.feeParams.swapFeeRecipient - Public key of the wallet designated to receive swap fees.
+   *    * params.feeParams.feeRecipients - An array of fee recipient details:
+   *       * params.feeParams.feeRecipients[].feeRecipient: The public key of the wallet receiving a portion of fees.
+   *       * params.feeParams.feeRecipients[].feePercentage: The percentage of fees (0-100) allocated to this recipient.
+   *    * params.feeParams.creator - Public key of the wallet authorized to modify fee distribution.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction for 
+   *                                          updating treasury fee recipients. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   *
+   */
+  setTreasuryFeeRecipients({
+    programId,
+    provider,
+    feeParams,
+  }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

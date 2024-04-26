@@ -35,13 +35,18 @@ export class LbpSellService implements LbpSellServiceInterface {
 
   private logger: LoggerLike;
 
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
+  constructor(
+    programId: PublicKey,
+    provider: anchor.AnchorProvider,
+    network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
+  ) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
     this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
     this.network = network;
-    this.logger = Logger('LbpBuyService', true);
+    this.logger = Logger('LbpBuyService', loggerEnabled);
     this.logger.debug('LbpBuyService initialized');
   }
 
@@ -56,8 +61,9 @@ export class LbpSellService implements LbpSellServiceInterface {
     programId: PublicKey,
     provider: anchor.AnchorProvider,
     network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
   ): Promise<LbpSellService> {
-    const service = await Promise.resolve(new LbpSellService(programId, provider, network));
+    const service = await Promise.resolve(new LbpSellService(programId, provider, network, loggerEnabled));
 
     return service;
   }

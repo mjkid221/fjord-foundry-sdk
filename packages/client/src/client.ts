@@ -27,6 +27,7 @@ import {
   PausePoolClientParams,
   CreateNewOwnerNominationClientParams,
   SetNewPoolFeesClientParams,
+  SetTreasuryFeeRecipientsClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -46,11 +47,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
   private logger: LoggerLike;
 
+  private loggerEnabled: boolean;
+
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientServiceInterface, network: WalletAdapterNetwork) {
+  constructor(clientService: ClientServiceInterface, network: WalletAdapterNetwork, loggerEnabled = false) {
     this.clientService = clientService;
     this.solanaNetwork = network;
-    this.logger = Logger('SolanaSdkClient', true);
+    this.logger = Logger('SolanaSdkClient', loggerEnabled);
+    this.loggerEnabled = loggerEnabled;
   }
 
   static async create(solanaNetwork: WalletAdapterNetwork): Promise<FjordClientSdk> {
@@ -85,7 +89,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpBuyService.createSwapAssetsForExactSharesInstruction({ keys, args });
 
@@ -98,7 +102,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpBuyService.createSwapExactAssetsForSharesInstruction({ keys, args });
 
@@ -113,7 +117,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork);
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpSellService.createSwapSharesForExactAssetsInstruction({ keys, args });
 
@@ -126,7 +130,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork);
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpSellService.createSwapExactSharesForAssetsInstruction({ keys, args });
 
@@ -141,7 +145,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams) {
     // Create a new instance of the LbpInitializationService
-    this.lbpRedemptionService = await LbpRedemptionService.create(programId, provider, this.solanaNetwork);
+    this.lbpRedemptionService = await LbpRedemptionService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     // Call the closePool method from the LbpInitializationService
     const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
@@ -152,7 +161,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   // Pool Management Tools
 
   public async pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
 
@@ -162,7 +176,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
 
@@ -181,7 +200,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
     newOwnerPublicKey,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey });
 
@@ -193,7 +217,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
     newOwnerPublicKey,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     const transaction = await this.lbpManagementService.acceptOwnerNomination({ newOwnerPublicKey });
 
@@ -205,7 +234,12 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SetNewPoolFeesClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(programId, provider, this.solanaNetwork);
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
 
     const { platformFee, referralFee, swapFee, ownerPublicKey } = feeParams;
 
@@ -214,6 +248,29 @@ export class FjordClientSdk implements ClientSdkInterface {
       referralFee,
       swapFee,
       ownerPublicKey,
+    });
+
+    return transaction;
+  }
+
+  public async setTreasuryFeeRecipients({
+    programId,
+    provider,
+    feeParams,
+  }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const { swapFeeRecipient, feeRecipients, creator } = feeParams;
+
+    const transaction = await this.lbpManagementService.setTreasuryFeeRecipients({
+      swapFeeRecipient,
+      feeRecipients,
+      creator,
     });
 
     return transaction;
