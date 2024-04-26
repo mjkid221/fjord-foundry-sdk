@@ -5,8 +5,8 @@ import { PublicKey } from '@solana/web3.js';
 /**
  * These are the actual addresses of a created pool and program on the Solana network devnet.
  * **Note** These addresses should be updated when new deployments of the program are made.
- * @see https://explorer.solana.com/address/4TvxWEV1xsSZJL1W7qzeCRTrMYjJj6jWU6pzms2nfgcF?cluster=devnet
- * @see https://explorer.solana.com/address/AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm?cluster=devnet
+ * @see https://explorer.solana.com/address/ECn1vFpDcd7CWTGaXiacPzCapc4uEL27rsdZdNg34bji?cluster=devnet
+ * @see https://explorer.solana.com/address/CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW?cluster=devnet
  */
 const solanaPoolPda = new PublicKey('ECn1vFpDcd7CWTGaXiacPzCapc4uEL27rsdZdNg34bji');
 const programAddress = new PublicKey('CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW');
