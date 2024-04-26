@@ -247,6 +247,18 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       throw new Error('No fees provided');
     }
 
+    // Get the program address for the owner config
+    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+
+    // Get the owner config
+    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+    // Verify that the creator matches the owner config
+    if (!ownerConfig.owner.equals(ownerPublicKey)) {
+      this.logger.error('Creator does not match owner config');
+      throw new Error('Creator does not match owner config');
+    }
+
     try {
       const transactionInstruction = await this.program.methods
         .setFees(platformFee ?? null, referralFee ?? null, swapFee ?? null)
@@ -265,6 +277,17 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     feeRecipients,
     creator,
   }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction> {
+    // Get the program address for the owner config
+    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+
+    // Get the owner config
+    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+    // Verify that the creator matches the owner config
+    if (!ownerConfig.owner.equals(creator)) {
+      this.logger.error('Creator does not match owner config');
+      throw new Error('Creator does not match owner config');
+    }
     // Get the treasury PDA
     const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
 

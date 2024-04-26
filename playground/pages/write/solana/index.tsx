@@ -25,6 +25,8 @@ const SolanaWrite = () => {
           <Link href={'solana/management/unpause'}>Unpause</Link>
           <Link href={`solana/management/new-owner`}>New Owner Nomination</Link>
           <Link href={`solana/management/accept-ownership`}>Accept Ownership Confirmation</Link>
+          <Link href={`solana/management/pool-fees`}>Set Pool Fees</Link>
+          <Link href={`solana/management/new-treasury-fees`}>Set Treasury Fees</Link>
         </Stack>
       </Stack>
     </Container>

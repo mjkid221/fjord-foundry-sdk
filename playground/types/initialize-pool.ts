@@ -162,6 +162,60 @@ export const acceptOwnershipParamsSchema = z.object({
   }),
 });
 
+export const newFeesSchema = z.object({
+  platformFee: z.string().optional(),
+  referralFee: z.string().optional(),
+  swapFee: z.string().optional(),
+  ownerPublicKey: z.string().refine(
+    (val) => {
+      try {
+        return new PublicKey(val);
+      } catch (error) {
+        return false;
+      }
+    },
+    { message: 'Owner must be a valid Solana public key' },
+  ),
+});
+
+export const setTreasuryFeeRecipientsParamsSchema = z.object({
+  swapFeeRecipient: z.string().refine(
+    (val) => {
+      try {
+        return new PublicKey(val);
+      } catch (error) {
+        return false;
+      }
+    },
+    { message: 'Swap Fee Recipient must be a valid Solana public key' },
+  ),
+  feeRecipients: z.array(
+    z.object({
+      feeRecipient: z.string().refine(
+        (val) => {
+          try {
+            return new PublicKey(val);
+          } catch (error) {
+            return false;
+          }
+        },
+        { message: 'Fee Recipient must be a valid Solana public key' },
+      ),
+      feePercentage: z.string(),
+    }),
+  ),
+  creator: z.string().refine(
+    (val) => {
+      try {
+        return new PublicKey(val);
+      } catch (error) {
+        return false;
+      }
+    },
+    { message: 'Creator must be a valid Solana public key' },
+  ),
+});
+
 export type NominateNewOwnerParams = {
   formData: z.infer<typeof nominateNewOwnerArgsSchema>;
   provider: AnchorProvider;
@@ -170,6 +224,18 @@ export type NominateNewOwnerParams = {
 
 export type AcceptOwnershipParams = {
   formData: z.infer<typeof acceptOwnershipParamsSchema>;
+  provider: AnchorProvider;
+  sdkClient: FjordClientSdk;
+};
+
+export type SetNewPoolFeesParams = {
+  formData: z.infer<typeof newFeesSchema>;
+  provider: AnchorProvider;
+  sdkClient: FjordClientSdk;
+};
+
+export type SetTreasuryFeeRecipientsParams = {
+  formData: z.infer<typeof setTreasuryFeeRecipientsParamsSchema>;
   provider: AnchorProvider;
   sdkClient: FjordClientSdk;
 };
