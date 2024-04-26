@@ -29,6 +29,7 @@ export enum PoolDataValueKey {
   TotalReferred = 'totalReferred',
   TotalSwapFeesAsset = 'totalSwapFeesAsset',
   TotalSwapFeesShare = 'totalSwapFeesShare',
+  Paused = 'paused',
   VestCliff = 'vestCliff',
   VestEnd = 'vestEnd',
   VirtualAssets = 'virtualAssets',

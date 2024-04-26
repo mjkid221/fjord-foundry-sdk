@@ -9,24 +9,14 @@
   - [pnpm](#pnpm)
 - [Usage](#usage)
 - [API](#api)
-  - [Write Methods Solana](#write-methods-solana)
+  - [Write Methods](#write-methods)
     - [Initialize Liquidity Bootstrap Pool](#initialize-liquidity-bootstrap-pool)
     - [Buy Operations](#buy-operations)
       - [Swap Assets For Exact Shares](#createswapassetsforexactsharestransaction)
       - [Swap Exact Assets For Shares](#createswapexactassetsforsharestransaction)
-  - [Read Methods Solana](#read-methods-solana)
+  - [Read Methods](#read-methods)
     - [Retrieve All Pool Data](#retrieve-all-pool-data)
     - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
-  - [Read Methods EVM](#read-methods-evm)
-    - [getContractArgs](#get-contract-arguments)
-    - [getContractManagerAddress](#get-contract-manager-address)
-    - [isPoolClosed](#is-pool-closed)
-    - [isSellingAllowed](#is-selling-allowed)
-    - [getMaxTotalAssetsIn](#get-max-total-assets-in)
-    - [getMaxTotalSharesOut](#get-max-total-shares-out)
-    - [getVestingState](#get-vesting-state)
-    - [getTotalSharesPurchased](#get-total-shares-purchased)
-    - [getReservesAndWeights](#get-reserves-and-weights)
 - [Enums](#enums)
   -[PoolDataValueKey](#pooldatavaluekey)
 - [Features](#features)
@@ -70,11 +60,7 @@ Then, you need to initialize the client using the `create` method.
 
 **Parameters**
 
-- `useSolana` (boolean):
-  - true: Creates a Solana-based client enabling interactions with the Solana blockchain.
-  - false: Creates a client limited to public, non-Solana operations.
-- `solanaNetwork` (WalletAdapterNetwork, optional):
-  - Required when useSolana is true.
+- `solanaNetwork` (WalletAdapterNetwork):
   - Specifies the Solana network (e.g., 'mainnet-beta', 'devnet', or 'testnet').
 
 **Returns**
@@ -87,16 +73,7 @@ Then, you need to initialize the client using the `create` method.
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 
-const clientSdk = new FjordClientSdk(true, WalletAdapterNetwork.Devnet)
-
-```
-
-**Example (EVM Chain)**
-
-```ts
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
-
-const myPublicSdk = await FjordClientSdk.create(false); 
+const clientSdk = new FjordClientSdk(WalletAdapterNetwork.Devnet)
 
 ```
 
@@ -104,7 +81,7 @@ const myPublicSdk = await FjordClientSdk.create(false);
 
 The FjordClientSdk provides a suite of methods to interact with blockchain contracts, specifically tailored for LBP (Liquidity Bootstrapping Pool) operations. Below are the methods available in the SDK:
 
-## Write Methods Solana
+## Write Methods
 
 ### Initialize Liquidity Bootstrap Pool
 
@@ -548,7 +525,7 @@ const SwapExactAssetsForShares = () => {
 }
 ```
 
-## Read Methods Solana
+## Read Methods
 
 ### Retrieve All Pool Data
 
@@ -639,75 +616,6 @@ const { data } = useQuery({
 
 - **`PoolDataValueKey` Enum:** Ensure that the `PoolDataValueKey` enum contains all the possible data values that can be retrieved from an LBP pool.
 - **Error Handling:**  The `default` case in the `switch` statement throws an error for invalid `valueKey` values.
-
-## Read Methods EVM
-
-All read methods require the following arguments:
-
-- `request: ReadContractRequest` - Contains the contract address and ABI.
-
-### Get Contract Arguments
-
-#### `async getContractArgs(request: ReadContractRequest): Promise<GetContractArgsResponse>`
-
-- Retrieves contract arguments for a specified LBP contract.
-- **Returns:** A promise resolving to `GetContractArgsResponse`.
-
-### Get Contract Manager Address
-
-#### `async getContractManagerAddress(request: ReadContractRequest): Promise<GetContractManagerAddressResponse>`
-
-- Fetches the manager address of a specified contract.
-- **Returns:** A promise with the manager's blockchain address.
-
-### Is Pool Closed
-
-#### `async isPoolClosed(request: ReadContractRequest): Promise<boolean>`
-
-- Determines if a particular LBP is closed.
-- **Returns:** Boolean value indicating the pool's status.
-
-### Is Selling Allowed
-
-#### `async isSellingAllowed(request: ReadContractRequest): Promise<boolean>`
-
-- Checks if selling operations are permitted for a specific LBP.
-- **Returns:** Boolean value reflecting selling permissions.
-
-### Get Max Total Assets In
-
-#### `async getMaxTotalAssetsIn(request: ReadContractRequest): Promise<bigint>`
-
-- Retrieves the maximum total assets allowed in a given LBP.
-- **Returns:** Maximum total assets as a `bigint`.
-
-### Get Max Total Shares Out
-
-#### `async getMaxTotalSharesOut(request: ReadContractRequest): Promise<bigint>`
-
-- Fetches the maximum total shares out for a specified LBP.
-- **Returns:** Maximum total shares as a `bigint`.
-
-### Get Vesting State
-
-#### `async getVestingState(request: ReadContractRequest): Promise<GetVestingStateResponse>`
-
-- Retrieves the vesting state for a given LBP.
-- **Returns:** Object containing the vesting state details.
-
-### Get Total Shares Purchased
-
-#### `async getTotalSharesPurchased(request: ReadContractRequest): Promise<bigint>`
-
-- Fetches the total number of shares purchased in a specific LBP.
-- **Returns:** Total shares as a `bigint`.
-
-### Get Reserves And Weights
-
-#### `async getReservesAndWeights(request: ReadContractRequest): Promise<GetReservesAndWeightsResponse>`
-
-- Retrieves the reserves and weights for a given LBP.
-- **Returns:** Object containing the reserves and weights details.
 
 ## Enums
 

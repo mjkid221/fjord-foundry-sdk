@@ -67,12 +67,6 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     // Destructure the provided keys and arguments.
     const { creator, shareTokenMint, assetTokenMint } = keys;
 
-    this.logger.debug('Initializing pool with the following keys:', {
-      creator: creator.toBase58(),
-      shareTokenMint: shareTokenMint.toBase58(),
-      assetTokenMint: assetTokenMint.toBase58(),
-    });
-
     const {
       assets,
       shares,
@@ -99,7 +93,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
     const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
 
-    // Define the zero BN value for optional parameters. TODO: This can probably be moved to a constants file.
+    // Define the zero BN value for optional parameters.
     const zeroBn = new anchor.BN(0);
 
     // Format the provided parameters to BN values.
@@ -110,6 +104,11 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
     const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
     const formattedMaxSharePrice = maxSharePrice.mul(new anchor.BN(shareTokenDivisor));
+
+    if (formattedAssets.gt(formattedMaxAssetsIn)) {
+      this.logger.error('Initial assets cannot exceed max assets in');
+      throw new Error('Initial assets cannot exceed max assets in');
+    }
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const [poolPda] = findProgramAddressSync(

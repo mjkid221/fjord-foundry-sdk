@@ -8,7 +8,7 @@ import { SolanaSdkClientContext } from './SolanaSdkClientContext';
 
 export interface SolanaSdkClientProviderProps {
   children: ReactNode;
-  solanaNetwork?: WalletAdapterNetwork;
+  solanaNetwork: WalletAdapterNetwork;
 }
 
 export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkClientProviderProps) => {
@@ -16,7 +16,7 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
   const [provider, setProvider] = useState<AnchorProvider>();
   const createSolanaSdkClient = useCallback(async () => {
     const network = solanaNetwork;
-    return await FjordClientSdk.create(true, network);
+    return await FjordClientSdk.create(network);
   }, [solanaNetwork]);
 
   const { connection } = useConnection();

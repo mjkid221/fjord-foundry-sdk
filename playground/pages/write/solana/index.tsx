@@ -19,6 +19,11 @@ const SolanaWrite = () => {
           <Link href={'solana/sell/exact-shares-for-assets'}>Swap Exact Shares For Assets</Link>
           <Link href={'solana/sell/shares-for-exact-assets'}>Swap Shares For Exact Assets </Link>
         </Stack>
+        <Stack>
+          <Typography variant="h4">Pool Management</Typography>
+          <Link href={'solana/management/pause'}>Pause</Link>
+          <Link href={'solana/management/unpause'}>Unpause</Link>
+        </Stack>
       </Stack>
     </Container>
   );

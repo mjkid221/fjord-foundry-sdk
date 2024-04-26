@@ -14,6 +14,12 @@ import {
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
+import {
+  CreateNewOwnerNominationClientParams,
+  PausePoolClientParams,
+  SetNewPoolFeesClientParams,
+  SetTreasuryFeeRecipientsClientParams,
+} from './lbp-management';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -113,6 +119,134 @@ export interface ClientSdkInterfaceSolana {
     programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Pauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for pausing the pool.
+   * @param options.args - The arguments for pausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated pause transaction instruction.
+   */
+  pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Unpauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for unpausing the pool.
+   * @param options.args - The arguments for unpausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated unpause transaction instruction.
+   */
+  unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the nomination of a new owner for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to nominate a new owner for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet to be nominated as the new owner.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for nominating a new owner. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  nominateNewOwner({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the acceptance of a new owner nomination for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to accept a new owner nomination for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination acceptance process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet nominated as the new owner.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for accepting a new owner nomination. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  acceptNewOwnerNomination({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates updating the fees of a liquidity bootstrapping pool (LBP). This function leverages the 
+   * `LbpManagementService` to generate the necessary Solana transaction instruction and provides a higher-level
+   * interface for interacting with fee management.
+
+   * **Important:**
+   * * This method is only available when your FjordClientSdk was created with `useSolana: true`.
+   * * Ensure the connected wallet has the authority to modify fees for the pool (usually this requires the 
+   *    connected wallet to be the pool's owner).
+
+   * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
+   *    * params.feeParams.platformFee (optional): The new platform fee.
+   *    * params.feeParams.referralFee (optional): The new referral fee.
+   *    * params.feeParams.swapFee (optional): The new swap fee. 
+   *    * params.feeParams.ownerPublicKey: The public key of the wallet authorized to modify fees. 
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
+   *                                          for updating the pool's fees. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  setNewPoolFees({ feeParams, programId, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates updating the treasury fee recipients and distribution for a liquidity bootstrapping pool (LBP). 
+   * This function leverages the `LbpManagementService` to generate the necessary Solana transaction instruction and 
+   * provides a higher-level interface for interacting with fee recipient management.
+
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fee distribution for the pool (usually this 
+   *   requires the connected wallet to be the pool's creator).
+   * * The total percentage allocated across all `feeRecipients` cannot exceed `MAX_FEE_BASIS_POINTS`.
+
+   * @param {SetTreasuryFeeRecipientsClientParams} params - Parameters for updating treasury fee recipients.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {SetTreasuryFeeRecipientsParams} params.feeParams - Fee recipient details:
+   *    * params.feeParams.swapFeeRecipient - Public key of the wallet designated to receive swap fees.
+   *    * params.feeParams.feeRecipients - An array of fee recipient details:
+   *       * params.feeParams.feeRecipients[].feeRecipient: The public key of the wallet receiving a portion of fees.
+   *       * params.feeParams.feeRecipients[].feePercentage: The percentage of fees (0-100) allocated to this recipient.
+   *    * params.feeParams.creator - Public key of the wallet authorized to modify fee distribution.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction for 
+   *                                          updating treasury fee recipients. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   *
+   */
+  setTreasuryFeeRecipients({
+    programId,
+    provider,
+    feeParams,
+  }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.
@@ -366,4 +500,4 @@ export interface ClientSdkInterfaceEvm {
   getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
 }
 
-export interface ClientSdkInterface extends ClientSdkInterfaceSolana, ClientSdkInterfaceEvm {}
+export interface ClientSdkInterface extends ClientSdkInterfaceSolana {}
