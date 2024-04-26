@@ -1,4 +1,3 @@
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SwapAssetsForSharesParams } from '@/types';
 import { BigNumber } from '@fjord-foundry/solana-sdk-client';
 import { BN } from '@project-serum/anchor';
@@ -13,8 +12,6 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
     throw new Error('Assets amount in is required');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -35,7 +32,6 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
   };
 
   const transaction = await sdkClient.closePoolTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,

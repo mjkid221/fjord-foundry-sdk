@@ -105,4 +105,11 @@ export class LbpReadService {
 
     return feeRecipients;
   }
+
+  public async getSwapFeeRecipient(): Promise<PublicKey> {
+    // Get the treasury account
+    const treasuryAccount = await this.getTreasuryAccount();
+
+    return treasuryAccount.swapFeeRecipient;
+  }
 }

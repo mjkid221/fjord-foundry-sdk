@@ -5,18 +5,22 @@ import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 
 import { SolanaSdkClientContext } from './SolanaSdkClientContext';
+import { INITIALIZE_LBP_ADDRESS } from '@/constants';
+import { PublicKey } from '@solana/web3.js';
 
 export interface SolanaSdkClientProviderProps {
   children: ReactNode;
   solanaNetwork: WalletAdapterNetwork;
 }
 
+const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
 export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkClientProviderProps) => {
   const [sdkClient, setSdkClient] = useState<FjordClientSdk>();
   const [provider, setProvider] = useState<AnchorProvider>();
   const createSolanaSdkClient = useCallback(async () => {
     const network = solanaNetwork;
-    return await FjordClientSdk.create(network, true); // enable logging
+    return await FjordClientSdk.create(network, programAddressPublicKey, true); // enable logging
   }, [solanaNetwork]);
 
   const { connection } = useConnection();

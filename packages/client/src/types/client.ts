@@ -56,7 +56,6 @@ export type GetReservesAndWeightsResponse = z.infer<typeof getReservesAndWeights
 
 export interface RetrievePoolDataParams {
   poolPda: PublicKey;
-  programId: PublicKey;
 }
 
 export interface RetrieveSinglePoolDataValueParams extends RetrievePoolDataParams {

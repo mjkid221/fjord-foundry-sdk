@@ -3,7 +3,7 @@ import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
-import { PERCENTAGE_BASIS_POINTS, INITIALIZE_LBP_ADDRESS } from '@/constants';
+import { PERCENTAGE_BASIS_POINTS } from '@/constants';
 import { initializePoolArgsSchema } from '@/types';
 
 type CreatePoolParams = {
@@ -59,7 +59,6 @@ export const createPool = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
@@ -99,7 +98,6 @@ export const createPool = async ({
   };
 
   const transaction = await sdkClient.createPoolTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
