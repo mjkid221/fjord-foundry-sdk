@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0-rc.4](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.3...v1.1.0-rc.4) (2024-04-26)
+
+### Bug Fixes
+
+- update test suite to use new types and pdas ([3cd73d9](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/3cd73d9859e23480b9deb70ef5228e071846e2d9))
+
 ## [1.1.0-rc.3](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.2...v1.1.0-rc.3) (2024-04-18)
 
 **Note:** Version bump only for package @fjord-foundry/solana-sdk-tests
