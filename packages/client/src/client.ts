@@ -17,6 +17,7 @@ import { LbpRedemptionService } from './services/lbp-redemption.service';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
+  CloseOperationPublicKeys,
   CreatePoolClientParams,
   GetContractArgsResponse,
   GetContractManagerAddressResponse,
@@ -25,6 +26,7 @@ import {
   GetVestingStateResponse,
   InitializePoolResponse,
   ReadContractRequest,
+  RedeemOperationPublicKeys,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
   SwapExactSharesForAssetsInstructionClientParams,
@@ -176,10 +178,10 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     programId,
     provider,
-  }: SwapSharesForExactAssetsInstructionClientParams) {
+  }: CloseOperationPublicKeys): Promise<TransactionInstruction> {
     if (!this.isSolana || !this.solanaNetwork) {
-      this.logger.error('LbpInitializationService method not supported for this client');
-      throw new Error('LbpInitializationService method not supported for this client');
+      this.logger.error('LbpRedemption method not supported for this client');
+      throw new Error('LbpRedemption method not supported for this client');
     }
 
     // Create a new instance of the LbpInitializationService
@@ -187,6 +189,27 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     // Call the closePool method from the LbpInitializationService
     const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
+
+    return transaction;
+  }
+
+  // Redeem tokens function
+  public async redeemTokensTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: RedeemOperationPublicKeys): Promise<TransactionInstruction> {
+    if (!this.isSolana || !this.solanaNetwork) {
+      this.logger.error('LbpRedemption method not supported for this client');
+      throw new Error('LbpRedemption method not supported for this client');
+    }
+
+    // Create a new instance of the LbpInitializationService
+    this.lbpRedemptionService = await LbpRedemptionService.create(programId, provider, this.solanaNetwork);
+
+    // Call the closePool method from the LbpInitializationService
+    const transaction = await this.lbpRedemptionService.redeemLbpTokens({ keys, args });
 
     return transaction;
   }
