@@ -3,12 +3,13 @@ import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { getPoolDataValue } from '@/helpers';
 import { closeLbpPool } from '@/helpers/redemption/closeLbpPool';
+import { signAndSendTransaction } from '@/helpers/shared';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { closePoolArgsSchema } from '@/types';
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, FormControl, FormLabel, TextField, Button } from '@mui/material';
-import { useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
@@ -21,6 +22,7 @@ const ClosePool = () => {
   const { connection } = useConnection();
 
   const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+  const { sendTransaction } = useWallet();
 
   const wallet = useAnchorWallet();
 
@@ -73,6 +75,8 @@ const ClosePool = () => {
     mutationFn: closeLbpPool,
     onSuccess: async (data) => {
       console.log(data);
+      const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
+      console.log('Success', confirmation);
     },
     onError: (error) => console.log('Error', error),
   });
