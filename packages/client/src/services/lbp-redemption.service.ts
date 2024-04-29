@@ -84,8 +84,14 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
 
     const { poolPda } = args;
 
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    let poolPdaFromParams: PublicKey;
+    try {
+      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+      poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    } catch (error: any) {
+      this.logger.error('Error getting pool PDA:', error);
+      throw new Error('Error getting pool PDA', error);
+    }
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
@@ -202,8 +208,14 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
 
     const { poolPda, isReferred } = args;
 
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    let poolPdaFromParams: PublicKey;
+    try {
+      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+      poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    } catch (error: any) {
+      this.logger.error('Error getting pool PDA:', error);
+      throw new Error('Error getting pool PDA', error);
+    }
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
