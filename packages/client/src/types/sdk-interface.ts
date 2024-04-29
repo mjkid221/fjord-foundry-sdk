@@ -12,6 +12,15 @@ import {
   SetNewPoolFeesClientParams,
   SetTreasuryFeeRecipientsClientParams,
 } from './lbp-management';
+import {
+  CreatorTokenBalances,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  GetUserTokenBalanceParams,
+  PoolTokenAccounts,
+  PoolTokenBalances,
+  UserPoolStateBalances,
+} from './lbp-read';
 import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from './lbp-redeem';
 
 export interface ClientSdkInterfaceSolana {
@@ -26,7 +35,6 @@ export interface ClientSdkInterfaceSolana {
    * @param {CreatePoolClientParams} options - The options for creating the pool transaction.
    * @param options.keys - The public keys required for initializing the pool.
    * @param options.args - The arguments for initializing the pool.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<InitializePoolResponse>} - A promise that resolves with the LBP initialization transaction.
    *
@@ -36,10 +44,10 @@ export interface ClientSdkInterfaceSolana {
    * const programAddressPublicKey = new PublicKey('... your program address ...');
    *
    * // ... (keys and args defined)
-   * const response = await sdkClient.createPool({ programId: programAddressPublicKey, keys, args, provider });
+   * const response = await sdkClient.createPool({ keys, args, provider });
    * ```
    */
-  createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
+  createPoolTransaction({ keys, args, provider }: CreatePoolClientParams): Promise<InitializePoolResponse>;
 
   /**
    * Creates a transaction for swapping assets for an exact amount of LBP shares on the Solana blockchain.
@@ -47,14 +55,12 @@ export interface ClientSdkInterfaceSolana {
    * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
    */
   createSwapAssetsForExactSharesTransaction({
     keys,
     args,
-    programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
@@ -64,14 +70,12 @@ export interface ClientSdkInterfaceSolana {
    * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
    */
   createSwapExactAssetsForSharesTransaction({
     keys,
     args,
-    programId,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
@@ -82,7 +86,6 @@ export interface ClientSdkInterfaceSolana {
    * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
    * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
@@ -90,7 +93,6 @@ export interface ClientSdkInterfaceSolana {
   createSwapSharesForExactAssetsTransaction({
     keys,
     args,
-    programId,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
@@ -101,7 +103,6 @@ export interface ClientSdkInterfaceSolana {
    * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
    * @param options.keys - The public keys required for the swap.
    * @param options.args - The arguments for the swap.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
    * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
@@ -109,7 +110,6 @@ export interface ClientSdkInterfaceSolana {
   createSwapExactSharesForAssetsTransaction({
     keys,
     args,
-    programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
@@ -122,11 +122,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.args.creator - The public key of the pool's creator.
    * @param options.args.shareTokenMint - The public key of the pool's share token mint.
    * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated pause transaction instruction.
    */
-  pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+  pausePool({ args, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
 
   /**
    * Unpauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
@@ -137,11 +136,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.args.creator - The public key of the pool's creator.
    * @param options.args.shareTokenMint - The public key of the pool's share token mint.
    * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated unpause transaction instruction.
    */
-  unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+  unPausePool({ args, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
 
   /**
    * Facilitates the nomination of a new owner for a liquidity bootstrapping pool (LBP). This function
@@ -151,7 +149,6 @@ export interface ClientSdkInterfaceSolana {
    * * Ensure the connected wallet has the authority to nominate a new owner for the pool.
    *
    * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination process.
-   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
    * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
    * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet to be nominated as the new owner.
    * @param {PublicKey} params.creator - The public key of the wallet nominating the new owner. If not provided,
@@ -160,7 +157,6 @@ export interface ClientSdkInterfaceSolana {
    *                                          need to sign and submit the transaction to the Solana network.
    */
   nominateNewOwner({
-    programId,
     provider,
     newOwnerPublicKey,
     creator,
@@ -174,7 +170,6 @@ export interface ClientSdkInterfaceSolana {
    * * Ensure the connected wallet has the authority to accept a new owner nomination for the pool.
    *
    * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination acceptance process.
-   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
    * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
    * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet nominated as the new owner.
    * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
@@ -182,7 +177,6 @@ export interface ClientSdkInterfaceSolana {
    *                                          need to sign and submit the transaction to the Solana network.
    */
   acceptNewOwnerNomination({
-    programId,
     provider,
     newOwnerPublicKey,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
@@ -196,7 +190,6 @@ export interface ClientSdkInterfaceSolana {
    * * Ensure the connected wallet has the authority to modify fees for the pool.
 
    * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
-   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
    * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
    * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
    *    * params.feeParams.platformFee (optional): The new platform fee.
@@ -207,7 +200,7 @@ export interface ClientSdkInterfaceSolana {
    *                                          for updating the pool's fees. After calling this method, you will 
    *                                          need to sign and submit the transaction to the Solana network.
    */
-  setNewPoolFees({ feeParams, programId, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
+  setNewPoolFees({ feeParams, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
 
   /**
    * Facilitates updating the treasury fee recipients and distribution for a liquidity bootstrapping pool (LBP). 
@@ -233,7 +226,6 @@ export interface ClientSdkInterfaceSolana {
    *
    */
   setTreasuryFeeRecipients({
-    programId,
     provider,
     feeParams,
   }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction>;
@@ -245,17 +237,11 @@ export interface ClientSdkInterfaceSolana {
    * @param {CloseOperationPublicKeys} options - The options for closing the pool.
    * @param options.keys - The public keys required for closing the pool.
    * @param options.args - The arguments for closing the pool.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction[]>} - A promise that resolves with the generated close transaction instructions.
    * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
    */
-  closePoolTransaction({
-    keys,
-    args,
-    programId,
-    provider,
-  }: CloseOperationPublicKeys): Promise<TransactionInstruction[]>;
+  closePoolTransaction({ keys, args, provider }: CloseOperationPublicKeys): Promise<TransactionInstruction[]>;
 
   /**
    * Facilitates the redemption of LBP tokens on the Solana blockchain. This function
@@ -264,24 +250,17 @@ export interface ClientSdkInterfaceSolana {
    * @param {RedeemOperationPublicKeys} options - The options for redeeming tokens.
    * @param options.keys - The public keys required for redeeming tokens.
    * @param options.args - The arguments for redeeming tokens.
-   * @param options.programId - The public key of the program governing the LBP.
    * @param options.provider - The Anchor provider for the transaction.
    * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated redeem transaction instruction.
    * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
    */
-  redeemTokensTransaction({
-    keys,
-    args,
-    programId,
-    provider,
-  }: RedeemOperationPublicKeys): Promise<TransactionInstruction>;
+  redeemTokensTransaction({ keys, args, provider }: RedeemOperationPublicKeys): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.
    *
    * @param {RetrievePoolDataParams} params
    *  * **poolPda:** The public key of the pool's Program Derived Address (PDA).
-   *  * **programId:** The program ID associated with the pool.
    *
    * @returns {Promise<GetPoolDataResponse>} A promise resolving to an object containing:
    *  * Formatted pool data, with some values converted for front-end readability.
@@ -291,14 +270,13 @@ export interface ClientSdkInterfaceSolana {
    *  * This method is called on a client that doesn't support Solana.
    *  * No `lbpInitializationService` instance exists (handles internal initialization if needed).
    */
-  retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse>;
+  retrievePoolData({ poolPda }: RetrievePoolDataParams): Promise<GetPoolDataResponse>;
 
   /**
    * Retrieves a specific data value from a liquidity bootstrapping pool.
    *
    * @param {RetrieveSinglePoolDataValueParams} params
    *   * **poolPda:** The public key of the pool's Program Derived Address (PDA).
-   *   * **programId:** The program ID associated with the pool.
    *   * **valueKey:** A `PoolDataValueKey` enum member specifying the data value to retrieve.
    *
    * @returns {string | number | number[] | boolean} The requested pool data value, formatted if necessary.
@@ -310,7 +288,6 @@ export interface ClientSdkInterfaceSolana {
    */
   retrieveSinglePoolDataValue({
     poolPda,
-    programId,
     valueKey,
   }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean>;
 
@@ -326,6 +303,70 @@ export interface ClientSdkInterfaceSolana {
    *    .catch(error => console.error(error));
    */
   readAddress(address: PublicKey): Promise<any>;
+
+  /**
+   * Reads the owner of the pool on the blockchain.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the pool owner.
+   */
+  readPoolOwner(): Promise<PublicKey>;
+
+  /**
+   * Reads the fees of the pool on the blockchain.
+   *
+   * @returns {Promise<GetPoolFeesResponse>} - A promise that resolves with the platform fee, referral fee and swap fee.
+   */
+  readPoolFees(): Promise<GetPoolFeesResponse>;
+
+  /**
+   * Reads the treasury fee recipients of the pool on the blockchain.
+   *
+   * @returns {Promise<GetFeeRecipientsResponse[]>} - A promise that resolves with the treasury fee recipients and their percentage value.
+   */
+  readFeeRecipients(): Promise<GetFeeRecipientsResponse[]>;
+
+  /**
+   * Reads the swap fee recipient of the pool on the blockchain.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the swap fee recipient.
+   */
+  readSwapFeeRecipient(): Promise<PublicKey>;
+
+  /**
+   * Reads the associated token accounts of the pool on the blockchain.
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<PoolTokenAccounts>} - A promise that resolves with the public keys of the pool's share token account and asset token account.
+   */
+  readPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts>;
+
+  /**
+   * Reads the token balances of the pool on the blockchain.
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the pool's share token balance and asset token balance.
+   */
+  readPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Reads the creator token balances of the pool on the blockchain.
+   *
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<CreatorTokenBalances>} - A promise that resolves with the creator's share token balance and asset token balance.
+   */
+  readCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances>;
+
+  /**
+   * Reads the user token balances of the pool on the blockchain.
+   *
+   * @param {GetUserTokenBalanceParams} params - The parameters for reading the user token balances.
+   * @param {PublicKey} params.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param {PublicKey} params.userPublicKey - The public key of the user.
+   *
+   * @returns {Promise<UserPoolStateBalances>} - A promise that resolves with the user's purchased shares, redeemed shares and referred assets.
+   */
+  readUserTokenBalances({ poolPda, userPublicKey }: GetUserTokenBalanceParams): Promise<UserPoolStateBalances>;
 }
 
 export interface ClientSdkInterface extends ClientSdkInterfaceSolana {}

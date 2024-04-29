@@ -55,11 +55,9 @@ export interface SwapSharesForExactAssetsOperationParams
     SwapSharesForExactAssetsOperationArgs {}
 
 export interface SwapExactSharesForAssetsInstructionClientParams extends SwapExactSharesForAssetsOperationParams {
-  programId: PublicKey;
   provider: AnchorProvider;
 }
 
 export interface SwapSharesForExactAssetsInstructionClientParams extends SwapSharesForExactAssetsOperationParams {
-  programId: PublicKey;
   provider: AnchorProvider;
 }

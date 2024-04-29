@@ -1,4 +1,3 @@
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
 import { PublicKey } from '@solana/web3.js';
@@ -21,8 +20,6 @@ export const pausePool = async ({ provider, sdkClient, args }: PausePoolParams) 
     throw new Error('Required  provider, and sdkClient');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(args.creator);
   const shareTokenMint = new PublicKey(args.shareTokenMint);
   const assetTokenMint = new PublicKey(args.assetTokenMint);
@@ -35,7 +32,7 @@ export const pausePool = async ({ provider, sdkClient, args }: PausePoolParams) 
     assetTokenMint,
   };
 
-  const transaction = await sdkClient.pausePool({ programId: programAddressPublicKey, args: pausePoolArgs, provider });
+  const transaction = await sdkClient.pausePool({ args: pausePoolArgs, provider });
 
   return transaction;
 };
@@ -45,8 +42,6 @@ export const unpausePool = async ({ provider, sdkClient, args }: PausePoolParams
     throw new Error('Required  provider, and sdkClient');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(args.creator);
   const shareTokenMint = new PublicKey(args.shareTokenMint);
   const assetTokenMint = new PublicKey(args.assetTokenMint);
@@ -60,7 +55,6 @@ export const unpausePool = async ({ provider, sdkClient, args }: PausePoolParams
   };
 
   const transaction = await sdkClient.unPausePool({
-    programId: programAddressPublicKey,
     args: unPausePoolArgs,
     provider,
   });

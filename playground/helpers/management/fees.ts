@@ -1,17 +1,14 @@
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SetNewPoolFeesParams, SetTreasuryFeeRecipientsParams } from '@/types';
 import { PublicKey } from '@solana/web3.js';
 
 export const setNewPoolFees = async ({ formData, provider, sdkClient }: SetNewPoolFeesParams) => {
   const { ownerPublicKey, platformFee, referralFee, swapFee } = formData;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
   const keys = {
     ownerPublicKey: new PublicKey(ownerPublicKey),
   };
 
   const transaction = await sdkClient.setNewPoolFees({
-    programId: programAddressPublicKey,
     provider,
     feeParams: {
       ownerPublicKey: keys.ownerPublicKey,
@@ -30,7 +27,6 @@ export const setNewTreasuryFeeRecipients = async ({
   sdkClient,
 }: SetTreasuryFeeRecipientsParams) => {
   const { swapFeeRecipient, feeRecipients, creator } = formData;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
   const keys = {
     swapFeeRecipient: new PublicKey(swapFeeRecipient),
@@ -42,7 +38,6 @@ export const setNewTreasuryFeeRecipients = async ({
   };
 
   const transaction = await sdkClient.setTreasuryFeeRecipients({
-    programId: programAddressPublicKey,
     provider,
     feeParams: {
       swapFeeRecipient: keys.swapFeeRecipient,
