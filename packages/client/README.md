@@ -14,9 +14,12 @@
     - [Buy Operations](#buy-operations)
       - [Swap Assets For Exact Shares](#createswapassetsforexactsharestransaction)
       - [Swap Exact Assets For Shares](#createswapexactassetsforsharestransaction)
-    - [Sell Operation](#sell-operations)
+    - [Sell Operations](#sell-operations)
       - [Swap Exact Shares for Assets](#createswapexactsharesforassetsinstruction)
       - [Swap Shares for Exact Assets](#createswapsharesforexactassetsinstruction)
+    -[Redemption Operations](#redemption-operations)
+      - [Close Pool](#closepooltransaction)
+      - [Redeem Tokens](#redeemtokenstransaction)
     -[Pool Management](#pool-management)
       -[Pause/Unpause](#pausepool-and-unpausepool)
     - [Admin](#admin)
@@ -684,6 +687,286 @@ export const swapSharesForExactAssets = async ({
   return transaction;
 };
 
+```
+
+### Redemption Operations
+
+#### `closePoolTransaction`
+
+This method facilitates the closing of a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+
+**Parameters**
+
+- `params` (CloseOperationPublicKeys)
+  - `keys`
+    - `userPublicKey`: The public key of the wallet performing the close operation.
+    - `creator`: The public key of the wallet that created the pool.
+    - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+    - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+  - `args`
+    - `poolPda`: The Program Derived Address (PDA) of the pool.
+  - `programId` (PublicKey): The PublicKey of your Solana program.
+  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+`TransactionInstruction[]`: An array of transaction instructions required to perform the closure of an LBP.
+
+**Examples**
+
+```ts
+// Example helpers
+
+import { INITIALIZE_LBP_ADDRESS } from '@/constants';
+import { ClosePoolParams } from '@/types';
+import { PublicKey } from '@solana/web3.js';
+
+export const closeLbpPool = async ({ formData, connection, provider, sdkClient }: ClosePoolParams) => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  // Get the program address
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+  const creator = new PublicKey(formData.args.creator);
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey);
+  const poolPda = new PublicKey(formData.args.poolPda);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+  };
+
+  const transactions = await sdkClient.closePoolTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transactions;
+};
+
+
+/**
+ * Sign and send a transaction
+ * @param transactionInstructions - Either a single or multiple transaction instructions
+ * @param wallet - Anchor wallet instance
+ * @param connection - Solana connection provider
+ * @param sendTransaction - From the wallet adapter
+ */
+export const signAndSendTransaction = async (
+  transactionInstructions: TransactionInstruction[] | TransactionInstruction,
+  wallet: AnchorWallet | undefined,
+  connection: Connection,
+  sendTransaction: (
+    transaction: Transaction,
+    connection: Connection,
+    options?: { minContextSlot?: number },
+  ) => Promise<string>,
+) => {
+  const transaction = new Transaction().add(
+    ...(Array.isArray(transactionInstructions) ? transactionInstructions : [transactionInstructions]),
+  );
+
+  if (!wallet) {
+    throw new Error('Wallet not connected');
+  }
+
+  const {
+    context: { slot: minContextSlot },
+    value: { blockhash, lastValidBlockHeight },
+  } = await connection.getLatestBlockhashAndContext();
+
+  try {
+    if (!transaction || !sendTransaction) throw new Error('Transaction not found');
+
+    const txid = await sendTransaction(transaction, connection, { minContextSlot });
+
+    console.log(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
+
+    const confirmation = await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature: txid });
+
+    console.log('Transaction confirmed:', confirmation);
+    return { txid, confirmation };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+```
+
+```ts
+// Example react component
+
+import WalletNotConnected from '@/components/WalletNotConnected';
+import { INITIALIZE_LBP_ADDRESS } from '@/constants';
+import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
+import { getPoolDataValue } from '@/helpers';
+import { closeLbpPool } from '@/helpers/redemption/closeLbpPool';
+import { signAndSendTransaction } from '@/helpers/shared';
+import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
+import { closePoolArgsSchema } from '@/types';
+import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useConnection, useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useContext } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+export const ClosePool = () => {
+  const poolAddress = usePoolAddressStore((state) => state.poolAddress);
+
+  const { connection } = useConnection();
+
+  const { sdkClient, provider } = useContext(SolanaSdkClientContext);
+  const { sendTransaction, publicKey, signTransaction } = useWallet();
+
+  const wallet = useAnchorWallet();
+
+  const { register, handleSubmit, setValue } = useForm<z.infer<typeof closePoolArgsSchema>>({
+    resolver: zodResolver(closePoolArgsSchema),
+  });
+
+  useQuery({
+    queryKey: ['shareTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.ShareToken,
+      });
+      setValue('args.shareTokenMint', data as string);
+      setValue('args.poolPda', poolAddress);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  useQuery({
+    queryKey: ['assetTokenAddress'],
+    queryFn: async () => {
+      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
+      const poolPda = new PublicKey(poolAddress);
+      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
+      const data = await getPoolDataValue({
+        poolPda,
+        programId: programAddressPublicKey,
+        sdkClient,
+        valueKey: PoolDataValueKey.AssetToken,
+      });
+      setValue('args.assetTokenMint', data as string);
+
+      return data;
+    },
+    enabled: !!poolAddress,
+  });
+
+  const closePool = useMutation({
+    mutationFn: closeLbpPool,
+    onSuccess: async (data) => {
+      if (!publicKey || !signTransaction) return;
+      console.log(data);
+      const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
+      console.log('Success', confirmation);
+    },
+    onError: (error) => console.log('Error', error),
+  });
+
+  const onSubmit = async (data: z.infer<typeof closePoolArgsSchema>) => {
+    if (!connection || !provider || !sdkClient) {
+      throw new Error('Wallet not connected');
+    }
+    console.log(data);
+    closePool.mutate({ formData: data, connection, provider, sdkClient });
+  };
+  return (
+    // Your jsx here
+  );
+};
+```
+
+#### `redeemTokensTransaction`
+
+This method facilitates the redemption of LBP tokens on the Solana blockchain.
+
+**Parameters**
+
+- `params` (RedeemOperationPublicKeys)
+  - `keys`
+    - `userPublicKey`: The public key of the wallet performing the redeem operation.
+    - `creator`: The public key of the wallet that created the pool.
+    - `shareTokenMint`: The public key of the mint for the pool's share tokens.
+    - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
+  - `args`
+    - `poolPda`: The Program Derived Address (PDA) of the pool.
+    - `isReferred`: A boolean value that indicates if the user was referred to the pool.
+  - `programId` (PublicKey): The PublicKey of your Solana program.
+  - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
+
+**Returns**
+
+- `TransactionInstruction`: The Solana transaction instruction for redeeming LBP tokens. This needs to be signed and submitted to the network for execution.
+
+**Example**
+
+```ts
+// Helper function example
+import { INITIALIZE_LBP_ADDRESS } from '@/constants';
+import { RedeemTokensParams } from '@/types';
+import { PublicKey } from '@solana/web3.js';
+
+export const redeemLbpPool = async ({ formData, connection, provider, sdkClient }: RedeemTokensParams) => {
+  if (!connection || !provider || !sdkClient) {
+    throw new Error('Wallet not connected');
+  }
+
+  // Get the program address
+  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+  const creator = new PublicKey(formData.args.creator);
+  const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
+  const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
+  const userPublicKey = new PublicKey(formData.args.userPublicKey);
+  const poolPda = new PublicKey(formData.args.poolPda);
+
+  const keys = {
+    userPublicKey,
+    creator,
+    shareTokenMint,
+    assetTokenMint,
+  };
+
+  const args = {
+    poolPda,
+    isReferred: formData.args.isReferred,
+  };
+
+  const transaction = await sdkClient.redeemTokensTransaction({
+    programId: programAddressPublicKey,
+    keys,
+    args,
+    provider,
+  });
+
+  return transaction;
+};
 ```
 
 ### Pool Management

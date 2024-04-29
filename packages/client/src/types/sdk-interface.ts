@@ -21,6 +21,7 @@ import {
   PoolTokenBalances,
   UserPoolStateBalances,
 } from './lbp-read';
+import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from './lbp-redeem';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -228,6 +229,32 @@ export interface ClientSdkInterfaceSolana {
     provider,
     feeParams,
   }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the closing of a liquidity bootstrapping pool (LBP) on the Solana blockchain. This function
+   * leverages the `LbpRedemptionService` to generate the necessary Solana transaction instruction.
+   *
+   * @param {CloseOperationPublicKeys} options - The options for closing the pool.
+   * @param options.keys - The public keys required for closing the pool.
+   * @param options.args - The arguments for closing the pool.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction[]>} - A promise that resolves with the generated close transaction instructions.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  closePoolTransaction({ keys, args, provider }: CloseOperationPublicKeys): Promise<TransactionInstruction[]>;
+
+  /**
+   * Facilitates the redemption of LBP tokens on the Solana blockchain. This function
+   * leverages the `LbpRedemptionService` to generate the necessary Solana transaction instruction.
+   *
+   * @param {RedeemOperationPublicKeys} options - The options for redeeming tokens.
+   * @param options.keys - The public keys required for redeeming tokens.
+   * @param options.args - The arguments for redeeming tokens.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated redeem transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  redeemTokensTransaction({ keys, args, provider }: RedeemOperationPublicKeys): Promise<TransactionInstruction>;
 
   /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.

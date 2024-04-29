@@ -1,7 +1,7 @@
-import { ClosePoolParams } from '@/types';
+import { RedeemTokensParams } from '@/types';
 import { PublicKey } from '@solana/web3.js';
 
-export const closeLbpPool = async ({ formData, connection, provider, sdkClient }: ClosePoolParams) => {
+export const redeemLbpPool = async ({ formData, connection, provider, sdkClient }: RedeemTokensParams) => {
   if (!connection || !provider || !sdkClient) {
     throw new Error('Wallet not connected');
   }
@@ -21,13 +21,14 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
 
   const args = {
     poolPda,
+    isReferred: formData.args.isReferred,
   };
 
-  const transactions = await sdkClient.closePoolTransaction({
+  const transaction = await sdkClient.redeemTokensTransaction({
     keys,
     args,
     provider,
   });
 
-  return transactions;
+  return transaction;
 };
