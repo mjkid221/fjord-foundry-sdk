@@ -113,9 +113,14 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   }
 
   private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
-    const tokenData = await connection.getTokenSupply(tokenMint);
+    try {
+      const tokenData = await connection.getTokenSupply(tokenMint);
 
-    return getTokenDivisor(tokenData.value.decimals);
+      return getTokenDivisor(tokenData.value.decimals);
+    } catch (error: any) {
+      this.logger.error('Failed to get token divisor from supply.', error);
+      throw new Error('Failed to get token divisor from supply.', error);
+    }
   }
 
   public async createSwapAssetsForExactSharesInstruction({
@@ -136,19 +141,33 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
     }
 
-    // Get the user PDA for the pool.
-    const [userPoolPda] = findProgramAddressSync(
-      [userPublicKey.toBuffer(), poolPda.toBuffer()],
-      this.program.programId,
-    );
+    let userPoolPda: PublicKey;
 
-    // Find the associated token accounts for the pool and creator.
-    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
-    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+    try {
+      // Get the user PDA for the pool.
+      [userPoolPda] = findProgramAddressSync([userPublicKey.toBuffer(), poolPda.toBuffer()], this.program.programId);
+    } catch (error: any) {
+      this.logger.error('Failed to get user PDA for the pool.', error);
+      throw new Error('Failed to get user PDA for the pool.', error);
+    }
 
-    // Get the user's associated token accounts for the pool.
-    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    let poolShareTokenAccount: PublicKey;
+    let poolAssetTokenAccount: PublicKey;
+    let userShareTokenAccount: PublicKey;
+    let userAssetTokenAccount: PublicKey;
+
+    try {
+      // Find the associated token accounts for the pool and creator.
+      poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      // Get the user's associated token accounts for the pool.
+      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    } catch (error: any) {
+      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
+      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
+    }
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
@@ -225,19 +244,33 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
     }
 
-    // Get the user PDA for the pool.
-    const [userPoolPda] = findProgramAddressSync(
-      [userPublicKey.toBuffer(), poolPda.toBuffer()],
-      this.program.programId,
-    );
+    let userPoolPda: PublicKey;
 
-    // Find the associated token accounts for the pool and creator.
-    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
-    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+    try {
+      // Get the user PDA for the pool.
+      [userPoolPda] = findProgramAddressSync([userPublicKey.toBuffer(), poolPda.toBuffer()], this.program.programId);
+    } catch (error: any) {
+      this.logger.error('Failed to get user PDA for the pool.', error);
+      throw new Error('Failed to get user PDA for the pool.', error);
+    }
 
-    // Get the user's associated token accounts for the pool.
-    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    let poolShareTokenAccount: PublicKey;
+    let poolAssetTokenAccount: PublicKey;
+    let userShareTokenAccount: PublicKey;
+    let userAssetTokenAccount: PublicKey;
+
+    try {
+      // Find the associated token accounts for the pool and creator.
+      poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      // Get the user's associated token accounts for the pool.
+      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    } catch (error: any) {
+      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
+      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
+    }
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
