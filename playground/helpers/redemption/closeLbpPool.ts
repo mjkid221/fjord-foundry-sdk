@@ -26,12 +26,12 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
     poolPda,
   };
 
-  const transaction = await sdkClient.closePoolTransaction({
+  const transactions = await sdkClient.closePoolTransaction({
     programId: programAddressPublicKey,
     keys,
     args,
     provider,
   });
 
-  return transaction;
+  return transactions;
 };

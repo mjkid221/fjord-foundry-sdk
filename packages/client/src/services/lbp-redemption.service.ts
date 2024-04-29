@@ -10,11 +10,11 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, Transaction, AccountMeta } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from '../types';
+import { CloseOperationPublicKeys, LbpRedemptionServiceInterface, RedeemOperationPublicKeys } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
 
-export class LbpRedemptionService {
+export class LbpRedemptionService implements LbpRedemptionServiceInterface {
   private provider: anchor.Provider;
 
   private programId: PublicKey;
@@ -182,10 +182,10 @@ export class LbpRedemptionService {
           swapFeeRecipientShareTokenAccount,
           swapFeeRecipient: treasury.swapFeeRecipient,
         })
-        .preInstructions(preInstructions.instructions)
+        .remainingAccounts(recipientAccountsSetup)
         .instruction();
 
-      return closeInstruction;
+      return [...preInstructions.instructions, closeInstruction];
     } catch (error: any) {
       this.logger.error('Error creating close instruction:', error);
       throw new Error('Error creating close instruction', error);

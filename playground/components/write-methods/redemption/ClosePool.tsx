@@ -22,7 +22,7 @@ const ClosePool = () => {
   const { connection } = useConnection();
 
   const { sdkClient, provider } = useContext(SolanaSdkClientContext);
-  const { sendTransaction } = useWallet();
+  const { sendTransaction, publicKey, signTransaction } = useWallet();
 
   const wallet = useAnchorWallet();
 
@@ -74,6 +74,7 @@ const ClosePool = () => {
   const closePool = useMutation({
     mutationFn: closeLbpPool,
     onSuccess: async (data) => {
+      if (!publicKey || !signTransaction) return;
       console.log(data);
       const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
       console.log('Success', confirmation);

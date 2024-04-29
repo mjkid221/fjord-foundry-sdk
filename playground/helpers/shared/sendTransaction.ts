@@ -1,8 +1,15 @@
 import { AnchorWallet } from '@solana/wallet-adapter-react';
 import { Connection, Transaction, TransactionInstruction } from '@solana/web3.js';
 
+/**
+ * Sign and send a transaction
+ * @param transactionInstructions - Either a single or multiple transaction instructions
+ * @param wallet - Anchor wallet instance
+ * @param connection - Solana connection provider
+ * @param sendTransaction - From the wallet adapter
+ */
 export const signAndSendTransaction = async (
-  transactionInstruction: TransactionInstruction,
+  transactionInstructions: TransactionInstruction[] | TransactionInstruction,
   wallet: AnchorWallet | undefined,
   connection: Connection,
   sendTransaction: (
@@ -11,7 +18,9 @@ export const signAndSendTransaction = async (
     options?: { minContextSlot?: number },
   ) => Promise<string>,
 ) => {
-  const transaction = new Transaction().add(transactionInstruction);
+  const transaction = new Transaction().add(
+    ...(Array.isArray(transactionInstructions) ? transactionInstructions : [transactionInstructions]),
+  );
 
   if (!wallet) {
     throw new Error('Wallet not connected');

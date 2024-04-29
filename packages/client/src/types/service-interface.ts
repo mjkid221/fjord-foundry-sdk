@@ -3,6 +3,7 @@ import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
+import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from './lbp-redeem';
 
 export interface SolanaConnectionServiceInterface {
   /**
@@ -274,4 +275,40 @@ export interface LbpManagementServiceInterface {
     feeRecipients,
     creator,
   }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction>;
+}
+
+export interface LbpRedemptionServiceInterface {
+  /**
+   * Asynchronously creates an instruction to close an LBP pool. This instruction closes the pool, distributes relevant tokens to the treasury and its fee recipients,
+   * and send unsold shares back to the pool creator.
+   * @dev This function can only be called by the pool creator after the sale period is over, otherwise will revert.
+   * @param {CloseOperationPublicKeys} params - The public keys required to close the pool.
+   * @param {PublicKey} params.keys.userPublicKey - The public key of the user.
+   * @param {PublicKey} params.keys.creator - The public key of the pool creator.
+   * @param {PublicKey} params.keys.shareTokenMint - The public key of the pool's share tokens.
+   * @param {PublicKey} params.keys.assetTokenMint - The public key of the asset token accepted by the pool.
+   * @param {PublicKey} params.args.poolPda - The Program Derived Address (PDA) of the pool.
+   *
+   * @returns {Promise<TransactionInstruction[]>} - A promise that resolves with the transaction instructions for closing the pool.
+   */
+  closeLbpPool({
+    keys,
+    args,
+  }: Omit<CloseOperationPublicKeys, 'provider' | 'programId'>): Promise<TransactionInstruction[]>;
+
+  /**
+   * Asynchronously creates an instruction to redeem purchased tokens from an LBP pool.
+   * @dev This function can be called by anyone once the pool is closed, otherwise will revert.
+   * @param {RedeemOperationPublicKeys} params - The public keys required to redeem tokens from the pool.
+   * @param {PublicKey} params.keys.userPublicKey - The public key of the user.
+   * @param {PublicKey} params.keys.creator - The public key of the pool creator.
+   * @param {PublicKey} params.keys.shareTokenMint - The public key of the pool's share tokens.
+   * @param {PublicKey} params.keys.assetTokenMint - The public key of the asset token accepted by the pool.
+   * @param {PublicKey} params.args.poolPda - The Program Derived Address (PDA) of the pool.
+   * @param {boolean} params.args.isReferred - A boolean indicating if the user was referred.
+   * @param {PublicKey} params.programId - The public key of the FjordLbp program.
+   * @param {AnchorProvider} params.provider - The AnchorProvider instance.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the transaction instruction for redeeming tokens.
+   */
+  redeemLbpTokens({ keys, args }: RedeemOperationPublicKeys): Promise<TransactionInstruction>;
 }

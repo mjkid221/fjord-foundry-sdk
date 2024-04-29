@@ -72,7 +72,7 @@ const RedeemShares = () => {
     enabled: !!poolAddress,
   });
 
-  const RedeemShares = useMutation({
+  const redeemShares = useMutation({
     mutationFn: redeemLbpPool,
     onSuccess: async (data) => {
       console.log(data);
@@ -87,7 +87,7 @@ const RedeemShares = () => {
       throw new Error('Wallet not connected');
     }
     console.log(data);
-    RedeemShares.mutate({ formData: data, connection, provider, sdkClient });
+    redeemShares.mutate({ formData: data, connection, provider, sdkClient });
   };
 
   const handleIsReferredChange = (event: SelectChangeEvent<string>) => {
