@@ -12,6 +12,7 @@ import {
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
+import { getPoolPda } from '../helpers/getPoolPda';
 import {
   BigNumber,
   LbpSellServiceInterface,
@@ -100,19 +101,6 @@ export class LbpSellService implements LbpSellServiceInterface {
     throw new Error('Unable to find return data in logs');
   }
 
-  private async getPoolPda(
-    shareTokenMint: PublicKey,
-    assetTokenMint: PublicKey,
-    creator: PublicKey,
-  ): Promise<PublicKey> {
-    const [poolPda] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
-
-    return poolPda;
-  }
-
   private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
     const tokenData = await connection.getTokenSupply(tokenMint);
 
@@ -136,7 +124,7 @@ export class LbpSellService implements LbpSellServiceInterface {
     const { poolPda, sharesAmountOut: incomingSharesAmount } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
@@ -211,7 +199,7 @@ export class LbpSellService implements LbpSellServiceInterface {
     const { poolPda, assetsAmountIn: outgoingAssetsAmount } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
