@@ -3,7 +3,14 @@ import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
-import { GetFeeRecipientsResponse, GetPoolFeesResponse, PoolTokenAccounts } from './lbp-read';
+import {
+  CreatorTokenBalances,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  PoolTokenAccounts,
+  PoolTokenBalances,
+  UserPoolStateBalances,
+} from './lbp-read';
 
 export interface SolanaConnectionServiceInterface {
   /**
@@ -317,4 +324,41 @@ export interface LbpReadServiceInterface {
    * @returns {Promise<PoolTokenAccounts>} - A promise that resolves with the public keys of the pool's share token account and asset token account.
    */
   getPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts>;
+
+  /**
+   * Retrieves the pool token balances for a liquidity bootstrapping pool (LBP). This method fetches the balance of the pool's share token account
+   * and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the balance of the pool's share token account and asset token account.
+   */
+  getPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Retrieves the creator token balances for a liquidity bootstrapping pool (LBP). This method fetches the balance of the creator's share token account
+   * and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<CreatorTokenBalances>} - A promise that resolves with the balance of the creator's share token account and asset token account.
+   */
+  getCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances>;
+
+  /**
+   * Retrieves `purchasedShares`, `redeemedShares` and `referredAssets` of an LBP user account.
+   *
+   * @param {GetUserTokenBalanceParams} params - Parameters for getting user token balance.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.userPublicKey - The public key of the user.
+   *
+   * @returns {Promise<UserPoolStateBalances>} - A promise that resolves with the user's pool state balances.
+   */
+  getUserPoolStateBalances({
+    poolPda,
+    userPublicKey,
+  }: {
+    poolPda: PublicKey;
+    userPublicKey: PublicKey;
+  }): Promise<UserPoolStateBalances>;
 }

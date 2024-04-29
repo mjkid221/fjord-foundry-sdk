@@ -33,6 +33,9 @@ import {
   GetFeeRecipientsResponse,
   GetPoolFeesResponse,
   PoolTokenAccounts,
+  PoolTokenBalances,
+  CreatorTokenBalances,
+  GetUserTokenBalanceParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -518,5 +521,62 @@ export class FjordClientSdk implements ClientSdkInterface {
     const poolTokenAccounts = await this.lbpReadService.getPoolTokenAccounts({ poolPda });
 
     return poolTokenAccounts;
+  }
+
+  public async readPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const poolBalances = await this.lbpReadService.getPoolTokenBalances({ poolPda });
+
+    return poolBalances;
+  }
+
+  public async readCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const creatorBalances = await this.lbpReadService.getCreatorTokenBalances({ poolPda });
+
+    return creatorBalances;
+  }
+
+  public async readUserTokenBalances({ poolPda, userPublicKey }: GetUserTokenBalanceParams) {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const userBalances = await this.lbpReadService.getUserPoolStateBalances({ poolPda, userPublicKey });
+
+    return userBalances;
   }
 }

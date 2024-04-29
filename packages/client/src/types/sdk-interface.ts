@@ -12,7 +12,15 @@ import {
   SetNewPoolFeesClientParams,
   SetTreasuryFeeRecipientsClientParams,
 } from './lbp-management';
-import { GetFeeRecipientsResponse, GetPoolFeesResponse, PoolTokenAccounts } from './lbp-read';
+import {
+  CreatorTokenBalances,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  GetUserTokenBalanceParams,
+  PoolTokenAccounts,
+  PoolTokenBalances,
+  UserPoolStateBalances,
+} from './lbp-read';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -304,6 +312,34 @@ export interface ClientSdkInterfaceSolana {
    * @returns {Promise<PoolTokenAccounts>} - A promise that resolves with the public keys of the pool's share token account and asset token account.
    */
   readPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts>;
+
+  /**
+   * Reads the token balances of the pool on the blockchain.
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the pool's share token balance and asset token balance.
+   */
+  readPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Reads the creator token balances of the pool on the blockchain.
+   *
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<CreatorTokenBalances>} - A promise that resolves with the creator's share token balance and asset token balance.
+   */
+  readCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances>;
+
+  /**
+   * Reads the user token balances of the pool on the blockchain.
+   *
+   * @param {GetUserTokenBalanceParams} params - The parameters for reading the user token balances.
+   * @param {PublicKey} params.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param {PublicKey} params.userPublicKey - The public key of the user.
+   *
+   * @returns {Promise<UserPoolStateBalances>} - A promise that resolves with the user's purchased shares, redeemed shares and referred assets.
+   */
+  readUserTokenBalances({ poolPda, userPublicKey }: GetUserTokenBalanceParams): Promise<UserPoolStateBalances>;
 }
 
 export interface ClientSdkInterface extends ClientSdkInterfaceSolana {}

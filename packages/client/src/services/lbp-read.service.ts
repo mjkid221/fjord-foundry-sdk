@@ -5,7 +5,17 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { GetFeeRecipientsResponse, GetPoolFeesResponse, LbpReadServiceInterface, PoolTokenAccounts } from '../types';
+import { getTokenDivisor } from '../helpers';
+import {
+  CreatorTokenBalances,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  GetUserTokenBalanceParams,
+  LbpReadServiceInterface,
+  PoolTokenAccounts,
+  PoolTokenBalances,
+  UserPoolStateBalances,
+} from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
 
@@ -72,6 +82,21 @@ export class LbpReadService implements LbpReadServiceInterface {
     return treasuryAccount;
   }
 
+  private async getPool(poolPda: PublicKey) {
+    // Get the pool PDA
+    await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+    const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+    return pool;
+  }
+
+  private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
+    const tokenData = await connection.getTokenSupply(tokenMint);
+
+    return getTokenDivisor(tokenData.value.decimals);
+  }
+
   public async getPoolFees(): Promise<GetPoolFeesResponse> {
     // Get the owner config
     const ownerConfig = await this.getOwnerConfig();
@@ -117,7 +142,7 @@ export class LbpReadService implements LbpReadServiceInterface {
   public async getPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts> {
     // Read the pool
     try {
-      const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+      const pool = await this.getPool(poolPda);
 
       const { assetToken, shareToken } = pool;
 
@@ -128,6 +153,93 @@ export class LbpReadService implements LbpReadServiceInterface {
     } catch (error) {
       this.logger.error('Pool not found');
       throw new Error('Pool not found');
+    }
+  }
+
+  public async getPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances> {
+    // Get the pool asset token account
+    const { poolAssetTokenAccount, poolShareTokenAccount } = await this.getPoolTokenAccounts({ poolPda });
+
+    // Get the balance of the pool asset token account
+    const poolAssetTokenAccountInfo = await this.connection.getTokenAccountBalance(poolAssetTokenAccount);
+
+    const poolShareTokenAccountInfo = await this.connection.getTokenAccountBalance(poolShareTokenAccount);
+    if (!poolAssetTokenAccountInfo.value.uiAmount) {
+      this.logger.error('Pool asset token account not found');
+      throw new Error('Pool asset token account not found');
+    }
+
+    if (!poolShareTokenAccountInfo.value.uiAmount) {
+      this.logger.error('Pool share token account not found');
+      throw new Error('Pool share token account not found');
+    }
+
+    return {
+      poolShareTokenBalance:
+        poolShareTokenAccountInfo.value.uiAmountString ?? poolShareTokenAccountInfo.value.uiAmount.toString(),
+      poolAssetTokenBalance:
+        poolAssetTokenAccountInfo.value.uiAmountString ?? poolAssetTokenAccountInfo.value.uiAmount.toString(),
+    };
+  }
+
+  public async getCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances> {
+    // Get the creator of the pool
+    const { creator, assetToken, shareToken } = await this.getPool(poolPda);
+
+    const creatorPoolShareTokenAccount = await getAssociatedTokenAddress(shareToken, creator);
+    const creatorPoolAssetTokenAccount = await getAssociatedTokenAddress(assetToken, creator);
+
+    const creatorShareTokenBalance = await this.connection.getTokenAccountBalance(creatorPoolShareTokenAccount);
+    const creatorAssetTokenBalance = await this.connection.getTokenAccountBalance(creatorPoolAssetTokenAccount);
+
+    this.logger.debug('Creator share token balance', creatorShareTokenBalance);
+
+    if (!creatorShareTokenBalance.value.uiAmount) {
+      this.logger.error('Creator share token account not found');
+      throw new Error('Creator share token account not found');
+    }
+
+    if (!creatorAssetTokenBalance.value.uiAmount) {
+      this.logger.error('Creator asset token account not found');
+      throw new Error('Creator asset token account not found');
+    }
+
+    return {
+      creatorShareTokenBalance:
+        creatorShareTokenBalance.value.uiAmountString ?? creatorShareTokenBalance.value.uiAmount.toString(),
+      creatorAssetTokenBalance:
+        creatorAssetTokenBalance.value.uiAmountString ?? creatorAssetTokenBalance.value.uiAmount.toString(),
+    };
+  }
+
+  public async getUserPoolStateBalances({
+    poolPda,
+    userPublicKey,
+  }: GetUserTokenBalanceParams): Promise<UserPoolStateBalances> {
+    try {
+      // Get the user pool pda
+      const [userPoolPda] = findProgramAddressSync(
+        [userPublicKey.toBuffer(), poolPda.toBuffer()],
+        this.program.programId,
+      );
+
+      // Get the user state in pool
+      const { purchasedShares, redeemedShares, referredAssets } =
+        await this.program.account.userStateInPool.fetch(userPoolPda);
+
+      const { assetToken, shareToken } = await this.getPool(poolPda);
+
+      const shareTokenDivisor = await this.getTokenDivisorFromSupply(shareToken, this.connection);
+      const assetTokenDivisor = await this.getTokenDivisorFromSupply(assetToken, this.connection);
+
+      return {
+        purchasedShares: (Number(purchasedShares.toString()) / shareTokenDivisor).toString(),
+        redeemedShares: (Number(redeemedShares.toString()) / shareTokenDivisor).toString(),
+        referredAssets: (Number(referredAssets.toString()) / assetTokenDivisor).toString(),
+      };
+    } catch (error: any) {
+      this.logger.error('User token balances not found', error);
+      throw new Error('User token balances not found', error);
     }
   }
 }
