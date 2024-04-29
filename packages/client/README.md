@@ -30,6 +30,13 @@
   - [Read Methods](#read-methods)
     - [Retrieve All Pool Data](#retrieve-all-pool-data)
     - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
+    - [Utility Read Methods](#utility-read-functions)
+      - [Pool Fees](#readpoolfees)
+      - [Pool Owner](#readpoolowner)
+      - [Fee Recipients](#readfeerecipients)
+      - [Pool Token Accounts](#readpooltokenaccounts)
+      - [Pool Token Balances](#readpooltokenbalances)
+      - [User Token Balances](#readusertokenbalances)
 - [Enums](#enums)
   - [PoolDataValueKey](#pooldatavaluekey)
 - [Features](#features)
@@ -1315,6 +1322,32 @@ const { data } = useQuery({
 
 - **`PoolDataValueKey` Enum:** Ensure that the `PoolDataValueKey` enum contains all the possible data values that can be retrieved from an LBP pool.
 - **Error Handling:**  The `default` case in the `switch` statement throws an error for invalid `valueKey` values.
+
+### Utility Read Functions
+
+#### `readPoolFees()`
+
+- This method fetches the platform fee, referral fee, and swap fee from the pool's owner configuration account.
+
+#### `readPoolOwner()`
+
+- This method fetches the public key of the wallet that administers the pool management.
+
+#### `readFeeRecipients()`
+
+- Retrieves the fee recipients associated with a liquidity bootstrapping pool (LBP). This method fetches the wallet addresses and percentage allocations for fee recipients from the pool's treasury account.
+
+#### `readPoolTokenAccounts()`
+
+- Reads the associated share and asset token accounts of the pool.
+
+#### `readPoolTokenBalances()`
+
+- This method fetches the balance of the pool's share token account and asset token account.
+
+#### `readUserTokenBalances()`
+
+- Retrieves `purchasedShares`, r`edeemedShares` and `referredAssets` of an LBP user account.
 
 ## Enums
 

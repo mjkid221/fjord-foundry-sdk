@@ -38,6 +38,7 @@ import {
   PoolTokenBalances,
   CreatorTokenBalances,
   GetUserTokenBalanceParams,
+  UserPoolStateBalances,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -581,7 +582,10 @@ export class FjordClientSdk implements ClientSdkInterface {
     return creatorBalances;
   }
 
-  public async readUserTokenBalances({ poolPda, userPublicKey }: GetUserTokenBalanceParams) {
+  public async readUserTokenBalances({
+    poolPda,
+    userPublicKey,
+  }: GetUserTokenBalanceParams): Promise<UserPoolStateBalances> {
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,

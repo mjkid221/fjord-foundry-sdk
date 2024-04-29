@@ -7,10 +7,8 @@ export interface GetPoolFeesResponse {
 }
 
 export interface GetFeeRecipientsResponse {
-  feeRecipients: {
-    user: PublicKey;
-    percentage: number;
-  };
+  user: PublicKey;
+  percentage: number;
 }
 
 export interface PoolTokenAccounts {

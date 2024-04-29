@@ -129,7 +129,7 @@ export class LbpReadService implements LbpReadServiceInterface {
 
     const { feeRecipients } = treasuryAccount;
 
-    return { feeRecipients } as any as GetFeeRecipientsResponse[];
+    return feeRecipients as any as GetFeeRecipientsResponse[];
   }
 
   public async getSwapFeeRecipient(): Promise<PublicKey> {
