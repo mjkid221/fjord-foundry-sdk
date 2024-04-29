@@ -17,9 +17,11 @@ import {
 import {
   ClientSdkInterface,
   ClientServiceInterface,
+  CloseOperationPublicKeys,
   CreatePoolClientParams,
   GetPoolDataResponse,
   InitializePoolResponse,
+  RedeemOperationPublicKeys,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
   SwapExactSharesForAssetsInstructionClientParams,
@@ -138,12 +140,7 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   // Close Pool Function
-  public async closePoolTransaction({
-    keys,
-    args,
-    programId,
-    provider,
-  }: SwapSharesForExactAssetsInstructionClientParams) {
+  public async closePoolTransaction({ keys, args, programId, provider }: CloseOperationPublicKeys) {
     // Create a new instance of the LbpInitializationService
     this.lbpRedemptionService = await LbpRedemptionService.create(
       programId,
@@ -158,7 +155,26 @@ export class FjordClientSdk implements ClientSdkInterface {
     return transaction;
   }
 
-  // Pool Management Tools
+  // Redeem tokens function
+  public async redeemTokensTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: RedeemOperationPublicKeys): Promise<TransactionInstruction> {
+    // Create a new instance of the LbpInitializationService
+    this.lbpRedemptionService = await LbpRedemptionService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    // Call the closePool method from the LbpInitializationService
+    const transaction = await this.lbpRedemptionService.redeemLbpTokens({ keys, args });
+
+    return transaction;
+  }
 
   public async pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
     this.lbpManagementService = await LbpManagementService.create(

@@ -217,9 +217,6 @@ const CreateLbp = () => {
         <Button variant="contained" type="submit" disabled={!wallet}>
           Submit
         </Button>
-        <Button variant="contained" type="submit" disabled={!wallet}>
-          Submit
-        </Button>
         {!wallet && <WalletNotConnected />}
         {poolAddress && <Typography>Newly created pool address: {poolAddress}</Typography>}
       </Stack>

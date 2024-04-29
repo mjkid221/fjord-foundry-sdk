@@ -20,6 +20,11 @@ const SolanaWrite = () => {
           <Link href={'solana/sell/shares-for-exact-assets'}>Swap Shares For Exact Assets </Link>
         </Stack>
         <Stack>
+          <Typography variant="h4">Redemption</Typography>
+          <Link href={'solana/redemption/close'}>Close Pool</Link>
+          <Link href={'solana/redemption/redeem-shares'}>Redeem Shares</Link>
+        </Stack>
+        <Stack>
           <Typography variant="h4">Pool Management</Typography>
           <Link href={'solana/management/pause'}>Pause</Link>
           <Link href={'solana/management/unpause'}>Unpause</Link>
