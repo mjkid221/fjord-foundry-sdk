@@ -9,7 +9,7 @@ const Test = () => {
   const { data } = useQuery({
     queryKey: ['test'],
     queryFn: async () => {
-      return await sdkClient?.readPoolOwner();
+      return await sdkClient?.readFeeRecipients();
     },
     enabled: !!sdkClient,
   });

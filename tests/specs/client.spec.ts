@@ -15,7 +15,7 @@ describe('FjordClientSdk Solana Read Functions', () => {
   let sdk: FjordClientSdk;
 
   beforeEach(async () => {
-    sdk = await FjordClientSdk.create(WalletAdapterNetwork.Devnet);
+    sdk = await FjordClientSdk.create({ solanaNetwork: WalletAdapterNetwork.Devnet, programId: programAddress });
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -30,7 +30,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrievePoolData with correct parameters and return the correct response', async () => {
     const response = await sdk.retrievePoolData({
       poolPda: solanaPoolPda,
-      programId: programAddress,
     });
 
     expect(response).toBeDefined();
@@ -49,7 +48,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.AssetToken and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.AssetToken,
     });
 
@@ -60,7 +58,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.ShareToken and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.ShareToken,
     });
 
@@ -71,7 +68,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxAssetsIn and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.MaxAssetsIn,
     });
 
@@ -82,7 +78,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.Creator and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.Creator,
     });
 
@@ -93,7 +88,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.EndWeightBasisPoints and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.EndWeightBasisPoints,
     });
 
@@ -104,7 +98,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxSharePrice and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.MaxSharePrice,
     });
 
@@ -115,7 +108,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.MaxSharesOut and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.MaxSharesOut,
     });
 
@@ -126,7 +118,6 @@ describe('FjordClientSdk Solana Read Functions', () => {
   it('should call retrieveSinglePoolDataValues with PoolDataValueKey.SaleEndTime and return the correct response', async () => {
     const response = await sdk.retrieveSinglePoolDataValue({
       poolPda: solanaPoolPda,
-      programId: programAddress,
       valueKey: PoolDataValueKey.SaleEndTime,
     });
 

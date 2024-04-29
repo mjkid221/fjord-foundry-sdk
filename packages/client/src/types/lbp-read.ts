@@ -12,3 +12,8 @@ export interface GetFeeRecipientsResponse {
     percentage: number;
   };
 }
+
+export interface PoolTokenAccounts {
+  poolShareTokenAccount: PublicKey;
+  poolAssetTokenAccount: PublicKey;
+}

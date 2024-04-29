@@ -1,7 +1,14 @@
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
 import { PoolDataValueKey } from '../enums';
+
+export interface SolanaClientOptions {
+  solanaNetwork: WalletAdapterNetwork;
+  programId: PublicKey;
+  enableLogging?: boolean;
+}
 
 export type ContractAddress = `0x${string}`;
 

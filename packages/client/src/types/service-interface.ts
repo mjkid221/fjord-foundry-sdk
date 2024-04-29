@@ -3,7 +3,7 @@ import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
-import { GetPoolFeesResponse } from './lbp-read';
+import { GetFeeRecipientsResponse, GetPoolFeesResponse, PoolTokenAccounts } from './lbp-read';
 
 export interface SolanaConnectionServiceInterface {
   /**
@@ -292,4 +292,29 @@ export interface LbpReadServiceInterface {
    * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the pool's owner.
    */
   getPoolOwner(): Promise<PublicKey>;
+
+  /**
+   * Retrieves the fee recipients associated with a liquidity bootstrapping pool (LBP). This method fetches the wallet addresses and
+   * percentage allocations for fee recipients from the pool's treasury account.
+   *
+   * @returns {Promise<GetFeeRecipientsResponse[]>} - A promise that resolves with an array of fee recipient details.
+   */
+  getFeeRecipients(): Promise<GetFeeRecipientsResponse[]>;
+
+  /**
+   * Retrieves the public key of the wallet designated to receive swap fees. This method fetches the swap fee recipient from the pool's treasury account.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the wallet designated to receive swap fees.
+   */
+  getSwapFeeRecipient(): Promise<PublicKey>;
+
+  /**
+   * Retrieves the associated pool token accounts for a liquidity bootstrapping pool (LBP). This method fetches the public keys of the pool's
+   * share token account and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<PoolTokenAccounts>} - A promise that resolves with the public keys of the pool's share token account and asset token account.
+   */
+  getPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts>;
 }

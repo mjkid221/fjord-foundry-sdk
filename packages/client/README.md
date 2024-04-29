@@ -72,20 +72,30 @@ Then, you need to initialize the client using the `create` method.
 
 - `solanaNetwork` (WalletAdapterNetwork):
   - Specifies the Solana network (e.g., 'mainnet-beta', 'devnet', or 'testnet').
-- `loggingEnabled` (boolean)
+- `programId` (string):
+  - This is the program id of the LBP Solana program.
+- `enableLogging` (boolean)
   - (optional: default = `false`) An optional boolean that enables sdk logging for debugging purposes.
 
 **Returns**
 
 - **`Promise<FjordClientSdk>`**: A promise that resolves to a new FjordClientSdk instance.
 
-**Example (Solana Chain)**
+**Example**
 
 ```ts
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 
-const clientSdk = new FjordClientSdk(WalletAdapterNetwork.Devnet)
+const programAddressPublicKey = new PublicKey("LBP Program Address");
+
+const createSolanaSdkClient = async () => {
+  await FjordClientSdk.create({
+    solanaNetwork: WalletAdapterNetwork.Devnet,
+    programId: programAddressPublicKey,
+    enableLogging: true, // enable logging
+  }); 
+}
 
 ```
 

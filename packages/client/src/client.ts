@@ -29,6 +29,10 @@ import {
   CreateNewOwnerNominationClientParams,
   SetNewPoolFeesClientParams,
   SetTreasuryFeeRecipientsClientParams,
+  SolanaClientOptions,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  PoolTokenAccounts,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -68,11 +72,11 @@ export class FjordClientSdk implements ClientSdkInterface {
     this.programId = programId;
   }
 
-  static async create(
-    solanaNetwork: WalletAdapterNetwork,
-    programId: PublicKey,
+  static async create({
+    solanaNetwork,
+    programId,
     enableLogging = false,
-  ): Promise<FjordClientSdk> {
+  }: SolanaClientOptions): Promise<FjordClientSdk> {
     const service = await SolanaConnectionService.create(solanaNetwork);
     const client = new FjordClientSdk(service, solanaNetwork, programId, enableLogging);
     client.logger.debug('SolanaSdkClient initialized');
@@ -421,7 +425,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     return await this.clientService.getConnection().getAccountInfoAndContext(address);
   }
 
-  public async readPoolFees() {
+  public async readPoolFees(): Promise<GetPoolFeesResponse> {
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,
@@ -440,7 +444,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     return poolFees;
   }
 
-  public async readPoolOwner() {
+  public async readPoolOwner(): Promise<PublicKey> {
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,
@@ -459,7 +463,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     return poolOwner;
   }
 
-  public async readFeeRecipients() {
+  public async readFeeRecipients(): Promise<GetFeeRecipientsResponse[]> {
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,
@@ -476,5 +480,43 @@ export class FjordClientSdk implements ClientSdkInterface {
     const feeRecipients = await this.lbpReadService.getFeeRecipients();
 
     return feeRecipients;
+  }
+
+  public async readSwapFeeRecipient(): Promise<PublicKey> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const swapFeeRecipient = await this.lbpReadService.getSwapFeeRecipient();
+
+    return swapFeeRecipient;
+  }
+
+  public async readPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const poolTokenAccounts = await this.lbpReadService.getPoolTokenAccounts({ poolPda });
+
+    return poolTokenAccounts;
   }
 }

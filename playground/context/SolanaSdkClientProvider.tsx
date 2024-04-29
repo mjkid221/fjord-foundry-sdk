@@ -20,7 +20,11 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
   const [provider, setProvider] = useState<AnchorProvider>();
   const createSolanaSdkClient = useCallback(async () => {
     const network = solanaNetwork;
-    return await FjordClientSdk.create(network, programAddressPublicKey, true); // enable logging
+    return await FjordClientSdk.create({
+      solanaNetwork: network,
+      programId: programAddressPublicKey,
+      enableLogging: true,
+    }); // enable logging
   }, [solanaNetwork]);
 
   const { connection } = useConnection();

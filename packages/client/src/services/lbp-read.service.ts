@@ -1,14 +1,15 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { GetPoolFeesResponse } from '../types';
+import { GetFeeRecipientsResponse, GetPoolFeesResponse, LbpReadServiceInterface, PoolTokenAccounts } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
 
-export class LbpReadService {
+export class LbpReadService implements LbpReadServiceInterface {
   private programId: PublicKey;
 
   private program: anchor.Program<FjordLbp>;
@@ -97,13 +98,13 @@ export class LbpReadService {
     return ownerConfig.owner;
   }
 
-  public async getFeeRecipients() {
+  public async getFeeRecipients(): Promise<GetFeeRecipientsResponse[]> {
     // Get the owner config
     const treasuryAccount = await this.getTreasuryAccount();
 
     const { feeRecipients } = treasuryAccount;
 
-    return feeRecipients;
+    return { feeRecipients } as any as GetFeeRecipientsResponse[];
   }
 
   public async getSwapFeeRecipient(): Promise<PublicKey> {
@@ -111,5 +112,22 @@ export class LbpReadService {
     const treasuryAccount = await this.getTreasuryAccount();
 
     return treasuryAccount.swapFeeRecipient;
+  }
+
+  public async getPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts> {
+    // Read the pool
+    try {
+      const pool = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+      const { assetToken, shareToken } = pool;
+
+      const poolShareTokenAccount = await getAssociatedTokenAddress(shareToken, poolPda, true);
+      const poolAssetTokenAccount = await getAssociatedTokenAddress(assetToken, poolPda, true);
+
+      return { poolShareTokenAccount, poolAssetTokenAccount };
+    } catch (error) {
+      this.logger.error('Pool not found');
+      throw new Error('Pool not found');
+    }
   }
 }
