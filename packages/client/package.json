@@ -1,6 +1,6 @@
 {
   "name": "@fjord-foundry/solana-sdk-client",
-  "version": "1.1.0-rc.3",
+  "version": "1.1.0-rc.4",
   "description": "Fjord Foundry Solana SDK client",
   "type": "module",
   "main": "dist/index.cjs",
@@ -38,5 +38,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5"
   }
 }

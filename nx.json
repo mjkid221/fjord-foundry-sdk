@@ -2,26 +2,18 @@
   "$schema": "node_modules/nx/schemas/nx-schema.json",
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "cache": true
+      "dependsOn": ["^build"],
+      "cache": false
     },
     "package": {
-      "dependsOn": [
-        "^package"
-      ],
-      "cache": true
+      "dependsOn": ["^package"],
+      "cache": false
     },
     "test": {
-      "dependsOn": [
-        "^test"
-      ]
+      "dependsOn": ["^test"]
     },
     "test:env": {
-      "dependsOn": [
-        "^test:env"
-      ]
+      "dependsOn": ["^test:env"]
     },
     "build:node": {
       "dependsOn": []

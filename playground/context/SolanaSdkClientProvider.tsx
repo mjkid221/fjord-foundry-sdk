@@ -1,5 +1,5 @@
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
@@ -8,7 +8,7 @@ import { SolanaSdkClientContext } from './SolanaSdkClientContext';
 
 export interface SolanaSdkClientProviderProps {
   children: ReactNode;
-  solanaNetwork?: WalletAdapterNetwork;
+  solanaNetwork: WalletAdapterNetwork;
 }
 
 export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkClientProviderProps) => {
@@ -16,7 +16,7 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
   const [provider, setProvider] = useState<AnchorProvider>();
   const createSolanaSdkClient = useCallback(async () => {
     const network = solanaNetwork;
-    return await FjordClientSdk.create(true, network);
+    return await FjordClientSdk.create(network, true); // enable logging
   }, [solanaNetwork]);
 
   const { connection } = useConnection();
