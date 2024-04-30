@@ -110,10 +110,16 @@ const PausePool = () => {
       <Typography>Share Token Mint: {shareTokenAddress}</Typography>
       <Typography>Asset Token Mint: {assetTokenAddress}</Typography>
       {pausePoolMutation.error?.message && <Typography color="error">{pausePoolMutation.error?.message}</Typography>}
-      <Button variant="contained" onClick={onSubmit} disabled={!wallet}>
+      {!poolAddress && (
+        <Typography variant="body1" color="error">
+          Please set your active pool
+        </Typography>
+      )}
+      {!wallet && <WalletNotConnected />}
+      <Button variant="contained" onClick={onSubmit} disabled={!wallet || !poolAddress}>
         Submit
       </Button>
-      {!wallet && <WalletNotConnected />}
+
       <FeedbackDialog
         onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
         open={errorDialogOpen}

@@ -1,6 +1,6 @@
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import {
-  getPoolDataValue,
+  getPoolArgs,
   handleDialogClose,
   handleDialogOpen,
   signAndSendSwapTransaction,
@@ -8,18 +8,18 @@ import {
 } from '@/helpers';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { swapAssetsForSharesArgsSchema } from '@/types';
-import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, FormControl, FormLabel, Stack, TextField } from '@mui/material';
+import { Button, FormControl, FormLabel, Stack, TextField, Typography } from '@mui/material';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import WalletNotConnected from '../../WalletNotConnected';
 import FeedbackDialog from '@/components/FeedbackDialog';
 import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
+import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 
 const SwapExactAssetsForShares = () => {
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
@@ -34,41 +34,33 @@ const SwapExactAssetsForShares = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
+  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
     resolver: zodResolver(swapAssetsForSharesArgsSchema),
   });
 
+  const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+
+  useEffect(() => {
+    if (!connectedWalletAddress) {
+      return;
+    }
+    setValue('args.userPublicKey', connectedWalletAddress);
+  }, [connectedWalletAddress, setValue]);
+
   useQuery({
-    queryKey: ['shareTokenAddress'],
+    queryKey: ['pool-args'],
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
 
-      const data = await getPoolDataValue({
+      const data = await getPoolArgs({
         poolPda,
         sdkClient,
-        valueKey: PoolDataValueKey.ShareToken,
       });
-      setValue('args.shareTokenMint', data as string);
+      setValue('args.assetTokenMint', data.assetToken);
+      setValue('args.shareTokenMint', data.shareToken);
       setValue('args.poolPda', poolAddress);
-
-      return data;
-    },
-    enabled: !!poolAddress,
-  });
-
-  useQuery({
-    queryKey: ['assetTokenAddress'],
-    queryFn: async () => {
-      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
-      const poolPda = new PublicKey(poolAddress);
-
-      const data = await getPoolDataValue({
-        poolPda,
-        sdkClient,
-        valueKey: PoolDataValueKey.AssetToken,
-      });
-      setValue('args.assetTokenMint', data as string);
+      setValue('args.creator', data.creator);
 
       return data;
     },
@@ -106,19 +98,15 @@ const SwapExactAssetsForShares = () => {
         <Stack spacing={2} flexDirection="column">
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
-            <TextField
-              label="creator address"
-              placeholder="creator"
-              {...register('args.creator', { required: true })}
-            />
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {watch('args.creator')?.length > 0 ? watch('args.creator') : 'Please set the active pool'}
+            </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="user-address">User Address</FormLabel>
-            <TextField
-              label="user address"
-              placeholder="user"
-              {...register('args.userPublicKey', { required: true })}
-            />
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {connectedWalletAddress ?? 'Please connect your wallet '}
+            </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="assets-to-pay">Asset quantity to use to pay</FormLabel>
@@ -128,11 +116,15 @@ const SwapExactAssetsForShares = () => {
               {...register('args.assetsAmountIn', { required: true })}
             />
           </FormControl>
-
-          <Button variant="contained" type="submit" disabled={!wallet}>
+          {!wallet && <WalletNotConnected />}
+          {!poolAddress && (
+            <Typography variant="body1" color="error">
+              Please set your active pool
+            </Typography>
+          )}
+          <Button variant="contained" type="submit" disabled={!wallet || !poolAddress}>
             Submit
           </Button>
-          {!wallet && <WalletNotConnected />}
         </Stack>
       </form>
       <FeedbackDialog

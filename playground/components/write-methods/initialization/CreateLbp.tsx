@@ -95,7 +95,7 @@ const CreateLbp = () => {
       handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
     },
   });
-  console.error(createPoolMutation.error);
+
   const onSubmit = (data: z.infer<typeof initializePoolArgsSchema>) => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Required connetion, provider or sdkClient not found');

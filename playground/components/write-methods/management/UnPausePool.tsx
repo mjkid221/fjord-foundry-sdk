@@ -113,10 +113,16 @@ const UnPausePool = () => {
       {unpausePoolMutation.error?.message && (
         <Typography color="error">{unpausePoolMutation.error?.message}</Typography>
       )}
-      <Button variant="contained" onClick={onSubmit} disabled={!wallet}>
+      {!poolAddress && (
+        <Typography variant="body1" color="error">
+          Please set your active pool
+        </Typography>
+      )}
+      {!wallet && <WalletNotConnected />}
+      <Button variant="contained" onClick={onSubmit} disabled={!wallet || !poolAddress}>
         Unpause Pool
       </Button>
-      {!wallet && <WalletNotConnected />}
+
       <FeedbackDialog
         onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
         open={errorDialogOpen}

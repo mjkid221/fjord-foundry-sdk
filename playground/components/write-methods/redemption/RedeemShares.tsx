@@ -2,18 +2,18 @@ import FeedbackDialog from '@/components/FeedbackDialog';
 import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import WalletNotConnected from '@/components/WalletNotConnected';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { getPoolDataValue, handleDialogClose, handleDialogOpen } from '@/helpers';
+import { getPoolArgs, handleDialogClose, handleDialogOpen } from '@/helpers';
 import { redeemLbpPool } from '@/helpers/redemption/redeemLbpPool';
 import { signAndSendTransaction } from '@/helpers/shared';
+import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { redeemPoolArgsSchema } from '@/types';
-import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Stack, FormControl, FormLabel, TextField, Button, Select, SelectChangeEvent, MenuItem } from '@mui/material';
+import { Stack, FormControl, FormLabel, Button, Select, SelectChangeEvent, MenuItem, Typography } from '@mui/material';
 import { useConnection, useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -31,41 +31,33 @@ const RedeemShares = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue } = useForm<z.infer<typeof redeemPoolArgsSchema>>({
+  const { handleSubmit, setValue, watch } = useForm<z.infer<typeof redeemPoolArgsSchema>>({
     resolver: zodResolver(redeemPoolArgsSchema),
   });
 
+  const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+
+  useEffect(() => {
+    if (!connectedWalletAddress) {
+      return;
+    }
+    setValue('args.userPublicKey', connectedWalletAddress);
+  }, [connectedWalletAddress, setValue]);
+
   useQuery({
-    queryKey: ['shareTokenAddress'],
+    queryKey: ['pool-args'],
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
 
-      const data = await getPoolDataValue({
+      const data = await getPoolArgs({
         poolPda,
         sdkClient,
-        valueKey: PoolDataValueKey.ShareToken,
       });
-      setValue('args.shareTokenMint', data as string);
+      setValue('args.assetTokenMint', data.assetToken);
+      setValue('args.shareTokenMint', data.shareToken);
       setValue('args.poolPda', poolAddress);
-
-      return data;
-    },
-    enabled: !!poolAddress,
-  });
-
-  useQuery({
-    queryKey: ['assetTokenAddress'],
-    queryFn: async () => {
-      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
-      const poolPda = new PublicKey(poolAddress);
-
-      const data = await getPoolDataValue({
-        poolPda,
-        sdkClient,
-        valueKey: PoolDataValueKey.AssetToken,
-      });
-      setValue('args.assetTokenMint', data as string);
+      setValue('args.creator', data.creator);
 
       return data;
     },
@@ -111,19 +103,15 @@ const RedeemShares = () => {
         <Stack spacing={2} flexDirection="column">
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
-            <TextField
-              label="creator address"
-              placeholder="creator"
-              {...register('args.creator', { required: true })}
-            />
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {watch('args.creator')?.length > 0 ? watch('args.creator') : 'Please set the active pool'}
+            </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="user-address">User Address</FormLabel>
-            <TextField
-              label="user address"
-              placeholder="user"
-              {...register('args.userPublicKey', { required: true })}
-            />
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {connectedWalletAddress ?? 'Please connect your wallet '}
+            </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}></FormControl>
           <FormControl sx={{ mb: 2 }}>
@@ -138,10 +126,15 @@ const RedeemShares = () => {
               <MenuItem value="true">True</MenuItem>
             </Select>
           </FormControl>
-          <Button variant="contained" type="submit" disabled={!wallet}>
+          {!wallet && <WalletNotConnected />}
+          {!poolAddress && (
+            <Typography variant="body1" color="error">
+              Please set your active pool
+            </Typography>
+          )}
+          <Button variant="contained" type="submit" disabled={!wallet || !poolAddress}>
             Submit
           </Button>
-          {!wallet && <WalletNotConnected />}
         </Stack>
       </form>
       <FeedbackDialog
