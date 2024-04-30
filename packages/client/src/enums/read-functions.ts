@@ -1,17 +1,6 @@
-export enum ReadFunction {
-  GetContractArgs = 'args',
-  GetContractManager = 'manager',
-  IsPoolClosed = 'closed',
-  IsSellingAllowed = 'sellingAllowed',
-  GetMaxTotalAssetsIn = 'maxTotalAssetsIn',
-  GetMaxTotalSharesOut = 'maxTotalSharesOut',
-  IsVestingSharesEnabled = 'vestShares',
-  GetVestingCliffTimestamp = 'vestCliff',
-  GetVestingEndTimestamp = 'vestEnd',
-  GetTotalSharePurchased = 'totalPurchased',
-  GetReservesAndWeights = 'reservesAndWeights',
-}
-
+/**
+ * Enum for the reading data from an LBP pool's args.
+ */
 export enum PoolDataValueKey {
   AssetToken = 'assetToken',
   Closed = 'closed',

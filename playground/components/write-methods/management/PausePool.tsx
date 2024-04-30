@@ -1,5 +1,4 @@
 import WalletNotConnected from '@/components/WalletNotConnected';
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { PausePoolArgs, getPoolDataValue, pausePool, signAndSendSwapTransaction } from '@/helpers';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
@@ -27,11 +26,9 @@ const PausePool = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.ShareToken,
       });
@@ -47,11 +44,9 @@ const PausePool = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.AssetToken,
       });

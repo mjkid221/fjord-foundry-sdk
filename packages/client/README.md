@@ -30,14 +30,21 @@
   - [Read Methods](#read-methods)
     - [Retrieve All Pool Data](#retrieve-all-pool-data)
     - [Retrieve Specific Pool Data Value](#retrieve-specific-pool-data-value)
+    - [Utility Read Methods](#utility-read-functions)
+      - [Pool Fees](#readpoolfees)
+      - [Pool Owner](#readpoolowner)
+      - [Fee Recipients](#readfeerecipients)
+      - [Pool Token Accounts](#readpooltokenaccounts)
+      - [Pool Token Balances](#readpooltokenbalances)
+      - [User Token Balances](#readusertokenbalances)
 - [Enums](#enums)
   - [PoolDataValueKey](#pooldatavaluekey)
-- [Features](#features)
+- [Solana Program Updates](#solana-program-updates)
 - [License](#license)
 
 ## Description
 
-TODO: Fill in description here.
+The `@fjord-foundry/solana-sdk-client` is an SDK that provides comprehensive tools to enable Fjord Foundry LBP integration with the Solana blockchain.
 
 ## Installation
 
@@ -75,20 +82,30 @@ Then, you need to initialize the client using the `create` method.
 
 - `solanaNetwork` (WalletAdapterNetwork):
   - Specifies the Solana network (e.g., 'mainnet-beta', 'devnet', or 'testnet').
-- `loggingEnabled` (boolean)
+- `programId` (string):
+  - This is the program id of the LBP Solana program.
+- `enableLogging` (boolean)
   - (optional: default = `false`) An optional boolean that enables sdk logging for debugging purposes.
 
 **Returns**
 
 - **`Promise<FjordClientSdk>`**: A promise that resolves to a new FjordClientSdk instance.
 
-**Example (Solana Chain)**
+**Example**
 
 ```ts
 import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 
-const clientSdk = new FjordClientSdk(WalletAdapterNetwork.Devnet)
+const programAddressPublicKey = new PublicKey("LBP Program Address");
+
+const createSolanaSdkClient = async () => {
+  await FjordClientSdk.create({
+    solanaNetwork: WalletAdapterNetwork.Devnet,
+    programId: programAddressPublicKey,
+    enableLogging: true, // enable logging
+  }); 
+}
 
 ```
 
@@ -100,7 +117,7 @@ The FjordClientSdk provides a suite of methods to interact with blockchain contr
 
 ### Initialize Liquidity Bootstrap Pool
 
-#### `async createPoolTransaction({ keys, args, programId, provider }: CreatePoolClientParams)`
+#### `async createPoolTransaction({ keys, args, provider }: CreatePoolClientParams)`
 
 This method is responsible for initializing a new liquidity bootstrapping pool (LBP) on the Solana blockchain using the Fjord Client SDK.
 
@@ -109,7 +126,6 @@ This method is responsible for initializing a new liquidity bootstrapping pool (
 - `poolCreationParams` (CreatePoolClientParams): An object containing the following properties:
   - keys: An object with public keys for the creator, share token mint, etc. (see InitializePoolPublicKeys type below).
   - args: An object with pool initialization arguments (see InitializePoolArgs type below).
-  - programId: The PublicKey of your Solana program.
   - provider: An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -124,7 +140,6 @@ This method is responsible for initializing a new liquidity bootstrapping pool (
 
 **Important Notes**
 
-- Error Handling: Be sure to handle potential errors thrown by this method.
 - Transaction Confirmation: Consider adding instructions on confirming the pool creation transaction on Solana.
 
 **Example**
@@ -157,7 +172,6 @@ export const createPool = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('AXRGWPXpgTKK9NrqLji4zbPeyiiDp2gkjLGUJJunLKUm');
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
@@ -191,7 +205,6 @@ export const createPool = async ({
   };
 
   const transaction = await sdkClient.createPoolTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -204,7 +217,10 @@ export const createPool = async ({
 
   const wallet = useAnchorWallet();
 
-  const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+  const sdkClient = await FjordClientSdk.create({solanaNetwork: WalletAdapterNetwork.Devnet,
+    programId: programAddressPublicKey,
+    enableLogging: true, // enable logging
+    });
 
   const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 
@@ -242,7 +258,6 @@ This method prepares a Solana transaction instruction for performing a "swap ass
 - `args` (SwapExactSharesForAssetsOperationArgs):
   - `poolPda`: The Program Derived Address (PDA) of the pool.
   - `sharesAmountOut`: The desired quantity of shares to receive.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -267,7 +282,6 @@ export const swapAssetsForExactShares = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey); 
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -288,7 +302,6 @@ export const swapAssetsForExactShares = async ({
   };
 
   const transaction = await sdkClient.createSwapAssetsForExactSharesTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -297,8 +310,8 @@ export const swapAssetsForExactShares = async ({
   return transaction;
 };
 
-export const getPoolDataValue = async ({ poolPda, programId, sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
-  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, programId, valueKey });
+export const getPoolDataValue = async ({ poolPda,  sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
+  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, valueKey });
 };
 
 ```
@@ -327,11 +340,9 @@ const SwapAssetsForExactShares = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.ShareToken,
       });
@@ -348,11 +359,9 @@ const SwapAssetsForExactShares = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.AssetToken,
       });
@@ -397,7 +406,6 @@ This method prepares a Solana transaction instruction for performing a "swap exa
 - `args` (SwapSharesForExactAssetsOperationArgs):
   - `poolPda`: The Program Derived Address (PDA) of the pool.
   - `assetsAmountIn`: The exact quantity of assets to use in the swap.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -423,7 +431,6 @@ export const swapExactAssetsForShares = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -444,7 +451,6 @@ export const swapExactAssetsForShares = async ({
   };
 
   const transaction = await sdkClient.createSwapExactAssetsForSharesTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -453,8 +459,8 @@ export const swapExactAssetsForShares = async ({
   return transaction;
 };
 
-export const getPoolDataValue = async ({ poolPda, programId, sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
-  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, programId, valueKey });
+export const getPoolDataValue = async ({ poolPda, sdkClient, valueKey }: GetSinglePoolDataValueParams) => {
+  return await sdkClient.retrieveSinglePoolDataValue({ poolPda, valueKey });
 };
 ```
 
@@ -482,11 +488,9 @@ const SwapExactAssetsForShares = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.ShareToken,
       });
@@ -503,11 +507,9 @@ const SwapExactAssetsForShares = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.AssetToken,
       });
@@ -553,7 +555,6 @@ This method prepares a Solana transaction instruction for performing a "swap exa
 - `args` (SwapExactSharesForAssetsOperationArgs):
   - `poolPda`: The Program Derived Address (PDA) of the pool.
   - `sharesAmountOut`: The exact quantity of shares to use in the swap.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -577,7 +578,6 @@ export const swapExactSharesForAssets = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey); 
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -598,7 +598,6 @@ export const swapExactSharesForAssets = async ({
   };
 
   const transaction = await sdkClient.createSwapExactSharesForAssetsTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -623,7 +622,6 @@ This method prepares a Solana transaction instruction for performing a "swap sha
 - `args` (SwapSharesForExactAssetsOperationArgs):
   - `poolPda`: The Program Derived Address (PDA) of the pool.
   - `assetsAmountIn`: The exact quantity of assets to use in the swap.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -647,7 +645,6 @@ export const swapSharesForExactAssets = async ({
     throw new Error('Wallet not connected');
   }
 
-  const programAddressPublicKey = new PublicKey('...'); // Your program's ID
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey); 
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -668,7 +665,6 @@ export const swapSharesForExactAssets = async ({
   };
 
   const transaction = await sdkClient.createSwapSharesForExactAssetsTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -695,7 +691,6 @@ This method facilitates the closing of a liquidity bootstrapping pool (LBP) on t
     - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
   - `args`
     - `poolPda`: The Program Derived Address (PDA) of the pool.
-  - `programId` (PublicKey): The PublicKey of your Solana program.
   - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -716,8 +711,6 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
     throw new Error('Wallet not connected');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
@@ -736,7 +729,6 @@ export const closeLbpPool = async ({ formData, connection, provider, sdkClient }
   };
 
   const transactions = await sdkClient.closePoolTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -833,11 +825,9 @@ export const ClosePool = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.ShareToken,
       });
@@ -854,11 +844,9 @@ export const ClosePool = () => {
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
-      const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
       const data = await getPoolDataValue({
         poolPda,
-        programId: programAddressPublicKey,
         sdkClient,
         valueKey: PoolDataValueKey.AssetToken,
       });
@@ -908,7 +896,6 @@ This method facilitates the redemption of LBP tokens on the Solana blockchain.
   - `args`
     - `poolPda`: The Program Derived Address (PDA) of the pool.
     - `isReferred`: A boolean value that indicates if the user was referred to the pool.
-  - `programId` (PublicKey): The PublicKey of your Solana program.
   - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -919,7 +906,6 @@ This method facilitates the redemption of LBP tokens on the Solana blockchain.
 
 ```ts
 // Helper function example
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
 import { RedeemTokensParams } from '@/types';
 import { PublicKey } from '@solana/web3.js';
 
@@ -928,8 +914,6 @@ export const redeemLbpPool = async ({ formData, connection, provider, sdkClient 
     throw new Error('Wallet not connected');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(formData.args.creator);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
   const assetTokenMint = new PublicKey(formData.args.assetTokenMint);
@@ -949,7 +933,6 @@ export const redeemLbpPool = async ({ formData, connection, provider, sdkClient 
   };
 
   const transaction = await sdkClient.redeemTokensTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,
@@ -972,7 +955,6 @@ This methods enables an LBP creator to pause or unpause the buy/sell operations 
   - `creator`: The public key of the wallet that created the pool.
   - `shareTokenMint`: The public key of the mint for the pool's share tokens.
   - `assetTokenMint`: The public key of the mint for the pool's underlying asset.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -991,8 +973,6 @@ export const pausePool = async ({ provider, sdkClient, args }: PausePoolParams) 
     throw new Error('Required  provider, and sdkClient');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(args.creator);
   const shareTokenMint = new PublicKey(args.shareTokenMint);
   const assetTokenMint = new PublicKey(args.assetTokenMint);
@@ -1005,7 +985,7 @@ export const pausePool = async ({ provider, sdkClient, args }: PausePoolParams) 
     assetTokenMint,
   };
 
-  const transaction = await sdkClient.pausePool({ programId: programAddressPublicKey, args: pausePoolArgs, provider });
+  const transaction = await sdkClient.pausePool({ args: pausePoolArgs, provider });
 
   return transaction;
 };
@@ -1015,8 +995,6 @@ export const unpausePool = async ({ provider, sdkClient, args }: PausePoolParams
     throw new Error('Required  provider, and sdkClient');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
   const creator = new PublicKey(args.creator);
   const shareTokenMint = new PublicKey(args.shareTokenMint);
   const assetTokenMint = new PublicKey(args.assetTokenMint);
@@ -1030,7 +1008,6 @@ export const unpausePool = async ({ provider, sdkClient, args }: PausePoolParams
   };
 
   const transaction = await sdkClient.unPausePool({
-    programId: programAddressPublicKey,
     args: unPausePoolArgs,
     provider,
   });
@@ -1050,7 +1027,6 @@ This method facilitates the nomination of a new owner for the Fjord Foundry liqu
 
 - `newOwnerPublicKey`: The public key of the prospective new owner
 - `creator`: The public key of the wallet that created the pool.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -1062,7 +1038,6 @@ This method facilitates the nomination of a new owner for the Fjord Foundry liqu
 ```ts
 export const nominateNewOwner = async ({ formData, provider, sdkClient }: NominateNewOwnerParams) => {
   const { creator, newOwnerPublicKey } = formData.args;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS); // The LBP program address
 
   const keys = {
     creator: new PublicKey(creator),
@@ -1070,7 +1045,6 @@ export const nominateNewOwner = async ({ formData, provider, sdkClient }: Nomina
   };
 
   const transaction = await sdkClient.nominateNewOwner({
-    programId: programAddressPublicKey,
     provider,
     newOwnerPublicKey: keys.newOwnerPublicKey,
     creator: keys.creator,
@@ -1087,7 +1061,6 @@ This method facilitates the acceptance of a new owner nomination for a liquidity
 **Parameters**
 
 - `newOwnerPublicKey`: The public key of the prospective new owner
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -1099,14 +1072,12 @@ This method facilitates the acceptance of a new owner nomination for a liquidity
 ```ts
 export const acceptOwnershipNomination = async ({ formData, provider, sdkClient }: AcceptOwnershipParams) => {
   const { newOwnerPublicKey } = formData.args;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
   const keys = {
     newOwnerPublicKey: new PublicKey(newOwnerPublicKey),
   };
 
   const transaction = await sdkClient.acceptNewOwnerNomination({
-    programId: programAddressPublicKey,
     provider,
     newOwnerPublicKey: keys.newOwnerPublicKey,
   });
@@ -1126,7 +1097,6 @@ This method acilitates updating the fees of a liquidity bootstrapping pool (LBP)
   - `referralFee` (optional): The new referral fee.
   - `swapFee` (optional): The new swap fee.
   - `ownerPublicKey`: The public key of the wallet authorized to modify fees.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 *Note*: At least one of the `feeParams` are required.
@@ -1140,7 +1110,6 @@ A transaction instruction for updating the pool's fees. After calling this metho
 ```ts
 export const setNewPoolFees = async ({ formData, provider, sdkClient }: SetNewPoolFeesParams) => {
   const { ownerPublicKey, platformFee, referralFee, swapFee } = formData;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
   const keys = {
     ownerPublicKey: new PublicKey(ownerPublicKey),
@@ -1150,7 +1119,6 @@ export const setNewPoolFees = async ({ formData, provider, sdkClient }: SetNewPo
     programId: programAddressPublicKey,
     provider,
     feeParams: {
-      ownerPublicKey: keys.ownerPublicKey,
       platformFee: platformFee ? parseFloat(platformFee) : undefined,
       referralFee: referralFee ? parseFloat(referralFee) : undefined,
       swapFee: swapFee ? parseFloat(swapFee) : undefined,
@@ -1173,7 +1141,6 @@ This method facilitates updating the treasury fee recipients and distribution fo
     - `feeRecipient`: The public key of the wallet receiving a portion of fees.
     - `feePercentage`: The percentage of fees (0-100) allocated to this recipient.
   - `creator` - Public key of the wallet authorized to modify fee distribution.
-- `programId` (PublicKey): The PublicKey of your Solana program.
 - `provider` (AnchorProvider): An Anchor Provider for interacting with Solana.
 
 **Returns**
@@ -1189,7 +1156,6 @@ export const setNewTreasuryFeeRecipients = async ({
   sdkClient,
 }: SetTreasuryFeeRecipientsParams) => {
   const { swapFeeRecipient, feeRecipients, creator } = formData;
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
 
   const keys = {
     swapFeeRecipient: new PublicKey(swapFeeRecipient),
@@ -1201,7 +1167,6 @@ export const setNewTreasuryFeeRecipients = async ({
   };
 
   const transaction = await sdkClient.setTreasuryFeeRecipients({
-    programId: programAddressPublicKey,
     provider,
     feeParams: {
       swapFeeRecipient: keys.swapFeeRecipient,
@@ -1226,7 +1191,6 @@ This method fetches data associated with a liquidity bootstrapping pool (LBP) an
 
 - `poolDataParams` (RetrievePoolDataParams): An object containing:
   - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
-  - `programId` (PublicKey): The PublicKey of your Solana program.
 
 **Returns**
 
@@ -1235,17 +1199,11 @@ This method fetches data associated with a liquidity bootstrapping pool (LBP) an
 **Example**
 
 ```ts
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-
-const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
-
 const { data } = useQuery({
   queryKey: ['pool-args'],
   queryFn: async () => {
     const poolArgs: GetPoolArgs = { 
       poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
-      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
     }; 
     return await sdkClient.retrievePoolData(poolArgs);
   },
@@ -1264,7 +1222,6 @@ This method retrieves a specific piece of data associated with a liquidity boots
 
 - `poolDataParams` (RetrieveSinglePoolDataValueParams): An object containing:
   - `poolPda` (PublicKey): The Program Derived Address (PDA) of the LBP pool.
-  - `programId` (PublicKey): The PublicKey of your Solana program.
   - `valueKey` (PoolDataValueKey): A member of the [PoolDataValueKey](#pooldatavaluekey) enum, indicating the specific data value to retrieve.
 
 **Returns**
@@ -1282,14 +1239,16 @@ This method retrieves a specific piece of data associated with a liquidity boots
 import { FjordClientSdk, PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const sdkClient = await FjordClientSdk.create(true, WalletAdapterNetwork.Devnet);
+const sdkClient = await FjordClientSdk.create({solanaNetwork: WalletAdapterNetwork.Devnet,
+    programId: programAddressPublicKey,
+    enableLogging: true, // enable logging
+});
 
 const { data } = useQuery({
   queryKey: ['pool-args'],
   queryFn: async () => {
     const poolArgs: RetrieveSinglePoolDataValueParams = { 
       poolPda: new PublicKey(poolAddress), // This is the address of the LBP that was created.
-      programId: new PublicKey(INITIALIZE_LBP_ADDRESS), // This is the address of the program that created the LBP.
       valueKey: PoolDataValueKey.SaleStartTime // This is the key that will query the program value.
     }; 
 
@@ -1305,6 +1264,32 @@ const { data } = useQuery({
 
 - **`PoolDataValueKey` Enum:** Ensure that the `PoolDataValueKey` enum contains all the possible data values that can be retrieved from an LBP pool.
 - **Error Handling:**  The `default` case in the `switch` statement throws an error for invalid `valueKey` values.
+
+### Utility Read Functions
+
+#### `readPoolFees()`
+
+- This method fetches the platform fee, referral fee, and swap fee from the pool's owner configuration account.
+
+#### `readPoolOwner()`
+
+- This method fetches the public key of the wallet that administers the pool management.
+
+#### `readFeeRecipients()`
+
+- Retrieves the fee recipients associated with a liquidity bootstrapping pool (LBP). This method fetches the wallet addresses and percentage allocations for fee recipients from the pool's treasury account.
+
+#### `readPoolTokenAccounts()`
+
+- Reads the associated share and asset token accounts of the pool.
+
+#### `readPoolTokenBalances()`
+
+- This method fetches the balance of the pool's share token account and asset token account.
+
+#### `readUserTokenBalances()`
+
+- Retrieves `purchasedShares`, r`edeemedShares` and `referredAssets` of an LBP user account.
 
 ## Enums
 
@@ -1335,10 +1320,12 @@ Defines keys used to access specific data within an LBP.
 - **VirtualShares**: Key for the number of virtual shares (if applicable).
 - **WhitelistMerkleRoot**: Key for the Merkle root used for whitelist-based access control (if applicable).
 
-## Features
+## Solana Program Updates
 
-TODO
+**IMPORTANT**
+
+It is important that the program [IDL](./src/constants/idls/initialize-lbp.ts) is updated whenever an upgrade to the LBP program occurs. Failure to do this may result in breaking some of the SDK methods.
 
 ## License
 
-TBA
+Apache 2.0

@@ -10,6 +10,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, Transaction, AccountMeta } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
+import { getPoolPda } from '../helpers/getPoolPda';
 import { CloseOperationPublicKeys, LbpRedemptionServiceInterface, RedeemOperationPublicKeys } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -60,19 +61,6 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
     return service;
   }
 
-  private async getPoolPda(
-    shareTokenMint: PublicKey,
-    assetTokenMint: PublicKey,
-    creator: PublicKey,
-  ): Promise<PublicKey> {
-    const [poolPda] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
-
-    return poolPda;
-  }
-
   /**
    * Asynchronously creates an instruction to close an LBP pool.
    * @dev This function can only be called by the pool creator after the sale period is over, otherwise will revert.
@@ -87,7 +75,7 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
     let poolPdaFromParams: PublicKey;
     try {
       // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+      poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
     } catch (error: any) {
       this.logger.error('Error getting pool PDA:', error);
       throw new Error('Error getting pool PDA', error);
@@ -211,7 +199,7 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
     let poolPdaFromParams: PublicKey;
     try {
       // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+      poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
     } catch (error: any) {
       this.logger.error('Error getting pool PDA:', error);
       throw new Error('Error getting pool PDA', error);

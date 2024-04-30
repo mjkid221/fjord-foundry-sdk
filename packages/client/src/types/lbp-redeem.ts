@@ -11,7 +11,6 @@ export interface CloseOperationPublicKeys {
   args: {
     poolPda: PublicKey;
   };
-  programId: PublicKey;
   provider: AnchorProvider;
 }
 

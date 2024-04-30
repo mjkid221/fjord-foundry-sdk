@@ -5,6 +5,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
+import { getPoolPda } from '../helpers/getPoolPda';
 import { LbpManagementServiceInterface, NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from '../types';
 
 import { LoggerLike, Logger } from './logger.service';
@@ -38,29 +39,10 @@ export class LbpManagementService implements LbpManagementServiceInterface {
   }
 
   /**
-   * Retrieves the Program Derived Address (PDA) for the pool.
-   * @param {PublicKey} shareTokenMint - The public key of the mint for the pool's share tokens.
-   * @param {PublicKey} assetTokenMint - The public key of the mint for the pool's underlying asset.
-   * @param {PublicKey} creator - The public key of the wallet that created the pool.
-   * @returns {Promise<PublicKey>} - A promise that resolves with the Program Derived Address (PDA) of the pool.
-   */
-  private async getPoolPda(
-    shareTokenMint: PublicKey,
-    assetTokenMint: PublicKey,
-    creator: PublicKey,
-  ): Promise<PublicKey> {
-    const [poolPda] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
-
-    return poolPda;
-  }
-
-  /**
    * Asynchronously creates an instance of LbpManagementService.
    * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
+   * @param {anchor.AnchorProvider} provider - The Anchor provider object.
    * @param {WalletAdapterNetwork} network - The Solana network.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpManagementService.
    */
@@ -84,7 +66,12 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     // Create the pause pool transaction
     try {
       // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+      const poolPdaFromParams = await getPoolPda({
+        shareTokenMint,
+        assetTokenMint,
+        creator,
+        programId: this.programId,
+      });
 
       // Verify that the provided pool PDA matches the calculated pool PDA.
       if (!poolPda.equals(poolPdaFromParams)) {
@@ -138,7 +125,12 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     // Create the unpause pool transaction
     try {
       // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+      const poolPdaFromParams = await getPoolPda({
+        shareTokenMint,
+        assetTokenMint,
+        creator,
+        programId: this.programId,
+      });
 
       // Verify that the provided pool PDA matches the calculated pool PDA.
       if (!poolPda.equals(poolPdaFromParams)) {
