@@ -63,42 +63,47 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     shareTokenMint,
     assetTokenMint,
   }: PausePoolParams): Promise<TransactionInstruction> {
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    // Verify that the provided pool PDA matches the calculated pool PDA.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Provided pool PDA does not match calculated pool PDA');
-      throw new Error('Provided pool PDA does not match calculated pool PDA');
-    }
-
-    // Get the pool state
-    const poolState = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-
-    // Check if the pool is already paused
-    if (poolState.paused) {
-      this.logger.error('The pool is already paused');
-      throw new Error('The pool is already paused');
-    }
-
-    // Check that the creator, share token mint, and asset token mint match the pool state
-    if (!creator.equals(poolState.creator)) {
-      this.logger.error('Creator does not match pool state');
-      throw new Error('Creator does not match pool state');
-    }
-
-    if (!shareTokenMint.equals(poolState.shareToken)) {
-      this.logger.error('Share token mint does not match pool state');
-      throw new Error('Share token mint does not match pool state');
-    }
-
-    if (!assetTokenMint.equals(poolState.assetToken)) {
-      this.logger.error('Asset token mint does not match pool state');
-      throw new Error('Asset token mint does not match pool state');
-    }
-
     // Create the pause pool transaction
     try {
+      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+      const poolPdaFromParams = await getPoolPda({
+        shareTokenMint,
+        assetTokenMint,
+        creator,
+        programId: this.programId,
+      });
+
+      // Verify that the provided pool PDA matches the calculated pool PDA.
+      if (!poolPda.equals(poolPdaFromParams)) {
+        this.logger.error('Provided pool PDA does not match calculated pool PDA');
+        throw new Error('Provided pool PDA does not match calculated pool PDA');
+      }
+
+      // Get the pool state
+      const poolState = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+      // Check if the pool is already paused
+      if (poolState.paused) {
+        this.logger.error('The pool is already paused');
+        throw new Error('The pool is already paused');
+      }
+
+      // Check that the creator, share token mint, and asset token mint match the pool state
+      if (!creator.equals(poolState.creator)) {
+        this.logger.error('Creator does not match pool state');
+        throw new Error('Creator does not match pool state');
+      }
+
+      if (!shareTokenMint.equals(poolState.shareToken)) {
+        this.logger.error('Share token mint does not match pool state');
+        throw new Error('Share token mint does not match pool state');
+      }
+
+      if (!assetTokenMint.equals(poolState.assetToken)) {
+        this.logger.error('Asset token mint does not match pool state');
+        throw new Error('Asset token mint does not match pool state');
+      }
+
       const transactionInstruction = await this.program.methods
         .togglePause()
         .accounts({ creator, pool: poolPda, assetTokenMint, shareTokenMint })
@@ -117,42 +122,47 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     shareTokenMint,
     assetTokenMint,
   }: PausePoolParams): Promise<TransactionInstruction> {
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    // Verify that the provided pool PDA matches the calculated pool PDA.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Provided pool PDA does not match calculated pool PDA');
-      throw new Error('Provided pool PDA does not match calculated pool PDA');
-    }
-
-    // Get the pool state
-    const poolState = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
-
-    // Check if the pool is already unpaused
-    if (!poolState.paused) {
-      this.logger.error('The pool is already unpaused');
-      throw new Error('The pool is already unpaused');
-    }
-
-    // Check that the creator, share token mint, and asset token mint match the pool state
-    if (!creator.equals(poolState.creator)) {
-      this.logger.error('Creator does not match pool state');
-      throw new Error('Creator does not match pool state');
-    }
-
-    if (!shareTokenMint.equals(poolState.shareToken)) {
-      this.logger.error('Share token mint does not match pool state');
-      throw new Error('Share token mint does not match pool state');
-    }
-
-    if (!assetTokenMint.equals(poolState.assetToken)) {
-      this.logger.error('Asset token mint does not match pool state');
-      throw new Error('Asset token mint does not match pool state');
-    }
-
     // Create the unpause pool transaction
     try {
+      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+      const poolPdaFromParams = await getPoolPda({
+        shareTokenMint,
+        assetTokenMint,
+        creator,
+        programId: this.programId,
+      });
+
+      // Verify that the provided pool PDA matches the calculated pool PDA.
+      if (!poolPda.equals(poolPdaFromParams)) {
+        this.logger.error('Provided pool PDA does not match calculated pool PDA');
+        throw new Error('Provided pool PDA does not match calculated pool PDA');
+      }
+
+      // Get the pool state
+      const poolState = await this.program.account.liquidityBootstrappingPool.fetch(poolPda);
+
+      // Check if the pool is already unpaused
+      if (!poolState.paused) {
+        this.logger.error('The pool is already unpaused');
+        throw new Error('The pool is already unpaused');
+      }
+
+      // Check that the creator, share token mint, and asset token mint match the pool state
+      if (!creator.equals(poolState.creator)) {
+        this.logger.error('Creator does not match pool state');
+        throw new Error('Creator does not match pool state');
+      }
+
+      if (!shareTokenMint.equals(poolState.shareToken)) {
+        this.logger.error('Share token mint does not match pool state');
+        throw new Error('Share token mint does not match pool state');
+      }
+
+      if (!assetTokenMint.equals(poolState.assetToken)) {
+        this.logger.error('Asset token mint does not match pool state');
+        throw new Error('Asset token mint does not match pool state');
+      }
+
       const transactionInstruction = await this.program.methods
         .togglePause()
         .accounts({ creator, pool: poolPda, assetTokenMint, shareTokenMint })
@@ -176,18 +186,18 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       this.logger.error('No creator provided');
       throw new Error('No creator provided');
     }
-    // Get the program address for the owner config
-    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
-    // Get the owner config
-    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
-
-    // Verify that the creator matches the owner config
-    if (!ownerConfig.owner.equals(creator)) {
-      this.logger.error('Creator does not match owner config');
-      throw new Error('Creator does not match owner config');
-    }
 
     try {
+      // Get the program address for the owner config
+      const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+      // Get the owner config
+      const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+      // Verify that the creator matches the owner config
+      if (!ownerConfig.owner.equals(creator)) {
+        this.logger.error('Creator does not match owner config');
+        throw new Error('Creator does not match owner config');
+      }
       const transactionInstruction = await this.program.methods
         .nominateNewOwner(newOwnerPublicKey)
         .accounts({})
@@ -229,21 +239,20 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       throw new Error('No fees provided');
     }
 
-    // Get the program address for the owner config
-    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
-
-    // Get the owner config
-    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
-
-    // Verify that the creator matches the owner config
-    if (!ownerConfig.owner.equals(ownerPublicKey)) {
-      this.logger.error('Creator does not match owner config');
-      throw new Error('Creator does not match owner config');
-    }
-
-    const formattedFee = (fee: number | undefined) => (fee ? fee * 100 : null); // Convert fee to basis points
-
     try {
+      // Get the program address for the owner config
+      const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+
+      // Get the owner config
+      const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+      // Verify that the creator matches the owner config
+      if (!ownerConfig.owner.equals(ownerPublicKey)) {
+        this.logger.error('Creator does not match owner config');
+        throw new Error('Creator does not match owner config');
+      }
+
+      const formattedFee = (fee: number | undefined) => (fee ? fee * 100 : null); // Convert fee to basis points
       const transactionInstruction = await this.program.methods
         .setFees(formattedFee(platformFee), formattedFee(referralFee), formattedFee(swapFee))
         .accounts({ owner: ownerPublicKey })
@@ -261,36 +270,36 @@ export class LbpManagementService implements LbpManagementServiceInterface {
     feeRecipients,
     creator,
   }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction> {
-    // Get the program address for the owner config
-    const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
-
-    // Get the owner config
-    const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
-
-    // Verify that the creator matches the owner config
-    if (!ownerConfig.owner.equals(creator)) {
-      this.logger.error('Creator does not match owner config');
-      throw new Error('Creator does not match owner config');
-    }
-    // Get the treasury PDA
-    const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
-
-    const newFeeRecipients: PublicKey[] = [];
-    const newFeePercentages: number[] = [];
-
-    for (const feeRecipient of feeRecipients) {
-      newFeeRecipients.push(feeRecipient.feeRecipient);
-      newFeePercentages.push(feeRecipient.feePercentage * 100); // Convert percentage to basis points
-    }
-
-    // Ensure that the total fee percentage does not exceed the maximum
-    if (newFeePercentages.reduce((a, b) => a + b, 0) > MAX_FEE_BASIS_POINTS) {
-      this.logger.error('Total fee percentage exceeds maximum');
-      throw new Error('Total fee percentage exceeds maximum');
-    }
-
-    // Create the transaction instruction
     try {
+      // Get the program address for the owner config
+      const [configPda] = findProgramAddressSync([Buffer.from('owner_config')], this.program.programId);
+
+      // Get the owner config
+      const ownerConfig = await this.program.account.ownerConfig.fetch(configPda);
+
+      // Verify that the creator matches the owner config
+      if (!ownerConfig.owner.equals(creator)) {
+        this.logger.error('Creator does not match owner config');
+        throw new Error('Creator does not match owner config');
+      }
+      // Get the treasury PDA
+      const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
+
+      const newFeeRecipients: PublicKey[] = [];
+      const newFeePercentages: number[] = [];
+
+      for (const feeRecipient of feeRecipients) {
+        newFeeRecipients.push(feeRecipient.feeRecipient);
+        newFeePercentages.push(feeRecipient.feePercentage * 100); // Convert percentage to basis points
+      }
+
+      // Ensure that the total fee percentage does not exceed the maximum
+      if (newFeePercentages.reduce((a, b) => a + b, 0) > MAX_FEE_BASIS_POINTS) {
+        this.logger.error('Total fee percentage exceeds maximum');
+        throw new Error('Total fee percentage exceeds maximum');
+      }
+
+      // Create the transaction instruction
       const transactionInstruction = await this.program.methods
         .setTreasuryFeeRecipients(swapFeeRecipient, newFeeRecipients, newFeePercentages)
         .accounts({ owner: creator, treasury: treasuryPda })
