@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0-rc.5](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-04-30)
+
+### Features
+
+- add form pages to test fee logic ([71d06dd](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/71d06ddaf4e5f93462f3eaf74a47668ff0e6306a))
+- add new owner nomination function ([58147dc](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/58147dc35579048e3021ad1fc8d74348dcaae561))
+- add ownership and fee admin methods ([67e24e7](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/67e24e7dcec5b6da5642d5e438c35d26bd42310c))
+- add ownership transfer functions to front end ([5c8d824](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/5c8d82404caf96b79450293cba9e0067dec867d7))
+- add pause demo in playground ([f3b05f5](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/f3b05f518a71c0efb2aed8638ffa1f99aa5c9eaa))
+- add remaining admin functions ([8d7d341](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/8d7d3413e0b91780e25b012c22ecd8d66b3a6f8d))
+- added sdk calls for redemption and close ([d474df8](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/d474df807819823a976cbd65f4a4048db15ff717))
+- create management service and pause functions ([d985196](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/d985196d57950065bb6bf8d4d27f9e7b0b786a9c))
+- create sell methods and docs for client sdk ([ab7daee](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/ab7daee6f456a2069499ebec8e6f2e1d892078d6))
+- wip start scaffolding the redemption close function ([a87c9bc](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/a87c9bca2bdb2f2a057f4e8c8e684138bdbded0b))
+
+### Bug Fixes
+
+- correctly format fee percentage amounts ([aef1834](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/aef18346992ce600ebb03100f0ae497d7ae6a1ca))
+- fixed pr feedback ([a8f1269](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/a8f12698d089b175037a7a6d81fcd00b42499476))
+- fixed sell function call ([c264ca9](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/c264ca9d70696aea539fd22cb76938060f81e03b))
+
+### Documentation
+
+- add readme docs for selling and admin functions ([5ade5c7](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/5ade5c74ea27fedbaf6cf967873a79135c9952bb))
+- add referral methods to readme ([7f9a0eb](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/7f9a0eb7c10b0ee0948651c00c8e0631c0fd991b))
+
 ## [1.1.0-rc.4](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.3...v1.1.0-rc.4) (2024-04-26)
 
 ### Features

@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0-rc.5](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-04-30)
+
+### Features
+
+- add form pages to test fee logic ([71d06dd](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/71d06ddaf4e5f93462f3eaf74a47668ff0e6306a))
+- add ownership transfer functions to front end ([5c8d824](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/5c8d82404caf96b79450293cba9e0067dec867d7))
+- add pause demo in playground ([f3b05f5](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/f3b05f518a71c0efb2aed8638ffa1f99aa5c9eaa))
+- added redeem and close ([d948fb4](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/d948fb4947046612ebc250daff69158b23da2d73))
+- added sdk calls for redemption and close ([d474df8](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/d474df807819823a976cbd65f4a4048db15ff717))
+- create sell methods for playground ui ([62230df](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/62230df9fc72bcc6fa1b372c23194d2f98d79e00))
+- wip start scaffolding the redemption close function ([a87c9bc](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/a87c9bca2bdb2f2a057f4e8c8e684138bdbded0b))
+
+### Bug Fixes
+
+- fixed pr feedback ([a8f1269](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/a8f12698d089b175037a7a6d81fcd00b42499476))
+
+### Documentation
+
+- add readme docs for selling and admin functions ([5ade5c7](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/5ade5c74ea27fedbaf6cf967873a79135c9952bb))
+
 ## [1.1.0-rc.4](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.3...v1.1.0-rc.4) (2024-04-26)
 
 ### Bug Fixes

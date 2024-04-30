@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0-rc.5](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-04-30)
+
+**Note:** Version bump only for package @fjord-foundry/media-sdk-changelog-preset
+
 ## [1.1.0-rc.4](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.3...v1.1.0-rc.4) (2024-04-26)
 
 **Note:** Version bump only for package @fjord-foundry/media-sdk-changelog-preset
