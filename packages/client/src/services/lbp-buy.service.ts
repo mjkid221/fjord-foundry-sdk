@@ -12,6 +12,7 @@ import {
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
+import { getPoolPda } from '../helpers/getPoolPda';
 import {
   BigNumber,
   LbpBuyServiceInterface,
@@ -99,19 +100,6 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     throw new Error('Unable to find return data in logs');
   }
 
-  private async getPoolPda(
-    shareTokenMint: PublicKey,
-    assetTokenMint: PublicKey,
-    creator: PublicKey,
-  ): Promise<PublicKey> {
-    const [poolPda] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
-
-    return poolPda;
-  }
-
   private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
     try {
       const tokenData = await connection.getTokenSupply(tokenMint);
@@ -133,7 +121,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     const { poolPda, sharesAmountOut } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
@@ -236,7 +224,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     const { poolPda, assetsAmountIn } = args;
 
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await this.getPoolPda(shareTokenMint, assetTokenMint, creator);
+    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
 
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
