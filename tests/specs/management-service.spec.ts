@@ -18,15 +18,15 @@ describe('LBP Management Service', () => {
   });
   describe('pool management operations', () => {
     let service: LbpManagementService;
-    beforeEach(async () => {
-      service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
-    });
-
-    it('should create an instance of LbpManagementService', () => {
-      expect(service).toBeInstanceOf(LbpManagementService);
-    });
 
     describe('pause/unpause operations', () => {
+      beforeEach(async () => {
+        service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+      });
+
+      it('should create an instance of LbpManagementService', () => {
+        expect(service).toBeInstanceOf(LbpManagementService);
+      });
       it('should call pause and return the transaction instruction', async () => {
         const params = {
           poolPda: BUY_SELL_POOL_PDA,
@@ -64,10 +64,27 @@ describe('LBP Management Service', () => {
       });
     });
     describe('admin operations', () => {
+      it('should create an instance of LbpManagementService', () => {
+        expect(service).toBeInstanceOf(LbpManagementService);
+      });
       describe('new owner operations', () => {
-        it('should throw an error when the creator does not match the owner config', async () => {
+        beforeEach(async () => {
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+        });
+        it('should call createNewOwnerNomination and return a transaction instruction', async () => {
           const params = {
             creator: MOCK_WALLET.publicKey,
+            newOwnerPublicKey: Keypair.generate().publicKey,
+          };
+
+          const response = await service.createNewOwnerNomination(params);
+
+          expect(response).toBeDefined();
+          expect(response).toBeInstanceOf(anchor.web3.TransactionInstruction);
+        });
+        it("should throw an error when the creator does not match the pool's owner", async () => {
+          const params = {
+            creator: Keypair.generate().publicKey,
             newOwnerPublicKey: Keypair.generate().publicKey,
           };
 
@@ -75,7 +92,6 @@ describe('LBP Management Service', () => {
             'Error: Creator does not match owner config',
           );
         });
-
         it('should call acceptOwnerNomination and create a transaction instruction when passed a valid public key', async () => {
           const params = {
             newOwnerPublicKey: Keypair.generate().publicKey,
@@ -89,9 +105,12 @@ describe('LBP Management Service', () => {
       });
 
       describe('pool fees operations', () => {
+        beforeEach(async () => {
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+        });
         it("should throw an error when the creator does not match the pool's owner", async () => {
           const params = {
-            ownerPublicKey: MOCK_WALLET.publicKey,
+            ownerPublicKey: Keypair.generate().publicKey,
             platformFee: 20,
             referralFee: 20,
             swapFee: 20,
@@ -102,6 +121,31 @@ describe('LBP Management Service', () => {
       });
 
       describe('set treasury fee operations', () => {
+        beforeEach(async () => {
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+        });
+
+        it('should call setTreasuryFeeRecipients and return a transaction instruction', async () => {
+          const params = {
+            creator: MOCK_WALLET.publicKey,
+            swapFeeRecipient: Keypair.generate().publicKey,
+            feeRecipients: [
+              {
+                feePercentage: 10,
+                feeRecipient: Keypair.generate().publicKey,
+              },
+              {
+                feePercentage: 20,
+                feeRecipient: Keypair.generate().publicKey,
+              },
+            ],
+          };
+
+          const response = await service.setTreasuryFeeRecipients(params);
+
+          expect(response).toBeDefined();
+          expect(response).toBeInstanceOf(anchor.web3.TransactionInstruction);
+        });
         it('should throw an error when the creator does not match the pool owner', async () => {
           const params = {
             creator: Keypair.generate().publicKey,
