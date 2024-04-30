@@ -14,7 +14,7 @@ const DEFAULT_VESTING_CLIFF_BN = DEFAULT_SALE_END_TIME_BN.add(new BN(ONE_DAY_SEC
 
 const DEFAULT_VESTING_END_BN = DEFAULT_VESTING_CLIFF_BN.add(new BN(ONE_DAY_SECONDS));
 
-const DEFAULT_PROGRAM_ADDRESS = new PublicKey('CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW');
+const DEFAULT_PROGRAM_ADDRESS = new PublicKey('HK6KFuWu9ZzEaiKy16LDcaQ2u1G1NAhib7pvNxzA3jKr');
 /**
  * !NOTE For testing
  */
@@ -35,6 +35,9 @@ const MOCK_WALLET = {
 const TOKEN_A = new PublicKey('GZD7PARxHsuViaqGFX5sAtu6stLioyYckg91U6CwAHut');
 const TOKEN_B = new PublicKey('AiWtsNnAzUiRRzzwjN55nPeZhrzMbnyZqx6icsnFBUBw');
 
+const TEST_POOL_PDA = new PublicKey('3kT4sQu1UcpvsFZkenCz894UZK9mF3jqrdaRsA1hgZ6d');
+
+const BUY_SELL_POOL_PDA = new PublicKey('36GY5QvWNzFPtiZmY5axcfDSnQymTgn66Z3hUThGZyJA');
 export {
   TIME_OFFSET,
   ONE_DAY_SECONDS,
@@ -48,4 +51,6 @@ export {
   MOCK_WALLET,
   TOKEN_A,
   TOKEN_B,
+  TEST_POOL_PDA,
+  BUY_SELL_POOL_PDA,
 };
