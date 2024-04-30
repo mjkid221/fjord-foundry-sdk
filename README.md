@@ -64,5 +64,4 @@ npm run test
   ```bash
   npm run release:rc
   ```
-
-*TODO: Add publishing instructions here*
+  
