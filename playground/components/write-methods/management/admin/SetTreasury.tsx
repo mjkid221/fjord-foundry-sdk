@@ -1,6 +1,13 @@
+import FeedbackDialog from '@/components/FeedbackDialog';
+import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import WalletNotConnected from '@/components/WalletNotConnected';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { setNewTreasuryFeeRecipients, signAndSendSwapTransaction } from '@/helpers';
+import {
+  handleDialogClose,
+  handleDialogOpen,
+  setNewTreasuryFeeRecipients,
+  signAndSendSwapTransaction,
+} from '@/helpers';
 import { setTreasuryFeeRecipientsParamsSchema } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, FormControl, FormLabel, TextField, Typography, Button } from '@mui/material';
@@ -11,6 +18,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const SetTreasury = () => {
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+
   const [recipientAddresses, setRecipientAddresses] = useState<{ feeRecipient: string; feePercentage: string }[]>([]);
   const [newAddress, setNewAddress] = useState<{ feeRecipient: string; feePercentage: string }>({
     feeRecipient: '',
@@ -46,10 +57,20 @@ const SetTreasury = () => {
   const setTreasuryFeeRecipientsMutation = useMutation({
     mutationFn: setNewTreasuryFeeRecipients,
     onSuccess: async (data) => {
-      const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
-      console.log('Success', confirmation);
+      try {
+        const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
+        if (!confirmation) {
+          throw new Error('Transaction could not be confirmed');
+        }
+        setTransactionHash(confirmation.txid);
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
+      } catch (error) {
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+      }
     },
-    onError: (error) => console.log('Error', error),
+    onError: () => {
+      handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+    },
   });
 
   const onSubmit = async (data: z.infer<typeof setTreasuryFeeRecipientsParamsSchema>) => {
@@ -65,54 +86,68 @@ const SetTreasury = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={2} flexDirection="column">
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="swap-recipient">Swap Fee Recipient</FormLabel>
-          <TextField
-            label=">Swap Fee Recipient"
-            placeholder="Swap Fee Recipient"
-            {...register('swapFeeRecipient', { required: true })}
-          />
-        </FormControl>
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel>Recipient Addresses</FormLabel>
-          <TextField
-            placeholder="Enter Recipient Address"
-            value={newAddress.feeRecipient}
-            onChange={(e) => setNewAddress({ ...newAddress, feeRecipient: e.target.value })}
-          />
-          <TextField
-            placeholder="Enter Fee Percentage"
-            value={newAddress.feePercentage}
-            onChange={(e) => setNewAddress({ ...newAddress, feePercentage: e.target.value })}
-          />
-          <Button variant="contained" onClick={addRecipientAddress}>
-            Add
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={2} flexDirection="column">
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel htmlFor="swap-recipient">Swap Fee Recipient</FormLabel>
+            <TextField
+              label=">Swap Fee Recipient"
+              placeholder="Swap Fee Recipient"
+              {...register('swapFeeRecipient', { required: true })}
+            />
+          </FormControl>
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel>Recipient Addresses</FormLabel>
+            <TextField
+              placeholder="Enter Recipient Address"
+              value={newAddress.feeRecipient}
+              onChange={(e) => setNewAddress({ ...newAddress, feeRecipient: e.target.value })}
+            />
+            <TextField
+              placeholder="Enter Fee Percentage"
+              value={newAddress.feePercentage}
+              onChange={(e) => setNewAddress({ ...newAddress, feePercentage: e.target.value })}
+            />
+            <Button variant="contained" onClick={addRecipientAddress}>
+              Add
+            </Button>
+
+            {/* Displays the list of added addresses */}
+            <ul>
+              {recipientAddresses.map((recipient, index) => (
+                <li key={index}>
+                  {recipient.feeRecipient} ({recipient.feePercentage})
+                  <Button onClick={() => removeRecipientAddress(index)}>Remove</Button>
+                </li>
+              ))}
+            </ul>
+          </FormControl>
+
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel htmlFor="user-address">Owner Address</FormLabel>
+            <Typography>{wallet ? wallet?.publicKey?.toBase58() : 'No wallet connected'}</Typography>
+          </FormControl>
+
+          <Button variant="contained" type="submit" disabled={!wallet}>
+            Submit
           </Button>
-
-          {/* Displays the list of added addresses */}
-          <ul>
-            {recipientAddresses.map((recipient, index) => (
-              <li key={index}>
-                {recipient.feeRecipient} ({recipient.feePercentage})
-                <Button onClick={() => removeRecipientAddress(index)}>Remove</Button>
-              </li>
-            ))}
-          </ul>
-        </FormControl>
-
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="user-address">Owner Address</FormLabel>
-          <Typography>{wallet ? wallet?.publicKey?.toBase58() : 'No wallet connected'}</Typography>
-        </FormControl>
-
-        <Button variant="contained" type="submit" disabled={!wallet}>
-          Submit
-        </Button>
-        {!wallet && <WalletNotConnected />}
-      </Stack>
-    </form>
+          {!wallet && <WalletNotConnected />}
+        </Stack>
+      </form>
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={errorDialogOpen}
+        isError={true}
+        errorMessage={setTreasuryFeeRecipientsMutation.error?.message ?? 'Could not set new treasury fee recipients'}
+      />
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={successDialogOpen}
+      >
+        <SuccessFeedback transactionHash={transactionHash} />
+      </FeedbackDialog>
+    </>
   );
 };
 

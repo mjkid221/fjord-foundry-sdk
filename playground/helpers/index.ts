@@ -5,3 +5,4 @@ export * from './buy';
 export * from './sell';
 export * from './redemption';
 export * from './management';
+export * from './dialog-state';

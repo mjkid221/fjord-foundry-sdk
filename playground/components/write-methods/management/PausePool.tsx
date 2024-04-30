@@ -1,6 +1,15 @@
+import FeedbackDialog from '@/components/FeedbackDialog';
+import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import WalletNotConnected from '@/components/WalletNotConnected';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { PausePoolArgs, getPoolDataValue, pausePool, signAndSendSwapTransaction } from '@/helpers';
+import {
+  PausePoolArgs,
+  getPoolDataValue,
+  handleDialogClose,
+  handleDialogOpen,
+  pausePool,
+  signAndSendSwapTransaction,
+} from '@/helpers';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { Button, Stack, Typography } from '@mui/material';
@@ -10,6 +19,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState, useContext } from 'react';
 
 const PausePool = () => {
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
   const [shareTokenAddress, setShareTokenAddress] = useState<string>('');
   const [assetTokenAddress, setAssetTokenAddress] = useState<string>('');
@@ -60,10 +73,20 @@ const PausePool = () => {
   const pausePoolMutation = useMutation({
     mutationFn: pausePool,
     onSuccess: async (data) => {
-      const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
-      console.log('Success', confirmation);
+      try {
+        const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
+        if (!confirmation) {
+          throw new Error('Transaction could not be confirmed');
+        }
+        setTransactionHash(confirmation.txid);
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
+      } catch (error) {
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+      }
     },
-    onError: (error) => console.log('Error', error),
+    onError: () => {
+      handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+    },
   });
 
   const args: PausePoolArgs = {
@@ -91,6 +114,18 @@ const PausePool = () => {
         Submit
       </Button>
       {!wallet && <WalletNotConnected />}
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={errorDialogOpen}
+        isError={true}
+        errorMessage={pausePoolMutation.error?.message ?? 'Could not pause pool'}
+      />
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={successDialogOpen}
+      >
+        <SuccessFeedback transactionHash={transactionHash} />
+      </FeedbackDialog>
     </Stack>
   );
 };
