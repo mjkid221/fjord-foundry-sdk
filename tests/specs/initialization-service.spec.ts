@@ -87,7 +87,9 @@ describe('LBP Initialization Service', () => {
         endWeightBasisPoints: 2000,
       };
 
-      await expect(service.initializePool({ keys, args })).rejects.toThrow('Error initializing pool');
+      await expect(service.initializePool({ keys, args })).rejects.toThrow(
+        'Initial assets cannot exceed max assets in',
+      );
     });
   });
 });
