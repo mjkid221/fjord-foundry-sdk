@@ -3,6 +3,7 @@ import CottageIcon from '@mui/icons-material/Cottage';
 import NextLinkComposed from './NextLinkComposed';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import EditIcon from '@mui/icons-material/Edit';
+import LinkIcon from '@mui/icons-material/Link';
 
 const Navigation = () => {
   return (
@@ -21,6 +22,11 @@ const Navigation = () => {
         <Tooltip title="Write" arrow>
           <IconButton aria-label="write" component={NextLinkComposed} href="/write/solana" size="large">
             <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Useful Links" arrow>
+          <IconButton aria-label="links" component={NextLinkComposed} href="/links" size="large">
+            <LinkIcon />
           </IconButton>
         </Tooltip>
       </Stack>
