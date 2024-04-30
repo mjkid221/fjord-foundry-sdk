@@ -1,19 +1,18 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 
-import {
-  GetContractArgsResponse,
-  GetContractManagerAddressResponse,
-  GetReservesAndWeightsResponse,
-  GetVestingStateResponse,
-  ReadContractRequest,
-  RetrievePoolDataParams,
-  RetrieveSinglePoolDataValueParams,
-} from './client';
+import { RetrievePoolDataParams, RetrieveSinglePoolDataValueParams } from './client';
 import {
   SwapExactSharesForAssetsInstructionClientParams,
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
 import { CreatePoolClientParams, GetPoolDataResponse, InitializePoolResponse } from './lbp-initialization';
+import {
+  CreateNewOwnerNominationClientParams,
+  PausePoolClientParams,
+  SetNewPoolFeesClientParams,
+  SetTreasuryFeeRecipientsClientParams,
+} from './lbp-management';
+import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from './lbp-redeem';
 
 export interface ClientSdkInterfaceSolana {
   /**
@@ -77,6 +76,207 @@ export interface ClientSdkInterfaceSolana {
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
+   * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain. This function
+   * acts as a wrapper, delegating the actual creation process to the `LbpSellService`.
+   *
+   * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  createSwapSharesForExactAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Creates a transaction for swapping an exact amount of LBP shares for assets on the Solana blockchain. This function
+   * acts as a wrapper, delegating the actual creation process to the `LbpSellService`.
+   *
+   * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for creating the swap transaction.
+   * @param options.keys - The public keys required for the swap.
+   * @param options.args - The arguments for the swap.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated swap transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  createSwapExactSharesForAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Pauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for pausing the pool.
+   * @param options.args - The arguments for pausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated pause transaction instruction.
+   */
+  pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Unpauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.
+   *
+   * @param {PausePoolClientParams} options - The options for unpausing the pool.
+   * @param options.args - The arguments for unpausing the pool.
+   * @param options.args.poolPda - The public key of the pool's Program Derived Address (PDA).
+   * @param options.args.creator - The public key of the pool's creator.
+   * @param options.args.shareTokenMint - The public key of the pool's share token mint.
+   * @param options.args.assetTokenMint - The public key of the pool's asset token mint.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated unpause transaction instruction.
+   */
+  unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the nomination of a new owner for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * Ensure the connected wallet has the authority to nominate a new owner for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet to be nominated as the new owner.
+   * @param {PublicKey} params.creator - The public key of the wallet nominating the new owner. If not provided,
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for nominating a new owner. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  nominateNewOwner({
+    programId,
+    provider,
+    newOwnerPublicKey,
+    creator,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the acceptance of a new owner nomination for a liquidity bootstrapping pool (LBP). This function
+   * leverages the `LbpManagementService` to generate the necessary Solana transaction instruction.
+   *
+   * **Important:**
+   * * Ensure the connected wallet has the authority to accept a new owner nomination for the pool.
+   *
+   * @param {CreateNewOwnerNominationClientParams} params - Parameters for the owner nomination acceptance process.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {PublicKey} params.newOwnerPublicKey - The public key of the wallet nominated as the new owner.
+   * @returns {Promise<TransactionInstruction>} A promise that resolves with the Solana transaction instruction
+   *                                          for accepting a new owner nomination. After calling this method, you will
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  acceptNewOwnerNomination({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates updating the fees of a liquidity bootstrapping pool (LBP). This function leverages the 
+   * `LbpManagementService` to generate the necessary Solana transaction instruction and provides a higher-level
+   * interface for interacting with fee management.
+
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fees for the pool.
+
+   * @param {SetNewPoolFeesClientParams} params - Parameters for updating pool fees.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {NewFeeParams} params.feeParams - An object containing the new fee values:
+   *    * params.feeParams.platformFee (optional): The new platform fee.
+   *    * params.feeParams.referralFee (optional): The new referral fee.
+   *    * params.feeParams.swapFee (optional): The new swap fee. 
+   *    * params.feeParams.ownerPublicKey: The public key of the wallet authorized to modify fees. 
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction 
+   *                                          for updating the pool's fees. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   */
+  setNewPoolFees({ feeParams, programId, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates updating the treasury fee recipients and distribution for a liquidity bootstrapping pool (LBP). 
+   * This function leverages the `LbpManagementService` to generate the necessary Solana transaction instruction and 
+   * provides a higher-level interface for interacting with fee recipient management.
+
+   * **Important:**
+   * * Ensure the connected wallet has the authority to modify fee distribution for the pool.
+   * * The total percentage allocated across all `feeRecipients` cannot exceed `MAX_FEE_BASIS_POINTS`.
+
+   * @param {SetTreasuryFeeRecipientsClientParams} params - Parameters for updating treasury fee recipients.
+   * @param {PublicKey} params.programId - The PublicKey of the Solana program governing the LBP.
+   * @param {AnchorProvider} params.provider - An Anchor Provider for interacting with Solana.
+   * @param {SetTreasuryFeeRecipientsParams} params.feeParams - Fee recipient details:
+   *    * params.feeParams.swapFeeRecipient - Public key of the wallet designated to receive swap fees.
+   *    * params.feeParams.feeRecipients - An array of fee recipient details:
+   *       * params.feeParams.feeRecipients[].feeRecipient: The public key of the wallet receiving a portion of fees.
+   *       * params.feeParams.feeRecipients[].feePercentage: The percentage of fees (0-100) allocated to this recipient.
+   *    * params.feeParams.creator - Public key of the wallet authorized to modify fee distribution.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the Solana transaction instruction for 
+   *                                          updating treasury fee recipients. After calling this method, you will 
+   *                                          need to sign and submit the transaction to the Solana network.
+   *
+   */
+  setTreasuryFeeRecipients({
+    programId,
+    provider,
+    feeParams,
+  }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Facilitates the closing of a liquidity bootstrapping pool (LBP) on the Solana blockchain. This function
+   * leverages the `LbpRedemptionService` to generate the necessary Solana transaction instruction.
+   *
+   * @param {CloseOperationPublicKeys} options - The options for closing the pool.
+   * @param options.keys - The public keys required for closing the pool.
+   * @param options.args - The arguments for closing the pool.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction[]>} - A promise that resolves with the generated close transaction instructions.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  closePoolTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: CloseOperationPublicKeys): Promise<TransactionInstruction[]>;
+
+  /**
+   * Facilitates the redemption of LBP tokens on the Solana blockchain. This function
+   * leverages the `LbpRedemptionService` to generate the necessary Solana transaction instruction.
+   *
+   * @param {RedeemOperationPublicKeys} options - The options for redeeming tokens.
+   * @param options.keys - The public keys required for redeeming tokens.
+   * @param options.args - The arguments for redeeming tokens.
+   * @param options.programId - The public key of the program governing the LBP.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<TransactionInstruction>} - A promise that resolves with the generated redeem transaction instruction.
+   * @throws {Error} - Throws an error if this client is not configured for Solana interactions.
+   */
+  redeemTokensTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: RedeemOperationPublicKeys): Promise<TransactionInstruction>;
+
+  /**
    * Retrieves and formats data associated with a liquidity bootstrapping pool.
    *
    * @param {RetrievePoolDataParams} params
@@ -128,204 +328,4 @@ export interface ClientSdkInterfaceSolana {
   readAddress(address: PublicKey): Promise<any>;
 }
 
-export interface ClientSdkInterfaceEvm {
-  /**
-   * Retrieves arguments for a specified LBP contract on the blockchain.
-   *
-   * This method is designed to query the blockchain for specific contract arguments,
-   * utilizing the provided contract address and ABI to make the request. It is primarily
-   * used for fetching contract details that are essential for interacting with the contract,
-   * such as asset information, shares, and other financial or ownership details.
-   *
-   * @param {ReadContractRequest} request An object containing the contract address and ABI needed for the query.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which defines how to interact with it.
-   *
-   * @returns {Promise<GetContractArgsResponse>} A promise that resolves to an object containing details about the
-   * contract's arguments, such as asset, share, assets, shares, virtual assets, and others.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
-   * const abi = [...]; // ABI for the contract
-   * sdk.getContractArgs({ contractAddress, abi })
-   *    .then(response => console.log(response))
-   *    .catch(error => console.error(error));
-   */
-  getContractArgs(request: ReadContractRequest): Promise<GetContractArgsResponse>;
-
-  /**
-   * Retrieves the manager address for a specified contract.
-   *
-   * This method queries the blockchain for the manager address of a specific contract,
-   * using the contract's address and ABI to make the request. The manager address is
-   * typically the account that deployed or manages the contract, holding permissions
-   * for administrative actions on the contract.
-   *
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   *
-   * @returns {Promise<GetContractManagerAddressResponse>} A promise that resolves to the blockchain address of the
-   * contract's manager. The address is a string that starts with '0x'.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.getContractManagerAddress({ contractAddress, abi })
-   *    .then(managerAddress => console.log(managerAddress))
-   *    .catch(error => console.error(error));
-   */
-  getContractManagerAddress({ contractAddress, abi }: ReadContractRequest): Promise<GetContractManagerAddressResponse>;
-
-  /**
-   * Checks if an LBP is closed.
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating whether the pool is closed.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.isPoolClosed({ contractAddress, abi })
-   *   .then(isClosed => console.log(isClosed))
-   *   .catch(error => console.error(error));
-   *
-   */
-  isPoolClosed({ contractAddress, abi }: ReadContractRequest): Promise<boolean>;
-
-  /**
-   * Checks if selling is allowed for a given LBP.
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating whether selling is allowed.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923Cb02C94445D3e027ad4Ee3df4a167dBd';
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.isSellingAllowed({ contractAddress, abi })
-   *  .then(isAllowed => console.log(isAllowed))
-   *  .catch(error => console.error(error));
-   */
-  isSellingAllowed({ contractAddress, abi }: ReadContractRequest): Promise<boolean>;
-
-  /**
-   * Retrieves the maximum total assets in for a given LBP.
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   * @returns {Promise<bigint>} A promise that resolves to the maximum total assets for the LBP.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923'
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.maxTotalAssetsIn({ contractAddress, abi })
-   *  .then(maxTotalAssets => console.log(maxTotalAssets))
-   *  .catch(error => console.error(error));
-   *
-   */
-  getMaxTotalAssetsIn({ contractAddress, abi }: ReadContractRequest): Promise<bigint>;
-
-  /**
-   * Retrieves the maximum total shares out for a given LBP.
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   *
-   * @returns {Promise<bigint>} A promise that resolves to the maximum total shares for the LBP.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923'
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.maxTotalSharesOut({ contractAddress, abi })
-   *  .then(maxTotalShares => console.log(maxTotalShares))
-   *  .catch(error => console.error(error));
-   *
-   */
-  getMaxTotalSharesOut({ contractAddress, abi }: ReadContractRequest): Promise<bigint>;
-
-  /**
-   * Retrieves the vesting state for a given LBP.
-   *
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   *
-   * @returns {Promise<GetVestingStateResponse>} A promise that resolves to an object containing the vesting state.
-   * The object contains a boolean value indicating whether vesting shares are enabled, the vesting cliff timestamp,
-   * and the vesting end timestamp.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923'
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.getVestingState({ contractAddress, abi })
-   * .then(vestingState => console.log(vestingState))
-   * .catch(error => console.error(error));
-   *
-   */
-  getVestingState({ contractAddress, abi }: ReadContractRequest): Promise<GetVestingStateResponse>;
-
-  /**
-   * Retrieves the total number of shares purchased for a given LBP.
-   *
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   *
-   * @returns {Promise<bigint>} A promise that resolves to the total shares purchased for the LBP.
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923'
-   *
-   * sdk.getTotalSharesPurchased({ contractAddress, abi })
-   * .then(totalShares => console.log(totalShares))
-   * .catch(error => console.error(error));
-   *
-   */
-  getTotalSharesPurchased({ contractAddress, abi }: ReadContractRequest): Promise<bigint>;
-
-  /**
-   * Retrieves the reserves and weights for a given LBP.
-   * @param {ReadContractRequest} request An object containing the contract address and ABI.
-   * @param {ContractAddress} request.contractAddress The blockchain address of the contract, must start with '0x'.
-   * @param {any} request.abi The Application Binary Interface of the contract which outlines the methods and variables.
-   *
-   * @returns {Promise<GetReservesAndWeightsResponse>} A promise that resolves to an object containing the reserves and weights
-   *
-   * @example
-   * const publicClient = new PublicClientService();
-   * const sdk = new FjordClientSdk(publicClient);
-   * const contractAddress = '0xa2d8f923'
-   * const abi = [...]; // ABI for the contract
-   *
-   * sdk.getReservesAndWeights({ contractAddress, abi })
-   * .then(reservesAndWeights => console.log(reservesAndWeights))
-   * .catch(error => console.error(error));
-   */
-  getReservesAndWeights({ contractAddress, abi }: ReadContractRequest): Promise<GetReservesAndWeightsResponse>;
-}
-
-export interface ClientSdkInterface extends ClientSdkInterfaceSolana, ClientSdkInterfaceEvm {}
+export interface ClientSdkInterface extends ClientSdkInterfaceSolana {}

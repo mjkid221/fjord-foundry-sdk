@@ -20,6 +20,20 @@ export type FjordLbp = {
           };
         },
         {
+          name: 'treasury';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'treasury';
+              },
+            ];
+          };
+        },
+        {
           name: 'program';
           isMut: false;
           isSigner: false;
@@ -46,8 +60,20 @@ export type FjordLbp = {
           type: 'publicKey';
         },
         {
-          name: 'feeRecipient';
+          name: 'swapFeeRecipient';
           type: 'publicKey';
+        },
+        {
+          name: 'feeRecipients';
+          type: {
+            vec: 'publicKey';
+          };
+        },
+        {
+          name: 'feePercentages';
+          type: {
+            vec: 'u16';
+          };
         },
         {
           name: 'platformFee';
@@ -270,7 +296,7 @@ export type FjordLbp = {
         },
         {
           name: 'config';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -435,7 +461,7 @@ export type FjordLbp = {
         },
         {
           name: 'config';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           pda: {
             seeds: [
@@ -539,6 +565,585 @@ export type FjordLbp = {
       ];
     },
     {
+      name: 'swapExactSharesForAssets';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'config';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+        {
+          name: 'userStateInPool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                path: 'user';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool';
+              },
+            ];
+          };
+        },
+        {
+          name: 'referrerStateInPool';
+          isMut: true;
+          isSigner: false;
+          isOptional: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'arg';
+                type: {
+                  option: 'publicKey';
+                };
+                path: 'referrer';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool';
+              },
+            ];
+          };
+        },
+        {
+          name: 'user';
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [
+        {
+          name: 'sharesIn';
+          type: 'u64';
+        },
+        {
+          name: 'minAssetsOut';
+          type: 'u64';
+        },
+        {
+          name: 'merkleProof';
+          type: {
+            option: {
+              vec: {
+                array: ['u8', 32];
+              };
+            };
+          };
+        },
+        {
+          name: 'referrer';
+          type: {
+            option: 'publicKey';
+          };
+        },
+      ];
+    },
+    {
+      name: 'swapSharesForExactAssets';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'config';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+        {
+          name: 'userStateInPool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                path: 'user';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool';
+              },
+            ];
+          };
+        },
+        {
+          name: 'referrerStateInPool';
+          isMut: true;
+          isSigner: false;
+          isOptional: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'arg';
+                type: {
+                  option: 'publicKey';
+                };
+                path: 'referrer';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool';
+              },
+            ];
+          };
+        },
+        {
+          name: 'user';
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [
+        {
+          name: 'assetsOut';
+          type: 'u64';
+        },
+        {
+          name: 'maxSharesIn';
+          type: 'u64';
+        },
+        {
+          name: 'merkleProof';
+          type: {
+            option: {
+              vec: {
+                array: ['u8', 32];
+              };
+            };
+          };
+        },
+        {
+          name: 'referrer';
+          type: {
+            option: 'publicKey';
+          };
+        },
+      ];
+    },
+    {
+      name: 'closePool';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'treasuryAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'treasuryShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'treasury';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'treasury';
+              },
+            ];
+          };
+        },
+        {
+          name: 'creatorAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'creatorShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'poolCreator';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'swapFeeRecipientAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'swapFeeRecipientShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'swapFeeRecipient';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'ownerConfig';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+        {
+          name: 'user';
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [];
+    },
+    {
+      name: 'redeem';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userAssetTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userShareTokenAccount';
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: 'userStateInPool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                path: 'user';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool';
+              },
+            ];
+          };
+        },
+        {
+          name: 'user';
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [
+        {
+          name: 'referred';
+          type: 'bool';
+        },
+      ];
+    },
+    {
       name: 'previewAssetsIn';
       accounts: [
         {
@@ -606,6 +1211,79 @@ export type FjordLbp = {
       args: [
         {
           name: 'sharesOut';
+          type: 'u64';
+        },
+      ];
+      returns: 'u64';
+    },
+    {
+      name: 'previewSharesIn';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'config';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+      ];
+      args: [
+        {
+          name: 'assetsOut';
           type: 'u64';
         },
       ];
@@ -685,6 +1363,206 @@ export type FjordLbp = {
       returns: 'u64';
     },
     {
+      name: 'previewAssetsOut';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'config';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+      ];
+      args: [
+        {
+          name: 'sharesIn';
+          type: 'u64';
+        },
+      ];
+      returns: 'u64';
+    },
+    {
+      name: 'reservesAndWeights';
+      accounts: [
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'pool';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'LiquidityBootstrappingPool';
+                path: 'pool.creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'poolAssetTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'poolShareTokenAccount';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'config';
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+      ];
+      args: [];
+      returns: {
+        defined: 'ComputedReservesAndWeights';
+      };
+    },
+    {
+      name: 'togglePause';
+      accounts: [
+        {
+          name: 'pool';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'share_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                account: 'Mint';
+                path: 'asset_token_mint';
+              },
+              {
+                kind: 'account';
+                type: 'publicKey';
+                path: 'creator';
+              },
+            ];
+          };
+        },
+        {
+          name: 'assetTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'shareTokenMint';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'creator';
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [];
+    },
+    {
       name: 'setFees';
       accounts: [
         {
@@ -706,14 +1584,13 @@ export type FjordLbp = {
           isMut: false;
           isSigner: true;
         },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
       ];
       args: [
-        {
-          name: 'feeRecipient';
-          type: {
-            option: 'publicKey';
-          };
-        },
         {
           name: 'platformFee';
           type: {
@@ -730,6 +1607,69 @@ export type FjordLbp = {
           name: 'swapFee';
           type: {
             option: 'u16';
+          };
+        },
+      ];
+    },
+    {
+      name: 'setTreasuryFeeRecipients';
+      accounts: [
+        {
+          name: 'treasury';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'treasury';
+              },
+            ];
+          };
+        },
+        {
+          name: 'config';
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                type: 'string';
+                value: 'owner_config';
+              },
+            ];
+          };
+        },
+        {
+          name: 'owner';
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+        },
+      ];
+      args: [
+        {
+          name: 'swapFeeRecipient';
+          type: {
+            option: 'publicKey';
+          };
+        },
+        {
+          name: 'feeRecipients';
+          type: {
+            vec: 'publicKey';
+          };
+        },
+        {
+          name: 'feePercentages';
+          type: {
+            vec: 'u16';
           };
         },
       ];
@@ -878,10 +1818,18 @@ export type FjordLbp = {
             type: 'bool';
           },
           {
+            name: 'paused';
+            type: 'bool';
+          },
+          {
             name: 'whitelistMerkleRoot';
             type: {
               array: ['u8', 32];
             };
+          },
+          {
+            name: 'bump';
+            type: 'u8';
           },
         ];
       };
@@ -923,7 +1871,7 @@ export type FjordLbp = {
             };
           },
           {
-            name: 'feeRecipient';
+            name: 'treasury';
             type: 'publicKey';
           },
           {
@@ -945,8 +1893,68 @@ export type FjordLbp = {
         ];
       };
     },
+    {
+      name: 'treasury';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'swapFeeRecipient';
+            type: 'publicKey';
+          },
+          {
+            name: 'feeRecipients';
+            type: {
+              vec: {
+                defined: 'FeeMapping';
+              };
+            };
+          },
+        ];
+      };
+    },
   ];
   types: [
+    {
+      name: 'ComputedReservesAndWeights';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'assetReserve';
+            type: 'u64';
+          },
+          {
+            name: 'shareReserve';
+            type: 'u64';
+          },
+          {
+            name: 'assetWeight';
+            type: 'u64';
+          },
+          {
+            name: 'shareWeight';
+            type: 'u64';
+          },
+        ];
+      };
+    },
+    {
+      name: 'FeeMapping';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'user';
+            type: 'publicKey';
+          },
+          {
+            name: 'percentage';
+            type: 'u16';
+          },
+        ];
+      };
+    },
     {
       name: 'AccessControlError';
       type: {
@@ -954,6 +1962,9 @@ export type FjordLbp = {
         variants: [
           {
             name: 'Unauthorized';
+          },
+          {
+            name: 'NotUpgradeAuthority';
           },
         ];
       };
@@ -986,6 +1997,9 @@ export type FjordLbp = {
           },
           {
             name: 'AmountOutTooLarge';
+          },
+          {
+            name: 'LogarithmUndefined';
           },
         ];
       };
@@ -1028,26 +2042,66 @@ export type FjordLbp = {
       ];
     },
     {
-      name: 'FeeSet';
+      name: 'Sell';
       fields: [
         {
-          name: 'feeRecipient';
+          name: 'user';
           type: 'publicKey';
           index: false;
         },
         {
-          name: 'platformFee';
-          type: 'u16';
+          name: 'shares';
+          type: 'u64';
           index: false;
         },
         {
-          name: 'referralFee';
-          type: 'u16';
+          name: 'assets';
+          type: 'u64';
           index: false;
         },
         {
           name: 'swapFee';
-          type: 'u16';
+          type: 'u64';
+          index: false;
+        },
+      ];
+    },
+    {
+      name: 'Close';
+      fields: [
+        {
+          name: 'assets';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'platformFees';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'swapFeesAsset';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'swapFeesShare';
+          type: 'u64';
+          index: false;
+        },
+      ];
+    },
+    {
+      name: 'Redeem';
+      fields: [
+        {
+          name: 'caller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'shares';
+          type: 'u64';
           index: false;
         },
       ];
@@ -1066,7 +2120,7 @@ export type FjordLbp = {
       name: 'PreviewAssetsOut';
       fields: [
         {
-          name: 'sharesOut';
+          name: 'assetsOut';
           type: 'u64';
           index: false;
         },
@@ -1087,6 +2141,31 @@ export type FjordLbp = {
       fields: [
         {
           name: 'sharesOut';
+          type: 'u64';
+          index: false;
+        },
+      ];
+    },
+    {
+      name: 'ReservesAndWeights';
+      fields: [
+        {
+          name: 'assetReserve';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'shareReserve';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'assetWeight';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'shareWeight';
           type: 'u64';
           index: false;
         },
@@ -1131,83 +2210,108 @@ export type FjordLbp = {
     },
     {
       code: 6007;
+      name: 'InvalidPercentageSum';
+      msg: 'Fee percentages must add up to 100% (10000)';
+    },
+    {
+      code: 6008;
       name: 'AssetsInExceeded';
       msg: 'Max allowed assets in exceeded';
     },
     {
-      code: 6008;
+      code: 6009;
       name: 'SharesOutExceeded';
       msg: 'Max allowed shares out exceeded';
     },
     {
-      code: 6009;
+      code: 6010;
       name: 'WhitelistProof';
       msg: 'Whitelist verification failed';
     },
     {
-      code: 6010;
+      code: 6011;
       name: 'SlippageExceeded';
       msg: 'Slippage limit is exceeded';
     },
     {
-      code: 6011;
+      code: 6012;
       name: 'SellingDisallowed';
       msg: 'Selling is disallowed';
     },
     {
-      code: 6012;
+      code: 6013;
       name: 'TradingDisallowed';
       msg: 'Trading is disallowed';
     },
     {
-      code: 6013;
+      code: 6014;
       name: 'ClosingDisallowed';
       msg: 'Closing is disallowed';
     },
     {
-      code: 6014;
+      code: 6015;
       name: 'RedeemingDisallowed';
       msg: 'Redeeming is disallowed';
     },
     {
-      code: 6015;
+      code: 6016;
       name: 'CallerDisallowed';
       msg: 'Caller is disallowed';
     },
     {
-      code: 6016;
+      code: 6017;
       name: 'InvalidSellingAllowed';
       msg: 'Invalid selling allowed value';
     },
     {
-      code: 6017;
+      code: 6018;
       name: 'InvalidShareValue';
       msg: 'Share value cannot be 0';
     },
     {
-      code: 6018;
+      code: 6019;
       name: 'InvalidSharePrice';
       msg: 'Invalid share price';
     },
     {
-      code: 6019;
+      code: 6020;
       name: 'InvalidMaxSharesOut';
       msg: 'Max shares out cannot be 0';
     },
     {
-      code: 6020;
+      code: 6021;
       name: 'InvalidMaxAssetsIn';
       msg: 'Max assets in cannot be 0';
     },
     {
-      code: 6021;
+      code: 6022;
       name: 'InsufficientShares';
       msg: 'There are insuffcient shares to transfer in your account';
     },
     {
-      code: 6022;
+      code: 6023;
       name: 'InsufficientAssets';
       msg: 'There are insuffcient assets to transfer in your account';
+    },
+    {
+      code: 6024;
+      name: 'Paused';
+      msg: 'The pool is paused';
+    },
+    {
+      code: 6025;
+      name: 'InvalidFeeRecipients';
+      msg: 'The fee recipient and percentages must match in length';
+    },
+    {
+      code: 6026;
+      name: 'InvalidCreator';
+      msg: 'Supplied account must match the pool creator pubkey';
+    },
+    {
+      code: 6027;
+      name: 'InvalidSwapFeeRecipient';
+      msg: 'Invalid swap fee recipient';
     },
   ];
 };
@@ -1229,6 +2333,20 @@ export const IDL: FjordLbp = {
                 kind: 'const',
                 type: 'string',
                 value: 'owner_config',
+              },
+            ],
+          },
+        },
+        {
+          name: 'treasury',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'treasury',
               },
             ],
           },
@@ -1260,8 +2378,20 @@ export const IDL: FjordLbp = {
           type: 'publicKey',
         },
         {
-          name: 'feeRecipient',
+          name: 'swapFeeRecipient',
           type: 'publicKey',
+        },
+        {
+          name: 'feeRecipients',
+          type: {
+            vec: 'publicKey',
+          },
+        },
+        {
+          name: 'feePercentages',
+          type: {
+            vec: 'u16',
+          },
         },
         {
           name: 'platformFee',
@@ -1484,7 +2614,7 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'config',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [
@@ -1649,7 +2779,7 @@ export const IDL: FjordLbp = {
         },
         {
           name: 'config',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           pda: {
             seeds: [
@@ -1753,6 +2883,585 @@ export const IDL: FjordLbp = {
       ],
     },
     {
+      name: 'swapExactSharesForAssets',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'config',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+        {
+          name: 'userStateInPool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                path: 'user',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool',
+              },
+            ],
+          },
+        },
+        {
+          name: 'referrerStateInPool',
+          isMut: true,
+          isSigner: false,
+          isOptional: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'arg',
+                type: {
+                  option: 'publicKey',
+                },
+                path: 'referrer',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool',
+              },
+            ],
+          },
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'sharesIn',
+          type: 'u64',
+        },
+        {
+          name: 'minAssetsOut',
+          type: 'u64',
+        },
+        {
+          name: 'merkleProof',
+          type: {
+            option: {
+              vec: {
+                array: ['u8', 32],
+              },
+            },
+          },
+        },
+        {
+          name: 'referrer',
+          type: {
+            option: 'publicKey',
+          },
+        },
+      ],
+    },
+    {
+      name: 'swapSharesForExactAssets',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'config',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+        {
+          name: 'userStateInPool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                path: 'user',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool',
+              },
+            ],
+          },
+        },
+        {
+          name: 'referrerStateInPool',
+          isMut: true,
+          isSigner: false,
+          isOptional: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'arg',
+                type: {
+                  option: 'publicKey',
+                },
+                path: 'referrer',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool',
+              },
+            ],
+          },
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'assetsOut',
+          type: 'u64',
+        },
+        {
+          name: 'maxSharesIn',
+          type: 'u64',
+        },
+        {
+          name: 'merkleProof',
+          type: {
+            option: {
+              vec: {
+                array: ['u8', 32],
+              },
+            },
+          },
+        },
+        {
+          name: 'referrer',
+          type: {
+            option: 'publicKey',
+          },
+        },
+      ],
+    },
+    {
+      name: 'closePool',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'treasuryAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'treasuryShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'treasury',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'treasury',
+              },
+            ],
+          },
+        },
+        {
+          name: 'creatorAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'creatorShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolCreator',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'swapFeeRecipientAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'swapFeeRecipientShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'swapFeeRecipient',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'ownerConfig',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'redeem',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userAssetTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userShareTokenAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userStateInPool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                path: 'user',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool',
+              },
+            ],
+          },
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'referred',
+          type: 'bool',
+        },
+      ],
+    },
+    {
       name: 'previewAssetsIn',
       accounts: [
         {
@@ -1820,6 +3529,79 @@ export const IDL: FjordLbp = {
       args: [
         {
           name: 'sharesOut',
+          type: 'u64',
+        },
+      ],
+      returns: 'u64',
+    },
+    {
+      name: 'previewSharesIn',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'config',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: 'assetsOut',
           type: 'u64',
         },
       ],
@@ -1899,6 +3681,206 @@ export const IDL: FjordLbp = {
       returns: 'u64',
     },
     {
+      name: 'previewAssetsOut',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'config',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: 'sharesIn',
+          type: 'u64',
+        },
+      ],
+      returns: 'u64',
+    },
+    {
+      name: 'reservesAndWeights',
+      accounts: [
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'LiquidityBootstrappingPool',
+                path: 'pool.creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'poolAssetTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'poolShareTokenAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'config',
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+      ],
+      args: [],
+      returns: {
+        defined: 'ComputedReservesAndWeights',
+      },
+    },
+    {
+      name: 'togglePause',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'share_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                account: 'Mint',
+                path: 'asset_token_mint',
+              },
+              {
+                kind: 'account',
+                type: 'publicKey',
+                path: 'creator',
+              },
+            ],
+          },
+        },
+        {
+          name: 'assetTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'shareTokenMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'creator',
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: 'setFees',
       accounts: [
         {
@@ -1920,14 +3902,13 @@ export const IDL: FjordLbp = {
           isMut: false,
           isSigner: true,
         },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
       ],
       args: [
-        {
-          name: 'feeRecipient',
-          type: {
-            option: 'publicKey',
-          },
-        },
         {
           name: 'platformFee',
           type: {
@@ -1944,6 +3925,69 @@ export const IDL: FjordLbp = {
           name: 'swapFee',
           type: {
             option: 'u16',
+          },
+        },
+      ],
+    },
+    {
+      name: 'setTreasuryFeeRecipients',
+      accounts: [
+        {
+          name: 'treasury',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'treasury',
+              },
+            ],
+          },
+        },
+        {
+          name: 'config',
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                type: 'string',
+                value: 'owner_config',
+              },
+            ],
+          },
+        },
+        {
+          name: 'owner',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'swapFeeRecipient',
+          type: {
+            option: 'publicKey',
+          },
+        },
+        {
+          name: 'feeRecipients',
+          type: {
+            vec: 'publicKey',
+          },
+        },
+        {
+          name: 'feePercentages',
+          type: {
+            vec: 'u16',
           },
         },
       ],
@@ -2092,10 +4136,18 @@ export const IDL: FjordLbp = {
             type: 'bool',
           },
           {
+            name: 'paused',
+            type: 'bool',
+          },
+          {
             name: 'whitelistMerkleRoot',
             type: {
               array: ['u8', 32],
             },
+          },
+          {
+            name: 'bump',
+            type: 'u8',
           },
         ],
       },
@@ -2137,7 +4189,7 @@ export const IDL: FjordLbp = {
             },
           },
           {
-            name: 'feeRecipient',
+            name: 'treasury',
             type: 'publicKey',
           },
           {
@@ -2159,8 +4211,68 @@ export const IDL: FjordLbp = {
         ],
       },
     },
+    {
+      name: 'treasury',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'swapFeeRecipient',
+            type: 'publicKey',
+          },
+          {
+            name: 'feeRecipients',
+            type: {
+              vec: {
+                defined: 'FeeMapping',
+              },
+            },
+          },
+        ],
+      },
+    },
   ],
   types: [
+    {
+      name: 'ComputedReservesAndWeights',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'assetReserve',
+            type: 'u64',
+          },
+          {
+            name: 'shareReserve',
+            type: 'u64',
+          },
+          {
+            name: 'assetWeight',
+            type: 'u64',
+          },
+          {
+            name: 'shareWeight',
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'FeeMapping',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'user',
+            type: 'publicKey',
+          },
+          {
+            name: 'percentage',
+            type: 'u16',
+          },
+        ],
+      },
+    },
     {
       name: 'AccessControlError',
       type: {
@@ -2168,6 +4280,9 @@ export const IDL: FjordLbp = {
         variants: [
           {
             name: 'Unauthorized',
+          },
+          {
+            name: 'NotUpgradeAuthority',
           },
         ],
       },
@@ -2200,6 +4315,9 @@ export const IDL: FjordLbp = {
           },
           {
             name: 'AmountOutTooLarge',
+          },
+          {
+            name: 'LogarithmUndefined',
           },
         ],
       },
@@ -2242,26 +4360,66 @@ export const IDL: FjordLbp = {
       ],
     },
     {
-      name: 'FeeSet',
+      name: 'Sell',
       fields: [
         {
-          name: 'feeRecipient',
+          name: 'user',
           type: 'publicKey',
           index: false,
         },
         {
-          name: 'platformFee',
-          type: 'u16',
+          name: 'shares',
+          type: 'u64',
           index: false,
         },
         {
-          name: 'referralFee',
-          type: 'u16',
+          name: 'assets',
+          type: 'u64',
           index: false,
         },
         {
           name: 'swapFee',
-          type: 'u16',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'Close',
+      fields: [
+        {
+          name: 'assets',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'platformFees',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'swapFeesAsset',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'swapFeesShare',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'Redeem',
+      fields: [
+        {
+          name: 'caller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'shares',
+          type: 'u64',
           index: false,
         },
       ],
@@ -2280,7 +4438,7 @@ export const IDL: FjordLbp = {
       name: 'PreviewAssetsOut',
       fields: [
         {
-          name: 'sharesOut',
+          name: 'assetsOut',
           type: 'u64',
           index: false,
         },
@@ -2301,6 +4459,31 @@ export const IDL: FjordLbp = {
       fields: [
         {
           name: 'sharesOut',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'ReservesAndWeights',
+      fields: [
+        {
+          name: 'assetReserve',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'shareReserve',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'assetWeight',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'shareWeight',
           type: 'u64',
           index: false,
         },
@@ -2345,83 +4528,108 @@ export const IDL: FjordLbp = {
     },
     {
       code: 6007,
+      name: 'InvalidPercentageSum',
+      msg: 'Fee percentages must add up to 100% (10000)',
+    },
+    {
+      code: 6008,
       name: 'AssetsInExceeded',
       msg: 'Max allowed assets in exceeded',
     },
     {
-      code: 6008,
+      code: 6009,
       name: 'SharesOutExceeded',
       msg: 'Max allowed shares out exceeded',
     },
     {
-      code: 6009,
+      code: 6010,
       name: 'WhitelistProof',
       msg: 'Whitelist verification failed',
     },
     {
-      code: 6010,
+      code: 6011,
       name: 'SlippageExceeded',
       msg: 'Slippage limit is exceeded',
     },
     {
-      code: 6011,
+      code: 6012,
       name: 'SellingDisallowed',
       msg: 'Selling is disallowed',
     },
     {
-      code: 6012,
+      code: 6013,
       name: 'TradingDisallowed',
       msg: 'Trading is disallowed',
     },
     {
-      code: 6013,
+      code: 6014,
       name: 'ClosingDisallowed',
       msg: 'Closing is disallowed',
     },
     {
-      code: 6014,
+      code: 6015,
       name: 'RedeemingDisallowed',
       msg: 'Redeeming is disallowed',
     },
     {
-      code: 6015,
+      code: 6016,
       name: 'CallerDisallowed',
       msg: 'Caller is disallowed',
     },
     {
-      code: 6016,
+      code: 6017,
       name: 'InvalidSellingAllowed',
       msg: 'Invalid selling allowed value',
     },
     {
-      code: 6017,
+      code: 6018,
       name: 'InvalidShareValue',
       msg: 'Share value cannot be 0',
     },
     {
-      code: 6018,
+      code: 6019,
       name: 'InvalidSharePrice',
       msg: 'Invalid share price',
     },
     {
-      code: 6019,
+      code: 6020,
       name: 'InvalidMaxSharesOut',
       msg: 'Max shares out cannot be 0',
     },
     {
-      code: 6020,
+      code: 6021,
       name: 'InvalidMaxAssetsIn',
       msg: 'Max assets in cannot be 0',
     },
     {
-      code: 6021,
+      code: 6022,
       name: 'InsufficientShares',
       msg: 'There are insuffcient shares to transfer in your account',
     },
     {
-      code: 6022,
+      code: 6023,
       name: 'InsufficientAssets',
       msg: 'There are insuffcient assets to transfer in your account',
+    },
+    {
+      code: 6024,
+      name: 'Paused',
+      msg: 'The pool is paused',
+    },
+    {
+      code: 6025,
+      name: 'InvalidFeeRecipients',
+      msg: 'The fee recipient and percentages must match in length',
+    },
+    {
+      code: 6026,
+      name: 'InvalidCreator',
+      msg: 'Supplied account must match the pool creator pubkey',
+    },
+    {
+      code: 6027,
+      name: 'InvalidSwapFeeRecipient',
+      msg: 'Invalid swap fee recipient',
     },
   ],
 };

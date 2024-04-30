@@ -18,6 +18,7 @@ import {
   SwapExactSharesForAssetsOperationParams,
   SwapSharesForExactAssetsOperationParams,
 } from '../types';
+import { base64ToBN } from '../utils';
 
 import { Logger, LoggerLike } from './logger.service';
 
@@ -34,13 +35,18 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
   private logger: LoggerLike;
 
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
+  constructor(
+    programId: PublicKey,
+    provider: anchor.AnchorProvider,
+    network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
+  ) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
     this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
     this.network = network;
-    this.logger = Logger('LbpBuyService', true);
+    this.logger = Logger('LbpBuyService', loggerEnabled);
     this.logger.debug('LbpBuyService initialized');
   }
 
@@ -55,13 +61,14 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     programId: PublicKey,
     provider: anchor.AnchorProvider,
     network: WalletAdapterNetwork,
+    loggerEnabled: boolean,
   ): Promise<LbpBuyService> {
-    const service = await Promise.resolve(new LbpBuyService(programId, provider, network));
+    const service = await Promise.resolve(new LbpBuyService(programId, provider, network, loggerEnabled));
 
     return service;
   }
 
-  async simulatePreviewsAndReturnValue(ix: TransactionInstruction, user: PublicKey): Promise<BigNumber> {
+  private async simulatePreviewsAndReturnValue(ix: TransactionInstruction, user: PublicKey): Promise<BigNumber> {
     const transactionSimulation = await this.connection.simulateTransaction(
       new VersionedTransaction(
         new TransactionMessage({
@@ -73,7 +80,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     );
 
     if (transactionSimulation.value.err) {
-      this.logger.error('Unable to simulate preview transaction');
+      this.logger.error('Unable to simulate preview transaction', transactionSimulation.value.err);
       throw new Error('Unable to simulate preview transaction');
     }
 
@@ -88,8 +95,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
         return base64ToBN(returnLogEntry.slice(returnPrefix.length));
       }
     }
-    return new anchor.BN(0); // Return 0 if no data is found.
+    this.logger.error('Unable to find return data in logs');
+    throw new Error('Unable to find return data in logs');
   }
+
   private async getPoolPda(
     shareTokenMint: PublicKey,
     assetTokenMint: PublicKey,
@@ -104,9 +113,14 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   }
 
   private async getTokenDivisorFromSupply(tokenMint: PublicKey, connection: Connection): Promise<number> {
-    const tokenData = await connection.getTokenSupply(tokenMint);
+    try {
+      const tokenData = await connection.getTokenSupply(tokenMint);
 
-    return getTokenDivisor(tokenData.value.decimals);
+      return getTokenDivisor(tokenData.value.decimals);
+    } catch (error: any) {
+      this.logger.error('Failed to get token divisor from supply.', error);
+      throw new Error('Failed to get token divisor from supply.', error);
+    }
   }
 
   public async createSwapAssetsForExactSharesInstruction({
@@ -127,23 +141,41 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
     }
 
-    // Get the user PDA for the pool.
-    const [userPoolPda] = findProgramAddressSync(
-      [userPublicKey.toBuffer(), poolPda.toBuffer()],
-      this.program.programId,
-    );
+    let userPoolPda: PublicKey;
 
-    // Find the associated token accounts for the pool and creator.
-    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
-    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+    try {
+      // Get the user PDA for the pool.
+      [userPoolPda] = findProgramAddressSync([userPublicKey.toBuffer(), poolPda.toBuffer()], this.program.programId);
+    } catch (error: any) {
+      this.logger.error('Failed to get user PDA for the pool.', error);
+      throw new Error('Failed to get user PDA for the pool.', error);
+    }
 
-    // Get the user's associated token accounts for the pool.
-    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    let poolShareTokenAccount: PublicKey;
+    let poolAssetTokenAccount: PublicKey;
+    let userShareTokenAccount: PublicKey;
+    let userAssetTokenAccount: PublicKey;
+
+    try {
+      // Find the associated token accounts for the pool and creator.
+      poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      // Get the user's associated token accounts for the pool.
+      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    } catch (error: any) {
+      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
+      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
+    }
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
+
+    const tokenDivisor = await this.getTokenDivisorFromSupply(shareTokenMint, this.connection);
+
+    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(tokenDivisor));
 
     let expectedAssetsIn: BigNumber;
 
@@ -153,7 +185,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
-          sharesAmountOut,
+          formattedSharesAmountOut,
         )
         .accounts({
           assetTokenMint,
@@ -169,11 +201,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       this.logger.error('Failed to create swap assets for exact shares instruction preview.', error);
       throw new Error('Failed to create swap assets for exact shares instruction preview.', error);
     }
-
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapAssetsForExactShares(sharesAmountOut, expectedAssetsIn, null, referrer ?? null)
+        .swapAssetsForExactShares(formattedSharesAmountOut, expectedAssetsIn, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
@@ -213,19 +244,33 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
     }
 
-    // Get the user PDA for the pool.
-    const [userPoolPda] = findProgramAddressSync(
-      [userPublicKey.toBuffer(), poolPda.toBuffer()],
-      this.program.programId,
-    );
+    let userPoolPda: PublicKey;
 
-    // Find the associated token accounts for the pool and creator.
-    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
-    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+    try {
+      // Get the user PDA for the pool.
+      [userPoolPda] = findProgramAddressSync([userPublicKey.toBuffer(), poolPda.toBuffer()], this.program.programId);
+    } catch (error: any) {
+      this.logger.error('Failed to get user PDA for the pool.', error);
+      throw new Error('Failed to get user PDA for the pool.', error);
+    }
 
-    // Get the user's associated token accounts for the pool.
-    const userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-    const userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    let poolShareTokenAccount: PublicKey;
+    let poolAssetTokenAccount: PublicKey;
+    let userShareTokenAccount: PublicKey;
+    let userAssetTokenAccount: PublicKey;
+
+    try {
+      // Find the associated token accounts for the pool and creator.
+      poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      // Get the user's associated token accounts for the pool.
+      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
+      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
+    } catch (error: any) {
+      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
+      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
+    }
 
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
@@ -282,16 +327,4 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to create swap exact assets for shares instruction.', error);
     }
   }
-}
-
-// TODO: Move this to a global utility file.
-function base64ToBN(base64: string): BigNumber {
-  // Decode the base64 string to a buffer
-  const buffer = Buffer.from(base64, 'base64');
-  let value = BigInt(0);
-  for (let i = 0; i < buffer.length; i++) {
-    value += BigInt(buffer[i]) << (BigInt(i) * BigInt(8));
-  }
-
-  return new anchor.BN(value.toString());
 }

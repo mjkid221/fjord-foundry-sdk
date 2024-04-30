@@ -2,31 +2,34 @@ import * as anchor from '@coral-xyz/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { Keypair, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
-import { PoolDataValueKey, ReadFunction } from './enums';
-import { getTokenDivisor, formatEpochDate } from './helpers';
+import { PoolDataValueKey } from './enums';
+import { formatEpochDate, getTokenDivisor } from './helpers';
 import {
+  LbpBuyService,
   LbpInitializationService,
+  LbpManagementService,
+  LbpRedemptionService,
+  LbpSellService,
   Logger,
   LoggerLike,
-  PublicClientService,
   SolanaConnectionService,
-  LbpBuyService,
 } from './services';
 import {
   ClientSdkInterface,
   ClientServiceInterface,
+  CloseOperationPublicKeys,
   CreatePoolClientParams,
-  GetContractArgsResponse,
-  GetContractManagerAddressResponse,
   GetPoolDataResponse,
-  GetReservesAndWeightsResponse,
-  GetVestingStateResponse,
   InitializePoolResponse,
-  ReadContractRequest,
+  RedeemOperationPublicKeys,
   RetrievePoolDataParams,
   RetrieveSinglePoolDataValueParams,
   SwapExactSharesForAssetsInstructionClientParams,
   SwapSharesForExactAssetsInstructionClientParams,
+  PausePoolClientParams,
+  CreateNewOwnerNominationClientParams,
+  SetNewPoolFeesClientParams,
+  SetTreasuryFeeRecipientsClientParams,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -36,37 +39,34 @@ export class FjordClientSdk implements ClientSdkInterface {
 
   private lbpBuyService!: LbpBuyService;
 
-  private isSolana: boolean;
+  private lbpSellService!: LbpSellService;
 
-  private solanaNetwork: WalletAdapterNetwork | undefined = undefined;
+  private lbpRedemptionService!: LbpRedemptionService;
+
+  private lbpManagementService!: LbpManagementService;
+
+  private solanaNetwork: WalletAdapterNetwork;
 
   private logger: LoggerLike;
 
+  private loggerEnabled: boolean;
+
   // Expect an object that implements the ClientService interface
-  constructor(clientService: ClientServiceInterface, isSolana: boolean, network?: WalletAdapterNetwork) {
+  constructor(clientService: ClientServiceInterface, network: WalletAdapterNetwork, loggerEnabled: boolean) {
     this.clientService = clientService;
-    this.isSolana = isSolana;
-    this.solanaNetwork = network ?? undefined;
-    this.logger = Logger('SolanaSdkClient', true);
+    this.solanaNetwork = network;
+    this.logger = Logger('SolanaSdkClient', loggerEnabled);
+    this.loggerEnabled = loggerEnabled;
   }
 
-  static async create(useSolana: boolean, solanaNetwork?: WalletAdapterNetwork): Promise<FjordClientSdk> {
-    let service: ClientServiceInterface;
-
-    if (useSolana) {
-      if (!solanaNetwork) {
-        throw new Error('Solana network is required when using Solana');
-      }
-      service = await SolanaConnectionService.create(solanaNetwork);
-      const client = new FjordClientSdk(service, useSolana, solanaNetwork);
-      client.logger.debug('SolanaSdkClient initialized');
-      return client;
-    }
-    service = await PublicClientService.create();
-    const client = new FjordClientSdk(service, useSolana);
+  static async create(solanaNetwork: WalletAdapterNetwork, enableLogging = false): Promise<FjordClientSdk> {
+    const service = await SolanaConnectionService.create(solanaNetwork);
+    const client = new FjordClientSdk(service, solanaNetwork, enableLogging);
     client.logger.debug('SolanaSdkClient initialized');
     return client;
   }
+
+  // Pool Creation Function
 
   public async createPoolTransaction({
     keys,
@@ -74,11 +74,6 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: CreatePoolClientParams): Promise<InitializePoolResponse> {
-    if (!this.isSolana || !this.solanaNetwork) {
-      this.logger.error('LbpInitializationService method not supported for this client');
-      throw new Error('LbpInitializationService method not supported for this client');
-    }
-
     // Create a new instance of the LbpInitializationService
     this.lbpInitializationService = await LbpInitializationService.create(programId, provider, this.solanaNetwork);
 
@@ -96,12 +91,7 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    if (!this.isSolana || !this.solanaNetwork) {
-      this.logger.error('LbpBuyService method not supported for this client');
-      throw new Error('LbpBuyService method not supported for this client');
-    }
-
-    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpBuyService.createSwapAssetsForExactSharesInstruction({ keys, args });
 
@@ -114,25 +104,200 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    if (!this.isSolana || !this.solanaNetwork) {
-      this.logger.error('LbpBuyService method not supported for this client');
-      throw new Error('LbpBuyService method not supported for this client');
-    }
-
-    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork);
+    this.lbpBuyService = await LbpBuyService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
 
     const transaction = await this.lbpBuyService.createSwapExactAssetsForSharesInstruction({ keys, args });
 
     return transaction;
   }
 
-  public async retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
-    // Client and service validation
-    if (!this.isSolana || !this.solanaNetwork || !this.clientService.getConnection) {
-      this.logger.error('LbpInitializationService method not supported for this client');
-      throw new Error('LbpInitializationService method not supported for this client');
+  // Sell Functions
+
+  public async createSwapSharesForExactAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const transaction = await this.lbpSellService.createSwapSharesForExactAssetsInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  public async createSwapExactSharesForAssetsTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
+    this.lbpSellService = await LbpSellService.create(programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const transaction = await this.lbpSellService.createSwapExactSharesForAssetsInstruction({ keys, args });
+
+    return transaction;
+  }
+
+  // Close Pool Function
+  public async closePoolTransaction({ keys, args, programId, provider }: CloseOperationPublicKeys) {
+    // Create a new instance of the LbpInitializationService
+    this.lbpRedemptionService = await LbpRedemptionService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    // Call the closePool method from the LbpInitializationService
+    const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
+
+    return transaction;
+  }
+
+  // Redeem tokens function
+  public async redeemTokensTransaction({
+    keys,
+    args,
+    programId,
+    provider,
+  }: RedeemOperationPublicKeys): Promise<TransactionInstruction> {
+    // Create a new instance of the LbpInitializationService
+    this.lbpRedemptionService = await LbpRedemptionService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    // Call the closePool method from the LbpInitializationService
+    const transaction = await this.lbpRedemptionService.redeemLbpTokens({ keys, args });
+
+    return transaction;
+  }
+
+  public async pausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
+
+    const transaction = await this.lbpManagementService.pauseLbp({ poolPda, creator, shareTokenMint, assetTokenMint });
+
+    return transaction;
+  }
+
+  public async unPausePool({ args, programId, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
+
+    const transaction = await this.lbpManagementService.unPauseLbp({
+      poolPda,
+      creator,
+      shareTokenMint,
+      assetTokenMint,
+    });
+
+    return transaction;
+  }
+
+  public async nominateNewOwner({
+    programId,
+    provider,
+    newOwnerPublicKey,
+    creator,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    if (!creator) {
+      throw new Error('Creator public key is required');
     }
 
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey, creator });
+
+    return transaction;
+  }
+
+  public async acceptNewOwnerNomination({
+    programId,
+    provider,
+    newOwnerPublicKey,
+  }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const transaction = await this.lbpManagementService.acceptOwnerNomination({ newOwnerPublicKey });
+
+    return transaction;
+  }
+
+  public async setNewPoolFees({
+    feeParams,
+    programId,
+    provider,
+  }: SetNewPoolFeesClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const { platformFee, referralFee, swapFee, ownerPublicKey } = feeParams;
+
+    const transaction = await this.lbpManagementService.setPoolFees({
+      platformFee,
+      referralFee,
+      swapFee,
+      ownerPublicKey,
+    });
+
+    return transaction;
+  }
+
+  public async setTreasuryFeeRecipients({
+    programId,
+    provider,
+    feeParams,
+  }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction> {
+    this.lbpManagementService = await LbpManagementService.create(
+      programId,
+      provider,
+      this.solanaNetwork,
+      this.loggerEnabled,
+    );
+
+    const { swapFeeRecipient, feeRecipients, creator } = feeParams;
+
+    const transaction = await this.lbpManagementService.setTreasuryFeeRecipients({
+      swapFeeRecipient,
+      feeRecipients,
+      creator,
+    });
+
+    return transaction;
+  }
+
+  public async retrievePoolData({ poolPda, programId }: RetrievePoolDataParams): Promise<GetPoolDataResponse> {
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,
@@ -170,6 +335,7 @@ export class FjordClientSdk implements ClientSdkInterface {
       assetToken: poolData.assetToken.toBase58(),
       creator: poolData.creator.toBase58(),
       closed: poolData.closed.toString(),
+      paused: poolData.paused.toString(),
       shareToken: poolData.shareToken.toBase58(),
       maxSharesOut: formattedMaxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
@@ -193,12 +359,6 @@ export class FjordClientSdk implements ClientSdkInterface {
     programId,
     valueKey,
   }: RetrieveSinglePoolDataValueParams): Promise<string | number | number[] | boolean> {
-    // Client and service validation
-    if (!this.isSolana || !this.solanaNetwork || !this.clientService.getConnection) {
-      this.logger.error('LbpInitializationService method not supported for this client');
-      throw new Error('LbpInitializationService method not supported for this client');
-    }
-
     // Mock wallet for AnchorProvider as we are only reading data
     const MockWallet = {
       publicKey: Keypair.generate().publicKey,
@@ -224,6 +384,8 @@ export class FjordClientSdk implements ClientSdkInterface {
         return poolData.creator.toBase58();
       case PoolDataValueKey.Closed:
         return poolData.closed.toString();
+      case PoolDataValueKey.Paused:
+        return poolData.paused.toString();
       case PoolDataValueKey.EndWeightBasisPoints:
         return poolData.endWeightBasisPoints;
       case PoolDataValueKey.MaxAssetsIn: {
@@ -276,107 +438,5 @@ export class FjordClientSdk implements ClientSdkInterface {
       throw new Error('getConnection method not supported for this client');
     }
     return await this.clientService.getConnection().getAccountInfoAndContext(address);
-  }
-
-  /**
-   * Reads data from a smart contract.
-   *
-   * @template T - The type of data to be returned.
-   * @param {ReadContractRequest} request - The request object containing contract address, ABI, and arguments.
-   * @param {ReadFunction} functionName - The name of the function to be called.
-   * @returns {Promise<T>} - A promise that resolves to the data returned by the smart contract.
-   */
-  private async readContract<T>(request: ReadContractRequest, functionName: ReadFunction): Promise<T> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    const { contractAddress, abi, args } = request;
-    return (await this.clientService.getPublicClient().readContract({
-      address: contractAddress,
-      abi: abi,
-      functionName: functionName,
-      args: args ?? [],
-    })) as T;
-  }
-  public async getContractArgs(request: ReadContractRequest): Promise<GetContractArgsResponse> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<GetContractArgsResponse>(request, ReadFunction.GetContractArgs);
-  }
-  public async getContractManagerAddress(request: ReadContractRequest): Promise<GetContractManagerAddressResponse> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<GetContractManagerAddressResponse>(request, ReadFunction.GetContractManager);
-  }
-  public async isPoolClosed(request: ReadContractRequest): Promise<boolean> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<boolean>(request, ReadFunction.IsPoolClosed);
-  }
-  public async isSellingAllowed(request: ReadContractRequest): Promise<boolean> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<boolean>(request, ReadFunction.IsSellingAllowed);
-  }
-  public async getMaxTotalAssetsIn(request: ReadContractRequest): Promise<bigint> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<bigint>(request, ReadFunction.GetMaxTotalAssetsIn);
-  }
-  public async getMaxTotalSharesOut(request: ReadContractRequest): Promise<bigint> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<bigint>(request, ReadFunction.GetMaxTotalSharesOut);
-  }
-  public async getVestingState(request: ReadContractRequest): Promise<GetVestingStateResponse> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    const isVestingSharesEnabled = await this.readContract<boolean>(request, ReadFunction.IsVestingSharesEnabled);
-    // We only need to read the vesting timestamps if vesting is enabled.
-    if (!isVestingSharesEnabled) {
-      return {
-        isVestingSharesEnabled,
-        vestCliffTimestamp: undefined,
-        vestEndTimestamp: undefined,
-      };
-    }
-    const vestCliffTimestamp = await this.readContract<number>(request, ReadFunction.GetVestingCliffTimestamp);
-    const vestEndTimestamp = await this.readContract<number>(request, ReadFunction.GetVestingEndTimestamp);
-    return {
-      isVestingSharesEnabled,
-      vestCliffTimestamp,
-      vestEndTimestamp,
-    };
-  }
-  public async getTotalSharesPurchased(request: ReadContractRequest): Promise<bigint> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    return await this.readContract<bigint>(request, ReadFunction.GetTotalSharePurchased);
-  }
-  public async getReservesAndWeights(request: ReadContractRequest): Promise<GetReservesAndWeightsResponse> {
-    if (!this.clientService.getPublicClient) {
-      throw new Error('getPublicClient method not supported for this client');
-    }
-    /**
-     * The reserves and weights array is structured as follows:
-     * `[assetReserve, shareReserve, assetWeight, shareWeight]`
-     */
-    const reservesAndWeightsArray: [bigint, bigint, bigint, bigint] = await this.readContract<
-      [bigint, bigint, bigint, bigint]
-    >(request, ReadFunction.GetReservesAndWeights);
-    return {
-      assetReserve: reservesAndWeightsArray[0],
-      shareReserve: reservesAndWeightsArray[1],
-      assetWeight: reservesAndWeightsArray[2],
-      shareWeight: reservesAndWeightsArray[3],
-    };
   }
 }

@@ -85,52 +85,76 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       sellingAllowed,
     } = args;
 
-    // Fetch the token supply data for the asset and share tokens.
-    const assetTokenData = await connection.getTokenSupply(assetTokenMint);
-    const shareTokenData = await connection.getTokenSupply(shareTokenMint);
-
-    // Calculate the token divisors for the asset and share tokens.
-    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-    // Define the zero BN value for optional parameters. TODO: This can probably be moved to a constants file.
-    const zeroBn = new anchor.BN(0);
-
-    // Format the provided parameters to BN values.
-    const formattedAssets = assets.mul(new anchor.BN(assetTokenDivisor));
-    const formattedShares = shares.mul(new anchor.BN(shareTokenDivisor));
-    const formattedVirtualAssets = virtualAssets ? virtualAssets.mul(new anchor.BN(assetTokenDivisor)) : zeroBn;
-    const formattedVirtualShares = virtualShares ? virtualShares.mul(new anchor.BN(shareTokenDivisor)) : zeroBn;
-    const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
-    const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
-    const formattedMaxSharePrice = maxSharePrice.mul(new anchor.BN(shareTokenDivisor));
-
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const [poolPda] = findProgramAddressSync(
-      [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
-      this.program.programId,
-    );
-
-    // Find the associated token accounts for the pool and creator.
-    const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
-    const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
-
-    const creatorShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, creator);
-    const creatorAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, creator);
-
-    // Define the accounts to be used in the transaction.
-    const accounts: Accounts = {
-      creator,
-      shareTokenMint,
-      assetTokenMint,
-      poolShareTokenAccount,
-      poolAssetTokenAccount,
-      creatorShareTokenAccount,
-      creatorAssetTokenAccount,
-    };
-
-    // Initialize the pool with the provided parameters.
     try {
+      // Fetch the token supply data for the asset and share tokens.
+      const assetTokenData = await connection.getTokenSupply(assetTokenMint);
+      const shareTokenData = await connection.getTokenSupply(shareTokenMint);
+
+      // Calculate the token divisors for the asset and share tokens.
+      const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
+      const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
+
+      // Define the zero BN value for optional parameters.
+      const zeroBn = new anchor.BN(0);
+
+      // Format the provided parameters to BN values.
+      const formattedAssets = assets.mul(new anchor.BN(assetTokenDivisor));
+      const formattedShares = shares.mul(new anchor.BN(shareTokenDivisor));
+      const formattedVirtualAssets = virtualAssets ? virtualAssets.mul(new anchor.BN(assetTokenDivisor)) : zeroBn;
+      const formattedVirtualShares = virtualShares ? virtualShares.mul(new anchor.BN(shareTokenDivisor)) : zeroBn;
+      const formattedMaxAssetsIn = maxAssetsIn.mul(new anchor.BN(assetTokenDivisor));
+      const formattedMaxSharesOut = maxSharesOut.mul(new anchor.BN(shareTokenDivisor));
+      const formattedMaxSharePrice = maxSharePrice.mul(new anchor.BN(shareTokenDivisor));
+
+      if (formattedAssets.gt(formattedMaxAssetsIn)) {
+        this.logger.error('Initial assets cannot exceed max assets in');
+        throw new Error('Initial assets cannot exceed max assets in');
+      }
+
+      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
+      const [poolPda] = findProgramAddressSync(
+        [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
+        this.program.programId,
+      );
+
+      // Find the associated token accounts for the pool and creator.
+      const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      const creatorShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, creator);
+      const creatorAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, creator);
+
+      // Define the accounts to be used in the transaction.
+      const accounts: Accounts = {
+        creator,
+        shareTokenMint,
+        assetTokenMint,
+        poolShareTokenAccount,
+        poolAssetTokenAccount,
+        creatorShareTokenAccount,
+        creatorAssetTokenAccount,
+      };
+
+      this.logger.debug('Initializing pool with the following parameters:', {
+        assets: formattedAssets.toString(),
+        shares: formattedShares.toString(),
+        virtualAssets: formattedVirtualAssets.toString(),
+        virtualShares: formattedVirtualShares.toString(),
+        maxSharePrice: formattedMaxSharePrice.toString(),
+        maxSharesOut: formattedMaxSharesOut.toString(),
+        maxAssetsIn: formattedMaxAssetsIn.toString(),
+        startWeightBasisPoints: startWeightBasisPoints.toString(),
+        endWeightBasisPoints: endWeightBasisPoints.toString(),
+        saleStartTime: saleStartTime.toString(),
+        saleEndTime: saleEndTime.toString(),
+        vestCliff: vestCliff?.toString(),
+        vestEnd: vestEnd?.toString(),
+        whitelistMerkleRoot: whitelistMerkleRoot?.toString(),
+        sellingAllowed: sellingAllowed ? sellingAllowed.toString() : false,
+      });
+
+      // Initialize the pool with the provided parameters.
+
       const transactionInstruction = await this.program.methods
         .initializePool(
           formattedAssets,
@@ -157,7 +181,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       // Return the transaction instruction and pool PDA.
       return { transactionInstruction, poolPda };
     } catch (error: any) {
-      this.logger.error('Error initializing pool:', error);
+      this.logger.error('Error initializing pool', error);
       throw new Error('Error initializing pool', error);
     }
   }
