@@ -62,7 +62,6 @@ export type InitializePoolArgs = {
 export interface InitializePoolParams extends InitializePoolPublicKeys, InitializePoolArgs {}
 
 export interface CreatePoolClientParams extends InitializePoolParams {
-  programId: PublicKey;
   provider: anchor.AnchorProvider;
 }
 

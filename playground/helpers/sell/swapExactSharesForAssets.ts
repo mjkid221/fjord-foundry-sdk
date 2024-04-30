@@ -1,4 +1,4 @@
-import { INITIALIZE_LBP_ADDRESS } from '@/constants';
+
 import { SwapAssetsForSharesParams } from '@/types';
 import { BigNumber } from '@fjord-foundry/solana-sdk-client';
 import { BN } from '@project-serum/anchor';
@@ -18,8 +18,7 @@ export const swapExactSharesForAssets = async ({
     throw new Error('Assets amount in is required');
   }
 
-  // Get the program address
-  const programAddressPublicKey = new PublicKey(INITIALIZE_LBP_ADDRESS);
+
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -40,7 +39,6 @@ export const swapExactSharesForAssets = async ({
   };
 
   const transaction = await sdkClient.createSwapExactSharesForAssetsTransaction({
-    programId: programAddressPublicKey,
     keys,
     args,
     provider,

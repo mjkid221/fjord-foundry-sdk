@@ -1,8 +1,16 @@
-import { Connection, TransactionInstruction, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
 import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
+import {
+  CreatorTokenBalances,
+  GetFeeRecipientsResponse,
+  GetPoolFeesResponse,
+  PoolTokenAccounts,
+  PoolTokenBalances,
+  UserPoolStateBalances,
+} from './lbp-read';
 import { CloseOperationPublicKeys, RedeemOperationPublicKeys } from './lbp-redeem';
 
 export interface SolanaConnectionServiceInterface {
@@ -277,6 +285,84 @@ export interface LbpManagementServiceInterface {
   }: SetTreasuryFeeRecipientsParams): Promise<TransactionInstruction>;
 }
 
+export interface LbpReadServiceInterface {
+  /**
+   * Retrieves the fees associated with a liquidity bootstrapping pool (LBP). This method fetches the platform fee, referral fee, and swap fee
+   * from the pool's owner configuration account.
+   *
+   * @returns {Promise<GetPoolFeesResponse>} - A promise that resolves with an object containing the platform fee, referral fee, and swap fee.
+   */
+  getPoolFees(): Promise<GetPoolFeesResponse>;
+
+  /**
+   * Retrieves the owner of the parent LBP program. This method fetches the public key of the wallet that administers the pool management.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the pool's owner.
+   */
+  getPoolOwner(): Promise<PublicKey>;
+
+  /**
+   * Retrieves the fee recipients associated with a liquidity bootstrapping pool (LBP). This method fetches the wallet addresses and
+   * percentage allocations for fee recipients from the pool's treasury account.
+   *
+   * @returns {Promise<GetFeeRecipientsResponse[]>} - A promise that resolves with an array of fee recipient details.
+   */
+  getFeeRecipients(): Promise<GetFeeRecipientsResponse[]>;
+
+  /**
+   * Retrieves the public key of the wallet designated to receive swap fees. This method fetches the swap fee recipient from the pool's treasury account.
+   *
+   * @returns {Promise<PublicKey>} - A promise that resolves with the public key of the wallet designated to receive swap fees.
+   */
+  getSwapFeeRecipient(): Promise<PublicKey>;
+
+  /**
+   * Retrieves the associated pool token accounts for a liquidity bootstrapping pool (LBP). This method fetches the public keys of the pool's
+   * share token account and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<PoolTokenAccounts>} - A promise that resolves with the public keys of the pool's share token account and asset token account.
+   */
+  getPoolTokenAccounts({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenAccounts>;
+
+  /**
+   * Retrieves the pool token balances for a liquidity bootstrapping pool (LBP). This method fetches the balance of the pool's share token account
+   * and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the balance of the pool's share token account and asset token account.
+   */
+  getPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Retrieves the creator token balances for a liquidity bootstrapping pool (LBP). This method fetches the balance of the creator's share token account
+   * and asset token account.
+   *
+   * @param {PublicKey} poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<CreatorTokenBalances>} - A promise that resolves with the balance of the creator's share token account and asset token account.
+   */
+  getCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances>;
+
+  /**
+   * Retrieves `purchasedShares`, `redeemedShares` and `referredAssets` of an LBP user account.
+   *
+   * @param {GetUserTokenBalanceParams} params - Parameters for getting user token balance.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   * @param {PublicKey} params.userPublicKey - The public key of the user.
+   *
+   * @returns {Promise<UserPoolStateBalances>} - A promise that resolves with the user's pool state balances.
+   */
+  getUserPoolStateBalances({
+    poolPda,
+    userPublicKey,
+  }: {
+    poolPda: PublicKey;
+    userPublicKey: PublicKey;
+  }): Promise<UserPoolStateBalances>;
+}
 export interface LbpRedemptionServiceInterface {
   /**
    * Asynchronously creates an instruction to close an LBP pool. This instruction closes the pool, distributes relevant tokens to the treasury and its fee recipients,

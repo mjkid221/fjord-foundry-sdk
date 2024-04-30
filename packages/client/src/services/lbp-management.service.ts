@@ -61,6 +61,7 @@ export class LbpManagementService implements LbpManagementServiceInterface {
    * Asynchronously creates an instance of LbpManagementService.
    * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
+   * @param {anchor.AnchorProvider} provider - The Anchor provider object.
    * @param {WalletAdapterNetwork} network - The Solana network.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpManagementService.
    */
