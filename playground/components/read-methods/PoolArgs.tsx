@@ -62,7 +62,7 @@ const PoolArgs = () => {
           </Table>
         </TableContainer>
       ) : (
-        <Typography>Loading...</Typography>
+        <Typography>No active pool set.</Typography>
       )}
       <FeedbackDialog
         onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
