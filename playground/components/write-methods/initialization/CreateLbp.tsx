@@ -17,7 +17,7 @@ import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapte
 import { Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
 import { Dayjs } from 'dayjs';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -28,6 +28,7 @@ import WalletNotConnected from '../../WalletNotConnected';
 import { handleDialogClose, handleDialogOpen } from '@/helpers';
 import FeedbackDialog from '@/components/FeedbackDialog';
 import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
+import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 
 const CreateLbp = () => {
   const [poolAddress, setPoolAddress] = useState<string>();
@@ -45,9 +46,18 @@ const CreateLbp = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue } = useForm<z.infer<typeof initializePoolArgsSchema>>({
+  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof initializePoolArgsSchema>>({
     resolver: zodResolver(initializePoolArgsSchema),
   });
+
+  const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+
+  useEffect(() => {
+    if (!connectedWalletAddress) {
+      return;
+    }
+    setValue('args.creator', connectedWalletAddress);
+  }, [connectedWalletAddress, setValue]);
 
   const signAndSendCreatePoolTransaction = async (transactionInstruction: TransactionInstruction) => {
     const transaction = new Transaction().add(transactionInstruction);
@@ -128,11 +138,9 @@ const CreateLbp = () => {
         <Stack spacing={2} flexDirection="column">
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
-            <TextField
-              label="creator address"
-              placeholder="creator"
-              {...register('args.creator', { required: true })}
-            />
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {watch('args.creator')?.length > 0 ? watch('args.creator') : 'Please connect your wallet'}
+            </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}>
             <FormLabel htmlFor="shareTokenMint">Share Token Mint</FormLabel>
@@ -233,10 +241,10 @@ const CreateLbp = () => {
               <MenuItem value="true">True</MenuItem>
             </Select>
           </FormControl>
+          {!wallet && <WalletNotConnected />}
           <Button variant="contained" type="submit" disabled={!wallet}>
             Submit
           </Button>
-          {!wallet && <WalletNotConnected />}
           {poolAddress && <Typography>Newly created pool address: {poolAddress}</Typography>}
         </Stack>
       </form>
