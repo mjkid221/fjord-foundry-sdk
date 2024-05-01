@@ -35,5 +35,6 @@ export const signAndSendSwapTransaction = async (
     return { txid, confirmation };
   } catch (error) {
     console.error(error);
+    throw new Error('Transaction could not be confirmed');
   }
 };
