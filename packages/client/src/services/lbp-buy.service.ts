@@ -123,6 +123,8 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
     const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
 
+    this.logger.debug('Pool PDA from params', poolPdaFromParams.toBase58());
+    this.logger.debug('Pool PDA from args', poolPda.toBase58());
     // Check that the poolPda is valid.
     if (!poolPda.equals(poolPdaFromParams)) {
       this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');

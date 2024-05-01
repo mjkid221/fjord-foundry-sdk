@@ -1279,17 +1279,17 @@ const { data } = useQuery({
 
 - Retrieves the fee recipients associated with a liquidity bootstrapping pool (LBP). This method fetches the wallet addresses and percentage allocations for fee recipients from the pool's treasury account.
 
-#### `readPoolTokenAccounts()`
+#### `readPoolTokenAccounts({ poolPda }: { poolPda: PublicKey })`
 
 - Reads the associated share and asset token accounts of the pool.
 
-#### `readPoolTokenBalances()`
+#### `readPoolTokenBalances({ poolPda }: { poolPda: PublicKey })`
 
 - This method fetches the balance of the pool's share token account and asset token account.
 
-#### `readUserTokenBalances()`
+#### `readUserTokenBalances({ poolPda, userPublicKey }: { poolPda: PublicKey, userPublicKey: PublicKey })`
 
-- Retrieves `purchasedShares`, r`edeemedShares` and `referredAssets` of an LBP user account.
+- Retrieves `purchasedShares`, `redeemedShares` and `referredAssets` of an LBP user account.
 
 ## Enums
 
@@ -1325,6 +1325,8 @@ Defines keys used to access specific data within an LBP.
 **IMPORTANT**
 
 It is important that the program [IDL](./src/constants/idls/initialize-lbp.ts) is updated whenever an upgrade to the LBP program occurs. Failure to do this may result in breaking some of the SDK methods.
+
+The **IDL** is the Solana equivalent of a Solidity smart contract **ABI**.
 
 ## License
 

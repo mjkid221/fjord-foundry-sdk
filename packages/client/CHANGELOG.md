@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.0-rc.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0...v1.2.0-rc.0) (2024-05-01)
+
+### Features
+
+- add basic buy service test cases ([9b6eb10](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/9b6eb10eb8956fa3f9398a01fc0e19a9ee12d8a5))
+- add management service tests ([f8b1f48](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/f8b1f48dc4dff3a7728fae8d460bddf503850b0d))
+- add test cases for remaining lbp services ([4b85cf8](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/4b85cf8dc098370aea2c449827724d082982749c))
+
+### Documentation
+
+- add some documentation for tests ([1bed167](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/1bed167dd5f353c8153bdf9c537cab5dfd8aea3b))
+
 ## [1.1.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.5...v1.1.0) (2024-05-01)
 
 ### Features

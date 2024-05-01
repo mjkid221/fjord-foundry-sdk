@@ -4,7 +4,9 @@ The Solana SDK is a development kit for Liquidity Bootstrap Pools(LBPs) on the S
 
 ## Packages
 
-- [`@fjord-foundry/solana-sdk-client`](packages/client/README.md) - The entrypoint for interaction with the Fjord Foundry Solana LBP programs.
+- `@fjord-foundry/solana-sdk-client` - The entrypoint for interaction with the Fjord Foundry Solana LBP programs.
+
+View the main SDK client documentation **[HERE](packages/client/README.md)**
 
 ## Demo
 

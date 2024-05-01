@@ -182,7 +182,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       return { transactionInstruction, poolPda };
     } catch (error: any) {
       this.logger.error('Error initializing pool', error);
-      throw new Error('Error initializing pool', error);
+      throw new Error(error);
     }
   }
 

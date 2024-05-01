@@ -239,7 +239,7 @@ export class LbpReadService implements LbpReadServiceInterface {
       };
     } catch (error: any) {
       this.logger.error('User token balances not found', error);
-      throw new Error('User token balances not found', error);
+      throw new Error(error);
     }
   }
 }
