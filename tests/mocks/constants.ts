@@ -27,17 +27,18 @@ const testMerkleWhitelistedAddresses = [
 
 // Mock wallet for AnchorProvider as we are only reading data
 const MOCK_WALLET = {
-  publicKey: new PublicKey('7CGSCbMr3J9XH8tVcuzzw32G5BZm3cXPKaXVmTnY646r'),
+  publicKey: new PublicKey('7CGSCbMr3J9XH8tVcuzzw32G5BZm3cXPKaXVmTnY646r'), // This public key is a burner wallet. It is the governing devnet program owner.
   signTransaction: () => Promise.reject(),
   signAllTransactions: () => Promise.reject(),
 };
 
-const TOKEN_A = new PublicKey('GZD7PARxHsuViaqGFX5sAtu6stLioyYckg91U6CwAHut');
-const TOKEN_B = new PublicKey('AiWtsNnAzUiRRzzwjN55nPeZhrzMbnyZqx6icsnFBUBw');
+const TOKEN_A = new PublicKey('GZD7PARxHsuViaqGFX5sAtu6stLioyYckg91U6CwAHut'); // This is a test token mint
+const TOKEN_B = new PublicKey('AiWtsNnAzUiRRzzwjN55nPeZhrzMbnyZqx6icsnFBUBw'); // This is a test token mint
 
-const TEST_POOL_PDA = new PublicKey('3kT4sQu1UcpvsFZkenCz894UZK9mF3jqrdaRsA1hgZ6d');
+const TEST_POOL_PDA = new PublicKey('3kT4sQu1UcpvsFZkenCz894UZK9mF3jqrdaRsA1hgZ6d'); // This is the precalculated pool PDA for the test pool
 
-const BUY_SELL_POOL_PDA = new PublicKey('36GY5QvWNzFPtiZmY5axcfDSnQymTgn66Z3hUThGZyJA');
+const BUY_SELL_POOL_PDA = new PublicKey('36GY5QvWNzFPtiZmY5axcfDSnQymTgn66Z3hUThGZyJA'); // This is the PDA of a deployed pool using TOKEN_A and TOKEN_B
+
 export {
   TIME_OFFSET,
   ONE_DAY_SECONDS,
