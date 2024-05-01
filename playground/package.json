@@ -1,6 +1,6 @@
 {
   "name": "playground",
-  "version": "1.1.0-rc.5",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "playground": "next dev",
@@ -14,7 +14,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/server": "^11.11.0",
     "@emotion/styled": "^11.11.5",
-    "@fjord-foundry/solana-sdk-client": "1.1.0-rc.5",
+    "@fjord-foundry/solana-sdk-client": "1.1.0",
     "@hookform/resolvers": "^3.3.4",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",

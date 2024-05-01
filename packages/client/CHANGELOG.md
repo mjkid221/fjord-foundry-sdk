@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.5...v1.1.0) (2024-05-01)
+
+### Features
+
+- add user, creator and pool balance read methods ([9308877](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/9308877a526320335675eeae7a00e65dee1223ea))
+- scaffold some utility read functions ([a53dffe](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/a53dffe422d8f977660c5c55015b4d07a417ab52))
+
+### Documentation
+
+- add documentation for read methods ([519509e](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/519509e579d54b062fcb40663251388df251406b))
+- add some more small comments ([65c4ada](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/65c4ada5d4f7fc16bc5a41e7bd2799c1a4fd63c9))
+- update sdk documentation and tidy up some repeated logic ([ca0a3a3](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/ca0a3a394b983f5a53ce8b24d6ec14ab34d174b8))
+
 ## [1.1.0-rc.5](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0-rc.4...v1.1.0-rc.5) (2024-04-30)
 
 ### Features
