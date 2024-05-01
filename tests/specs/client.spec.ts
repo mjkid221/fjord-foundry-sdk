@@ -5,11 +5,11 @@ import { PublicKey } from '@solana/web3.js';
 /**
  * These are the actual addresses of a created pool and program on the Solana network devnet.
  * **Note** These addresses should be updated when new deployments of the program are made.
- * @see https://explorer.solana.com/address/ECn1vFpDcd7CWTGaXiacPzCapc4uEL27rsdZdNg34bji?cluster=devnet
- * @see https://explorer.solana.com/address/CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW?cluster=devnet
+ * @see https://explorer.solana.com/address/AuTuRk4oAtb2QpQPBbqQgUtsqQwofcSrCdEM91x7oPVa?cluster=devnet
+ * @see https://explorer.solana.com/address/HK6KFuWu9ZzEaiKy16LDcaQ2u1G1NAhib7pvNxzA3jKr?cluster=devnet
  */
-const solanaPoolPda = new PublicKey('ECn1vFpDcd7CWTGaXiacPzCapc4uEL27rsdZdNg34bji');
-const programAddress = new PublicKey('CDxtUkuCvKHVPbFwBjUuiKc5D7eKx8xPcXzmPgCHQWJW');
+const solanaPoolPda = new PublicKey('AuTuRk4oAtb2QpQPBbqQgUtsqQwofcSrCdEM91x7oPVa');
+const programAddress = new PublicKey('HK6KFuWu9ZzEaiKy16LDcaQ2u1G1NAhib7pvNxzA3jKr');
 
 describe('FjordClientSdk Solana Read Functions', () => {
   let sdk: FjordClientSdk;

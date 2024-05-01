@@ -6,6 +6,8 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { ReactNode, useMemo } from 'react';
 
 import WalletButtons from '@/components/WalletButtons';
+import { Stack } from '@mui/material';
+import Navigation from '@/components/Navigation';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
@@ -39,7 +41,17 @@ const WalletContext = ({ children }: { children: ReactNode }) => {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <WalletButtons />
+          <Stack
+            direction={['column', 'column', 'row']}
+            width="100vw"
+            justifyContent="space-between"
+            padding={2}
+            alignItems="center"
+          >
+            <Navigation />
+            <WalletButtons />
+          </Stack>
+
           {children}
         </WalletModalProvider>
       </WalletProvider>

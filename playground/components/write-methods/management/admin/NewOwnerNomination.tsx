@@ -1,16 +1,22 @@
+import FeedbackDialog from '@/components/FeedbackDialog';
+import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import WalletNotConnected from '@/components/WalletNotConnected';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { nominateNewOwner, signAndSendSwapTransaction } from '@/helpers';
+import { handleDialogClose, handleDialogOpen, nominateNewOwner, signAndSendSwapTransaction } from '@/helpers';
 import { nominateNewOwnerArgsSchema } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, FormControl, FormLabel, TextField, Button, Typography } from '@mui/material';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMutation } from '@tanstack/react-query';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const NewOwnerNomination = () => {
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+
   const { register, handleSubmit, setValue } = useForm<z.infer<typeof nominateNewOwnerArgsSchema>>({
     resolver: zodResolver(nominateNewOwnerArgsSchema),
   });
@@ -25,10 +31,18 @@ const NewOwnerNomination = () => {
   const nominateNewOwnerMutation = useMutation({
     mutationFn: nominateNewOwner,
     onSuccess: async (data) => {
-      const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
-      console.log('Success', confirmation);
+      try {
+        const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
+
+        setTransactionHash(confirmation.txid);
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
+      } catch (error) {
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+      }
     },
-    onError: (error) => console.log('Error', error),
+    onError: () => {
+      handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+    },
   });
 
   useEffect(() => {
@@ -45,26 +59,40 @@ const NewOwnerNomination = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={2} flexDirection="column">
-        {nominateNewOwnerMutation.error && (
-          <Typography color="error">Error: {nominateNewOwnerMutation.error.message}</Typography>
-        )}
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="user-address">New Owner Address</FormLabel>
-          <TextField
-            label=">New Owner Address"
-            placeholder="Address"
-            {...register('args.newOwnerPublicKey', { required: true })}
-          />
-        </FormControl>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={2} flexDirection="column">
+          {nominateNewOwnerMutation.error && (
+            <Typography color="error">Error: {nominateNewOwnerMutation.error.message}</Typography>
+          )}
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel htmlFor="user-address">New Owner Address</FormLabel>
+            <TextField
+              label=">New Owner Address"
+              placeholder="Address"
+              {...register('args.newOwnerPublicKey', { required: true })}
+            />
+          </FormControl>
 
-        <Button variant="contained" type="submit" disabled={!wallet}>
-          Submit
-        </Button>
-        {!wallet && <WalletNotConnected />}
-      </Stack>
-    </form>
+          <Button variant="contained" type="submit" disabled={!wallet}>
+            Submit
+          </Button>
+          {!wallet && <WalletNotConnected />}
+        </Stack>
+      </form>
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={errorDialogOpen}
+        isError={true}
+        errorMessage={nominateNewOwnerMutation.error?.message ?? 'Could not nominate new owner'}
+      />
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={successDialogOpen}
+      >
+        <SuccessFeedback transactionHash={transactionHash} />
+      </FeedbackDialog>
+    </>
   );
 };
 

@@ -16,7 +16,6 @@ export const swapAssetsForExactShares = async ({
     throw new Error('Shares amount out is required');
   }
 
-
   const creator = new PublicKey(formData.args.creator);
   const userPublicKey = new PublicKey(formData.args.userPublicKey);
   const shareTokenMint = new PublicKey(formData.args.shareTokenMint);
@@ -30,8 +29,6 @@ export const swapAssetsForExactShares = async ({
     shareTokenMint,
     assetTokenMint,
   };
-
-  console.log('keys', keys.assetTokenMint.toString());
 
   const args = {
     poolPda,

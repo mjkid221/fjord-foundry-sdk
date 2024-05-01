@@ -1,21 +1,27 @@
+import FeedbackDialog from '@/components/FeedbackDialog';
+import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import WalletNotConnected from '@/components/WalletNotConnected';
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
-import { getPoolDataValue } from '@/helpers';
+import { getPoolArgs, handleDialogClose, handleDialogOpen } from '@/helpers';
 import { closeLbpPool } from '@/helpers/redemption/closeLbpPool';
 import { signAndSendTransaction } from '@/helpers/shared';
+import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
 import { closePoolArgsSchema } from '@/types';
-import { PoolDataValueKey } from '@fjord-foundry/solana-sdk-client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Stack, FormControl, FormLabel, TextField, Button } from '@mui/material';
+import { Stack, FormControl, FormLabel, Button, Typography } from '@mui/material';
 import { useConnection, useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const ClosePool = () => {
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
   const { connection } = useConnection();
@@ -25,41 +31,33 @@ const ClosePool = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue } = useForm<z.infer<typeof closePoolArgsSchema>>({
+  const { handleSubmit, setValue, watch } = useForm<z.infer<typeof closePoolArgsSchema>>({
     resolver: zodResolver(closePoolArgsSchema),
   });
 
+  const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+
+  useEffect(() => {
+    if (!connectedWalletAddress) {
+      return;
+    }
+    setValue('args.userPublicKey', connectedWalletAddress);
+  }, [connectedWalletAddress, setValue]);
+
   useQuery({
-    queryKey: ['shareTokenAddress'],
+    queryKey: ['pool-args'],
     queryFn: async () => {
       if (!sdkClient || !poolAddress) throw new Error('Provider not found');
       const poolPda = new PublicKey(poolAddress);
 
-      const data = await getPoolDataValue({
+      const data = await getPoolArgs({
         poolPda,
         sdkClient,
-        valueKey: PoolDataValueKey.ShareToken,
       });
-      setValue('args.shareTokenMint', data as string);
+      setValue('args.assetTokenMint', data.assetToken);
+      setValue('args.shareTokenMint', data.shareToken);
       setValue('args.poolPda', poolAddress);
-
-      return data;
-    },
-    enabled: !!poolAddress,
-  });
-
-  useQuery({
-    queryKey: ['assetTokenAddress'],
-    queryFn: async () => {
-      if (!sdkClient || !poolAddress) throw new Error('Provider not found');
-      const poolPda = new PublicKey(poolAddress);
-
-      const data = await getPoolDataValue({
-        poolPda,
-        sdkClient,
-        valueKey: PoolDataValueKey.AssetToken,
-      });
-      setValue('args.assetTokenMint', data as string);
+      setValue('args.creator', data.creator);
 
       return data;
     },
@@ -69,12 +67,19 @@ const ClosePool = () => {
   const closePool = useMutation({
     mutationFn: closeLbpPool,
     onSuccess: async (data) => {
-      if (!publicKey || !signTransaction) return;
-      console.log(data);
-      const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
-      console.log('Success', confirmation);
+      try {
+        if (!publicKey || !signTransaction) return;
+        const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
+
+        setTransactionHash(confirmation.txid);
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
+      } catch (error) {
+        handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+      }
     },
-    onError: (error) => console.log('Error', error),
+    onError: () => {
+      handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen, isError: true });
+    },
   });
 
   const onSubmit = async (data: z.infer<typeof closePoolArgsSchema>) => {
@@ -85,22 +90,45 @@ const ClosePool = () => {
     closePool.mutate({ formData: data, connection, provider, sdkClient });
   };
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={2} flexDirection="column">
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
-          <TextField label="creator address" placeholder="creator" {...register('args.creator', { required: true })} />
-        </FormControl>
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel htmlFor="user-address">User Address</FormLabel>
-          <TextField label="user address" placeholder="user" {...register('args.userPublicKey', { required: true })} />
-        </FormControl>
-        <Button variant="contained" type="submit" disabled={!wallet}>
-          Submit
-        </Button>
-        {!wallet && <WalletNotConnected />}
-      </Stack>
-    </form>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={2} flexDirection="column">
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel htmlFor="creator-address">Creator Address</FormLabel>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {watch('args.creator')?.length > 0 ? watch('args.creator') : 'Please set the active pool'}
+            </Typography>
+          </FormControl>
+          <FormControl sx={{ mb: 2 }}>
+            <FormLabel htmlFor="user-address">User Address</FormLabel>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {connectedWalletAddress ?? 'Please connect your wallet '}
+            </Typography>
+          </FormControl>
+          {!wallet && <WalletNotConnected />}
+          {!poolAddress && (
+            <Typography variant="body1" color="error">
+              Please set your active pool
+            </Typography>
+          )}
+          <Button variant="contained" type="submit" disabled={!wallet || !poolAddress}>
+            Submit
+          </Button>
+        </Stack>
+      </form>
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={errorDialogOpen}
+        isError={true}
+        errorMessage={closePool.error?.message ?? 'Could not close pool'}
+      />
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={successDialogOpen}
+      >
+        <SuccessFeedback transactionHash={transactionHash} />
+      </FeedbackDialog>
+    </>
   );
 };
 

@@ -24,6 +24,8 @@ export const redeemLbpPool = async ({ formData, connection, provider, sdkClient 
     isReferred: formData.args.isReferred,
   };
 
+  console.log('Redeem Tokens Args:', args);
+
   const transaction = await sdkClient.redeemTokensTransaction({
     keys,
     args,

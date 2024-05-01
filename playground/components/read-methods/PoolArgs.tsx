@@ -1,18 +1,23 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { getPoolArgs } from '@/helpers/pool-initialization';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
+import { handleDialogClose } from '@/helpers';
+import FeedbackDialog from '../FeedbackDialog';
 
 const PoolArgs = () => {
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in handleDialogClose but not in the component
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const poolAddress = usePoolAddressStore((state) => state.poolAddress);
 
   const { sdkClient } = useContext(SolanaSdkClientContext);
 
-  const { data } = useQuery({
+  const { data, error, isError } = useQuery({
     queryKey: ['pool-args'],
     queryFn: async () => {
       if (!sdkClient) throw new Error('Provider not found');
@@ -23,6 +28,13 @@ const PoolArgs = () => {
     },
     enabled: poolAddress !== '' && !!poolAddress,
   });
+
+  useEffect(() => {
+    if (!isError) {
+      return;
+    }
+    setErrorDialogOpen(true);
+  }, [isError]);
 
   return (
     <>
@@ -50,8 +62,14 @@ const PoolArgs = () => {
           </Table>
         </TableContainer>
       ) : (
-        <Typography>Loading...</Typography>
+        <Typography>No active pool set.</Typography>
       )}
+      <FeedbackDialog
+        onClose={() => handleDialogClose({ setErrorDialogOpen, setSuccessDialogOpen })}
+        open={errorDialogOpen}
+        isError={true}
+        errorMessage={error?.message}
+      />
     </>
   );
 };
