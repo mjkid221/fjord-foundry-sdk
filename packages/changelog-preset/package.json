@@ -1,6 +1,6 @@
 {
   "name": "@fjord-foundry/media-sdk-changelog-preset",
-  "version": "1.2.0-rc.0",
+  "version": "1.2.0",
   "private": true,
   "author": "Labrys <simon@labrys.io> (https://www.labrys.io/)",
   "license": "Apache-2.0",

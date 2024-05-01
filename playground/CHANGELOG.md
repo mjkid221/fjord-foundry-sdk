@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.2.0-rc.0...v1.2.0) (2024-05-01)
+
+### Features
+
+- add some useful links ([49ea842](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/49ea84289218e2ec8ab036f4f4026aaee09c8d4e))
+- add top navigation ([600459b](https://github.com/Labrys-Group/fjord-foundry-sdk/commit/600459b2a6e202c0b4aeeb0c22bce2373284b15f))
+
 ## [1.2.0-rc.0](https://github.com/Labrys-Group/fjord-foundry-sdk/compare/v1.1.0...v1.2.0-rc.0) (2024-05-01)
 
 **Note:** Version bump only for package playground
