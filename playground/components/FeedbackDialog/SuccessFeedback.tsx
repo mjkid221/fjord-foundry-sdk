@@ -1,4 +1,6 @@
+import { useSolanaNetworkStore } from '@/stores/useSolanaNetworkStore';
 import { Link, Stack, Typography } from '@mui/material';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 interface SuccessFeedbackProps {
   transactionHash: string;
@@ -6,6 +8,7 @@ interface SuccessFeedbackProps {
 }
 
 const SuccessFeedback = ({ transactionHash, newPoolPda }: SuccessFeedbackProps) => {
+  const solanaNetwork = useSolanaNetworkStore((state) => state.solanaNetwork);
   return (
     <Stack spacing={4}>
       {newPoolPda && (
@@ -16,7 +19,7 @@ const SuccessFeedback = ({ transactionHash, newPoolPda }: SuccessFeedbackProps) 
       )}
       <Stack>
         <Link
-          href={`https://explorer.solana.com/tx/${transactionHash}?cluster=devnet`}
+          href={`https://explorer.solana.com/tx/${transactionHash}${solanaNetwork === WalletAdapterNetwork.Devnet && '?cluster=devnet'}`}
           target="_blank"
           rel="noopener noreferrer"
         >

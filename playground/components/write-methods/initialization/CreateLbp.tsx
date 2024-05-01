@@ -76,13 +76,12 @@ const CreateLbp = () => {
 
       const txid = await sendTransaction(transaction, connection, { minContextSlot });
 
-      console.log(`Transaction submitted: https://explorer.solana.com/tx/${txid}?cluster=devnet`);
-
       const confirmation = await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature: txid });
 
       return { txid, confirmation };
     } catch (error) {
       console.error(error);
+      throw new Error('Transaction could not be confirmed');
     }
   };
 
@@ -92,9 +91,7 @@ const CreateLbp = () => {
       setPoolAddress(data.poolPda.toBase58());
       try {
         const confirmation = await signAndSendCreatePoolTransaction(data.transactionInstruction);
-        if (!confirmation) {
-          throw new Error('Transaction could not be confirmed');
-        }
+
         setTransactionHash(confirmation.txid);
         handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
       } catch (error) {

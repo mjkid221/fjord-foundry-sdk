@@ -33,9 +33,7 @@ const NewOwnerNomination = () => {
     onSuccess: async (data) => {
       try {
         const confirmation = await signAndSendSwapTransaction(data, wallet, connection, sendTransaction);
-        if (!confirmation) {
-          throw new Error('Transaction could not be confirmed');
-        }
+
         setTransactionHash(confirmation.txid);
         handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
       } catch (error) {

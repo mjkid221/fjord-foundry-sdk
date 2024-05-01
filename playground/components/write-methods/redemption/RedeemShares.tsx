@@ -70,9 +70,6 @@ const RedeemShares = () => {
       try {
         const confirmation = await signAndSendTransaction(data, wallet, connection, sendTransaction);
 
-        if (!confirmation) {
-          throw new Error('Transaction could not be confirmed');
-        }
         setTransactionHash(confirmation.txid);
         handleDialogOpen({ setErrorDialogOpen, setSuccessDialogOpen });
       } catch (error) {
@@ -88,7 +85,6 @@ const RedeemShares = () => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
     }
-    console.log(data);
     redeemShares.mutate({ formData: data, connection, provider, sdkClient });
   };
 
