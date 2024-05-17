@@ -1,8 +1,10 @@
 import * as anchor from '@coral-xyz/anchor';
+import { base64 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey, Connection } from '@solana/web3.js';
+import { PublicKey, Connection, VersionedTransaction, TransactionMessage } from '@solana/web3.js';
+import * as borsh from 'borsh';
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
@@ -12,8 +14,11 @@ import {
   GetPoolFeesResponse,
   GetUserTokenBalanceParams,
   LbpReadServiceInterface,
+  PoolReservesAndWeights,
+  PoolReservesAndWeightsResponse,
   PoolTokenAccounts,
   PoolTokenBalances,
+  ReservesAndWeightSchema,
   UserPoolStateBalances,
 } from '../types';
 
@@ -239,6 +244,73 @@ export class LbpReadService implements LbpReadServiceInterface {
       };
     } catch (error: any) {
       this.logger.error('User token balances not found', error);
+      throw new Error(error);
+    }
+  }
+
+  public async getPoolReservesAndWeights({ poolPda }: { poolPda: PublicKey }): Promise<PoolReservesAndWeights> {
+    try {
+      const { assetToken: assetTokenMint, shareToken: shareTokenMint } = await this.getPool(poolPda);
+
+      const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
+      const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
+
+      const ix = await this.program.methods
+        .reservesAndWeights()
+        .accounts({
+          pool: poolPda,
+          assetTokenMint,
+          shareTokenMint,
+          poolAssetTokenAccount,
+          poolShareTokenAccount,
+        })
+        .instruction();
+
+      const txSimulation = await this.connection.simulateTransaction(
+        new VersionedTransaction(
+          new TransactionMessage({
+            // Example key
+            payerKey: new PublicKey('AMufp7u55mQ8VxNCtE5Cm3ufCQQQvxJmonGFo9SfU5tM'),
+            recentBlockhash: (await this.connection.getLatestBlockhash()).blockhash,
+            instructions: [ix],
+          }).compileToV0Message(),
+        ),
+      );
+
+      if (txSimulation.value.err) {
+        this.logger.error('Unable to simulate preview transaction', txSimulation.value.err);
+        throw new Error('Unable to simulate preview transaction');
+      }
+
+      let data: PoolReservesAndWeightsResponse | null = null;
+      if (txSimulation.value.returnData?.data) {
+        data = borsh.deserialize(
+          ReservesAndWeightSchema,
+          Buffer.from(base64.decode(txSimulation?.value?.returnData?.data[0])),
+        ) as PoolReservesAndWeightsResponse;
+      } else {
+        const returnPrefix = `Program return: ${this.program.programId} `;
+        const returnLogEntry = txSimulation.value.logs!.find((log) => log.startsWith(returnPrefix));
+        if (returnLogEntry) {
+          data = borsh.deserialize(
+            ReservesAndWeightSchema,
+            Buffer.from(base64.decode(returnLogEntry.slice(returnPrefix.length))),
+          ) as PoolReservesAndWeightsResponse;
+        }
+      }
+
+      if (!data) {
+        throw new Error('Pool reserves and weights not found');
+      }
+      const { asset_reserve, share_reserve, asset_weight, share_weight } = data;
+      return {
+        assetReserve: asset_reserve.toString(),
+        shareReserve: share_reserve.toString(),
+        assetWeight: asset_weight.toString(),
+        shareWeight: share_weight.toString(),
+      };
+    } catch (error: any) {
+      this.logger.error('Pool reserves and weights not found', error);
       throw new Error(error);
     }
   }

@@ -2305,11 +2305,16 @@ export type FjordLbp = {
     },
     {
       code: 6026;
+      name: 'InvalidFeeRecipientWritable';
+      msg: 'The fee recipient must be writable';
+    },
+    {
+      code: 6027;
       name: 'InvalidCreator';
       msg: 'Supplied account must match the pool creator pubkey';
     },
     {
-      code: 6027;
+      code: 6028;
       name: 'InvalidSwapFeeRecipient';
       msg: 'Invalid swap fee recipient';
     },
@@ -4623,11 +4628,16 @@ export const IDL: FjordLbp = {
     },
     {
       code: 6026,
+      name: 'InvalidFeeRecipientWritable',
+      msg: 'The fee recipient must be writable',
+    },
+    {
+      code: 6027,
       name: 'InvalidCreator',
       msg: 'Supplied account must match the pool creator pubkey',
     },
     {
-      code: 6027,
+      code: 6028,
       name: 'InvalidSwapFeeRecipient',
       msg: 'Invalid swap fee recipient',
     },
