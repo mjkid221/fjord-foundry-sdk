@@ -42,9 +42,21 @@ export interface UserPoolStateBalances {
 }
 
 export interface PoolReservesAndWeights {
+  /**
+   * Asset reserve denoted in Lamports
+   */
   assetReserve: string;
+  /**
+   * Share reserve denoted in Lamports
+   */
   shareReserve: string;
+  /**
+   * Asset weight denoted in 100 BIPS (e.g. 100 = 1%)
+   */
   assetWeight: string;
+  /**
+   * Share weight denoted in 100 BIPS (e.g. 100 = 1%)
+   */
   shareWeight: string;
 }
 

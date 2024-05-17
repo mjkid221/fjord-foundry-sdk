@@ -7,6 +7,7 @@ import {
   CreatorTokenBalances,
   GetFeeRecipientsResponse,
   GetPoolFeesResponse,
+  PoolReservesAndWeights,
   PoolTokenAccounts,
   PoolTokenBalances,
   UserPoolStateBalances,
@@ -335,6 +336,17 @@ export interface LbpReadServiceInterface {
    * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the balance of the pool's share token account and asset token account.
    */
   getPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Retrieves the reserves and weights of a liquidity bootstrapping pool (LBP). This method fetches the asset reserve, share reserve, asset weight,
+   * and share weight from the pool's state account.
+   *
+   * @param {GetPoolWeightsAndReserves} params - Parameters for getting pool weights and reserves.
+   * @param {PublicKey} params.poolPda - The Program Derived Address (PDA) of the LBP pool.
+   *
+   * @returns {Promise<PoolReservesAndWeights>} - A promise that resolves with the pool's reserves and weights.
+   */
+  getPoolReservesAndWeights({ poolPda }: { poolPda: PublicKey }): Promise<PoolReservesAndWeights>;
 
   /**
    * Retrieves the creator token balances for a liquidity bootstrapping pool (LBP). This method fetches the balance of the creator's share token account
