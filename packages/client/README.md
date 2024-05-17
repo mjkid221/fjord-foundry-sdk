@@ -1287,6 +1287,10 @@ const { data } = useQuery({
 
 - This method fetches the balance of the pool's share token account and asset token account.
 
+#### `readPoolReservesAndWeights({ poolPda } : {poolPda: PublicKey })`
+
+- This method fetches the pool reserves and weights of the pool via a simulation and deserialization.
+
 #### `readUserTokenBalances({ poolPda, userPublicKey }: { poolPda: PublicKey, userPublicKey: PublicKey })`
 
 - Retrieves `purchasedShares`, `redeemedShares` and `referredAssets` of an LBP user account.

@@ -21,6 +21,7 @@ const SolanaRead = () => {
           { href: 'solana/utility/swap-fee-recipient', label: 'Swap Fee Recipient' },
           { href: 'solana/utility/pool-token-accounts', label: 'Pool Token Accounts' },
           { href: 'solana/utility/pool-token-balances', label: 'Pool Token Balances' },
+          { href: 'solana/utility/pool-reserves-and-weights', label: 'Pool Reserve and Weights' },
           { href: 'solana/utility/user-pool-state', label: 'User Pool State' },
         ]}
       />

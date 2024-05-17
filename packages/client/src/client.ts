@@ -39,6 +39,8 @@ import {
   CreatorTokenBalances,
   GetUserTokenBalanceParams,
   UserPoolStateBalances,
+  GetPoolWeightsAndReserves,
+  PoolReservesAndWeights,
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -561,6 +563,23 @@ export class FjordClientSdk implements ClientSdkInterface {
     const poolBalances = await this.lbpReadService.getPoolTokenBalances({ poolPda });
 
     return poolBalances;
+  }
+
+  public async readPoolReservesAndWeights({ poolPda }: GetPoolWeightsAndReserves): Promise<PoolReservesAndWeights> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    return this.lbpReadService.getPoolReservesAndWeights({ poolPda });
   }
 
   public async readCreatorTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<CreatorTokenBalances> {

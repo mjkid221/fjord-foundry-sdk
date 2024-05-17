@@ -17,6 +17,7 @@ import {
   GetFeeRecipientsResponse,
   GetPoolFeesResponse,
   GetUserTokenBalanceParams,
+  PoolReservesAndWeights,
   PoolTokenAccounts,
   PoolTokenBalances,
   UserPoolStateBalances,
@@ -347,6 +348,14 @@ export interface ClientSdkInterfaceSolana {
    * @returns {Promise<PoolTokenBalances>} - A promise that resolves with the pool's share token balance and asset token balance.
    */
   readPoolTokenBalances({ poolPda }: { poolPda: PublicKey }): Promise<PoolTokenBalances>;
+
+  /**
+   * Reads the pool reserves and weights.
+   * @param {PublicKey} poolPda - The public key of the pool's Program Derived Address (PDA).
+   *
+   * @returns {Promise<PoolReservesAndWeights>} - A promise that resolves with the pool's asset reserve, share reserve, asset weight and share weight.
+   */
+  readPoolReservesAndWeights({ poolPda }: { poolPda: PublicKey }): Promise<PoolReservesAndWeights>;
 
   /**
    * Reads the creator token balances of the pool on the blockchain.
