@@ -3,7 +3,7 @@ import { AnchorProvider } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 
-export const swapAssetsForSharesArgsSchema = z.object({
+const baseArgsSchema = z.object({
   args: z.object({
     userPublicKey: z.string().refine(
       (val) => {
@@ -26,6 +26,7 @@ export const swapAssetsForSharesArgsSchema = z.object({
       { message: 'Creator must be a valid Solana public key' },
     ),
     referrer: z.string().optional(),
+
     shareTokenMint: z.string().refine(
       (val) => {
         try {
@@ -56,8 +57,27 @@ export const swapAssetsForSharesArgsSchema = z.object({
       },
       { message: 'Pool must be a valid Solana public key' },
     ),
+    // Define slippage, must be less than 30
+    slippage: z.coerce
+      .number()
+      .refine((val) => val <= 30, { message: 'Slippage must be less than 30%' })
+      .optional(),
+  }),
+});
+
+export const swapAssetsForSharesArgsSchema = z.object({
+  args: z.object({
+    ...baseArgsSchema.shape.args.shape,
     sharesAmountOut: z.string().optional(),
     assetsAmountIn: z.string().optional(),
+  }),
+});
+
+export const swapSharesForAssetsArgsSchema = z.object({
+  args: z.object({
+    ...baseArgsSchema.shape.args.shape,
+    assetsAmountOut: z.string().optional(),
+    sharesAmountIn: z.string().optional(),
   }),
 });
 
@@ -115,12 +135,18 @@ export const initializePoolArgsSchema = z.object({
 export interface InitializePoolArgsType extends z.TypeOf<typeof initializePoolArgsSchema> {}
 export interface SwapAssetsForSharesArgsType extends z.TypeOf<typeof swapAssetsForSharesArgsSchema> {}
 
-export type SwapAssetsForSharesParams = {
-  formData: z.infer<typeof swapAssetsForSharesArgsSchema>;
+type BaseParams = {
   connection: Connection;
   provider: AnchorProvider;
   sdkClient: FjordClientSdk;
 };
+export interface SwapAssetsForSharesParams extends BaseParams {
+  formData: z.infer<typeof swapAssetsForSharesArgsSchema>;
+}
+
+export interface SwapSharesForAssetsParams extends BaseParams {
+  formData: z.infer<typeof swapSharesForAssetsArgsSchema>;
+}
 
 export const nominateNewOwnerArgsSchema = z.object({
   args: z.object({

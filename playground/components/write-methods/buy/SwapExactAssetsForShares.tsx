@@ -3,6 +3,7 @@ import {
   getPoolArgs,
   handleDialogClose,
   handleDialogOpen,
+  previewSharesOutAmount,
   signAndSendSwapTransaction,
   swapExactAssetsForShares,
 } from '@/helpers';
@@ -36,9 +37,23 @@ const SwapExactAssetsForShares = () => {
 
   const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
     resolver: zodResolver(swapAssetsForSharesArgsSchema),
+    defaultValues: {
+      args: {
+        slippage: 0,
+      },
+    },
   });
 
   const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+
+  const [assetAmountIn, creator, poolPda, assetTokenMint, shareTokenMint, slippage] = watch([
+    'args.assetsAmountIn',
+    'args.creator',
+    'args.poolPda',
+    'args.assetTokenMint',
+    'args.shareTokenMint',
+    'args.slippage',
+  ]);
 
   useEffect(() => {
     if (!connectedWalletAddress) {
@@ -67,6 +82,43 @@ const SwapExactAssetsForShares = () => {
     enabled: !!poolAddress,
   });
 
+  // Ideally would add debounce here
+  const { data: expectedSharesOutUI, refetch: refetchPreview } = useQuery({
+    queryKey: ['share-out-amount'],
+    queryFn: async () => {
+      if (
+        !sdkClient ||
+        !assetAmountIn ||
+        !creator ||
+        !poolPda ||
+        !assetTokenMint ||
+        !shareTokenMint ||
+        !provider ||
+        !connectedWalletAddress
+      )
+        return 'N/A';
+
+      const formData = {
+        args: {
+          creator,
+          userPublicKey: connectedWalletAddress,
+          shareTokenMint,
+          assetTokenMint,
+          poolPda,
+          assetsAmountIn: assetAmountIn,
+        },
+      };
+
+      const { expectedSharesOutUI } = await previewSharesOutAmount({ formData, provider, sdkClient });
+      return expectedSharesOutUI;
+    },
+  });
+
+  useEffect(() => {
+    if (!assetAmountIn) return;
+    refetchPreview();
+  }, [assetAmountIn, refetchPreview]);
+
   const swapExactAssetsForSharesMutation = useMutation({
     mutationFn: swapExactAssetsForShares,
     onSuccess: async (data) => {
@@ -90,6 +142,7 @@ const SwapExactAssetsForShares = () => {
     }
     swapExactAssetsForSharesMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
+
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -106,13 +159,16 @@ const SwapExactAssetsForShares = () => {
               {connectedWalletAddress ?? 'Please connect your wallet '}
             </Typography>
           </FormControl>
-          <FormControl sx={{ mb: 2 }}>
+          <FormControl sx={{ mb: 2, gap: '5px' }}>
             <FormLabel htmlFor="assets-to-pay">Asset quantity to use to pay</FormLabel>
             <TextField
               label="assets to use"
               placeholder="assets to pay with"
               {...register('args.assetsAmountIn', { required: true })}
             />
+            <TextField label="Slippage Tolerance %" {...register('args.slippage')} type="number" value={slippage} />
+            <FormLabel htmlFor="shares-output">Share token expected output</FormLabel>
+            <TextField label={expectedSharesOutUI} disabled />
           </FormControl>
           {!wallet && <WalletNotConnected />}
           {!poolAddress && (
