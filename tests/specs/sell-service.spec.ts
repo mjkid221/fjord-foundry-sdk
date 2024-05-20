@@ -42,7 +42,7 @@ describe('LBP Sell Service', () => {
       };
 
       const args = {
-        sharesAmountOut: new anchor.BN(10),
+        sharesAmountIn: new anchor.BN(10),
         poolPda: BUY_SELL_POOL_PDA,
       };
 
@@ -63,7 +63,7 @@ describe('LBP Sell Service', () => {
       };
 
       const args = {
-        assetsAmountIn: new anchor.BN(10),
+        assetsAmountOut: new anchor.BN(10),
         poolPda: BUY_SELL_POOL_PDA,
       };
 
@@ -84,7 +84,7 @@ describe('LBP Sell Service', () => {
       };
 
       const args = {
-        assetsAmountIn: new anchor.BN(10),
+        assetsAmountOut: new anchor.BN(10),
         poolPda: TEST_POOL_PDA,
       };
 
