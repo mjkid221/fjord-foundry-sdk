@@ -10,7 +10,6 @@ import {
   MOCK_WALLET,
   TOKEN_A,
   TOKEN_B,
-  TEST_POOL_PDA,
 } from '../mocks/constants';
 
 describe('LBP Initialization Service', () => {
@@ -63,7 +62,6 @@ describe('LBP Initialization Service', () => {
       expect(response.transactionInstruction).toBeInstanceOf(TransactionInstruction);
       expect(response.poolPda).toBeInstanceOf(PublicKey);
       expect(response.transactionInstruction.keys).toHaveLength(11);
-      expect(response.poolPda).toEqual(TEST_POOL_PDA);
     });
 
     it('should throw an error if initial assets exceed max assets in', async () => {

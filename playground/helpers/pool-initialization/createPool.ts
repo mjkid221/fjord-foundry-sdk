@@ -83,6 +83,7 @@ export const createPool = async ({
   };
 
   const args = {
+    salt: formData.args.salt,
     assets,
     shares,
     maxAssetsIn,

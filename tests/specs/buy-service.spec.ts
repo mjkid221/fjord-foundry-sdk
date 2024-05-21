@@ -3,14 +3,7 @@ import { LbpBuyService } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
 
-import {
-  BUY_SELL_POOL_PDA,
-  DEFAULT_PROGRAM_ADDRESS,
-  MOCK_WALLET,
-  TEST_POOL_PDA,
-  TOKEN_A,
-  TOKEN_B,
-} from '../mocks/constants';
+import { BUY_SELL_POOL_PDA, DEFAULT_PROGRAM_ADDRESS, MOCK_WALLET, TOKEN_A, TOKEN_B } from '../mocks/constants';
 
 describe('LBP Buy Service', () => {
   let connection: Connection;
@@ -73,24 +66,6 @@ describe('LBP Buy Service', () => {
       expect(response).toBeInstanceOf(anchor.web3.TransactionInstruction);
 
       expect(response.keys).toHaveLength(14);
-    });
-
-    it('should not create a transaction instruction when called with an incorrect poolPDA', async () => {
-      const keys = {
-        userPublicKey: MOCK_WALLET.publicKey,
-        creator: MOCK_WALLET.publicKey,
-        shareTokenMint: TOKEN_B,
-        assetTokenMint: TOKEN_A,
-      };
-
-      const args = {
-        assetsAmountIn: new anchor.BN(10),
-        poolPda: TEST_POOL_PDA,
-      };
-
-      await expect(service.createSwapExactAssetsForSharesInstruction({ keys, args })).rejects.toThrow(
-        'Invalid pool PDA - input poolPda does not match the expected pool PDA.',
-      );
     });
   });
 });

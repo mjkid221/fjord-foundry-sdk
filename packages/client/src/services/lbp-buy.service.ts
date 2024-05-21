@@ -12,7 +12,6 @@ import {
 
 import { FjordLbp, IDL, SOLANA_RPC } from '../constants';
 import { getTokenDivisor } from '../helpers';
-import { getPoolPda } from '../helpers/getPoolPda';
 import {
   BigNumber,
   LbpBuyServiceInterface,
@@ -225,20 +224,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     args,
   }: SwapAssetsForExactSharesOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, referrer, shareTokenMint, assetTokenMint } = keys;
+    const { userPublicKey, referrer, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda, slippage, expectedAssetsIn: expectedAssetsInOverride } = args;
-
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    this.logger.debug('Pool PDA from params', poolPdaFromParams.toBase58());
-    this.logger.debug('Pool PDA from args', poolPda.toBase58());
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     let userPoolPda: PublicKey;
 
@@ -312,18 +300,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     args,
   }: SwapExactAssetsForSharesOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, referrer, shareTokenMint, assetTokenMint } = keys;
+    const { userPublicKey, referrer, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda, slippage, expectedSharesOut: expectedSharesOutOverride } = args;
-
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     let userPoolPda: PublicKey;
 
