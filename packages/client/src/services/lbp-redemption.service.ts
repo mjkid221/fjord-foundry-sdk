@@ -10,7 +10,6 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, Transaction, AccountMeta } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { getPoolPda } from '../helpers/getPoolPda';
 import { CloseOperationPublicKeys, LbpRedemptionServiceInterface, RedeemOperationPublicKeys } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -71,21 +70,6 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
     const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda } = args;
-
-    let poolPdaFromParams: PublicKey;
-    try {
-      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-    } catch (error: any) {
-      this.logger.error('Error getting pool PDA:', error);
-      throw new Error('Error getting pool PDA', error);
-    }
-
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     // Get the treasury account
     const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from('treasury')], this.program.programId);
@@ -192,24 +176,9 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
    */
   public async redeemLbpTokens({ keys, args }: Omit<RedeemOperationPublicKeys, 'provider' | 'programId'>) {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+    const { userPublicKey, shareTokenMint, assetTokenMint } = keys;
 
     const { poolPda, isReferred } = args;
-
-    let poolPdaFromParams: PublicKey;
-    try {
-      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-    } catch (error: any) {
-      this.logger.error('Error getting pool PDA:', error);
-      throw new Error('Error getting pool PDA', error);
-    }
-
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     // Get the user PDA for the pool.
     const [userPoolPda] = findProgramAddressSync(

@@ -6,6 +6,7 @@ type GetPoolPdaParams = {
   assetTokenMint: PublicKey;
   creator: PublicKey;
   programId: PublicKey;
+  salt: string;
 };
 
 /**
@@ -23,9 +24,10 @@ export const getPoolPda = async ({
   assetTokenMint,
   creator,
   programId,
+  salt,
 }: GetPoolPdaParams): Promise<PublicKey> => {
   const [poolPda] = findProgramAddressSync(
-    [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
+    [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer(), Buffer.from(salt)],
     programId,
   );
 

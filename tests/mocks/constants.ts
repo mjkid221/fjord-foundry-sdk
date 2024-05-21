@@ -14,7 +14,7 @@ const DEFAULT_VESTING_CLIFF_BN = DEFAULT_SALE_END_TIME_BN.add(new BN(ONE_DAY_SEC
 
 const DEFAULT_VESTING_END_BN = DEFAULT_VESTING_CLIFF_BN.add(new BN(ONE_DAY_SECONDS));
 
-const DEFAULT_PROGRAM_ADDRESS = new PublicKey('HK6KFuWu9ZzEaiKy16LDcaQ2u1G1NAhib7pvNxzA3jKr');
+const DEFAULT_PROGRAM_ADDRESS = new PublicKey('7UTvQUzE1iThaXhXDg1FsVoqcv3MBAgwUCW7PEKzNbPH');
 /**
  * !NOTE For testing
  */
@@ -27,17 +27,17 @@ const testMerkleWhitelistedAddresses = [
 
 // Mock wallet for AnchorProvider as we are only reading data
 const MOCK_WALLET = {
-  publicKey: new PublicKey('7CGSCbMr3J9XH8tVcuzzw32G5BZm3cXPKaXVmTnY646r'), // This public key is a burner wallet. It is the governing devnet program owner.
+  publicKey: new PublicKey('AMT6SgVe6qyyeapGBy5bCJaiqjjrDTVEU9zY8VfZSKjo'), // This public key is a burner wallet. It is the governing devnet program owner.
   signTransaction: () => Promise.reject(),
   signAllTransactions: () => Promise.reject(),
 };
 
-const TOKEN_A = new PublicKey('GZD7PARxHsuViaqGFX5sAtu6stLioyYckg91U6CwAHut'); // This is a test token mint
-const TOKEN_B = new PublicKey('AiWtsNnAzUiRRzzwjN55nPeZhrzMbnyZqx6icsnFBUBw'); // This is a test token mint
+const TOKEN_A = new PublicKey('HLLuFQ4og2dJJmZomqz3GE1j33TqrVZH9eR5Zc5ZzHGe'); // This is a test token mint
+const TOKEN_B = new PublicKey('GAyiPxvqhQ8DekQYKcv3RKANDYkJFdhWVBiiENTXPFh9'); // This is a test token mint
 
 const TEST_POOL_PDA = new PublicKey('3kT4sQu1UcpvsFZkenCz894UZK9mF3jqrdaRsA1hgZ6d'); // This is the precalculated pool PDA for the test pool
 
-const BUY_SELL_POOL_PDA = new PublicKey('36GY5QvWNzFPtiZmY5axcfDSnQymTgn66Z3hUThGZyJA'); // This is the PDA of a deployed pool using TOKEN_A and TOKEN_B
+const BUY_SELL_POOL_PDA = new PublicKey('ENkSSP1KL5F186aCPbXWKEoSq4PinYX4HdkbUzTtbayM'); // This is the PDA of a deployed pool using TOKEN_A and TOKEN_B
 
 export {
   TIME_OFFSET,

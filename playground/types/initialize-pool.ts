@@ -114,6 +114,7 @@ export const initializePoolArgsSchema = z.object({
       },
       { message: 'Asset Token Mint must be a valid Solana public key' },
     ),
+    salt: z.string().optional(),
     assets: z.string(), // Assuming BN can be represented as a number
     shares: z.string(),
     virtualAssets: z.string().optional(),

@@ -12,7 +12,6 @@ import {
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
-import { getPoolPda } from '../helpers/getPoolPda';
 import {
   BigNumber,
   LbpSellServiceInterface,
@@ -201,17 +200,8 @@ export class LbpSellService implements LbpSellServiceInterface {
     args,
   }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+    const { userPublicKey, shareTokenMint, assetTokenMint } = keys;
     const { poolPda, slippage, expectedMinAssetsOut: expectedAssetsOutOverride } = args;
-
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     let userPoolPda: PublicKey;
 
@@ -282,17 +272,8 @@ export class LbpSellService implements LbpSellServiceInterface {
     args,
   }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
-    const { userPublicKey, creator, shareTokenMint, assetTokenMint } = keys;
+    const { userPublicKey, shareTokenMint, assetTokenMint } = keys;
     const { poolPda, slippage, expectedMaxSharesIn: expectedSharesInOverride } = args;
-
-    // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-    const poolPdaFromParams = await getPoolPda({ shareTokenMint, assetTokenMint, creator, programId: this.programId });
-
-    // Check that the poolPda is valid.
-    if (!poolPda.equals(poolPdaFromParams)) {
-      this.logger.error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-      throw new Error('Invalid pool PDA - input poolPda does not match the expected pool PDA.');
-    }
 
     // Get the user PDA for the pool.
     const [userPoolPda] = findProgramAddressSync(

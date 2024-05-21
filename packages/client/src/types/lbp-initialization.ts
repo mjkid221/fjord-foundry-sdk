@@ -38,6 +38,7 @@ export interface InitializePoolPublicKeys {
  */
 export type InitializePoolArgs = {
   args: {
+    salt?: string;
     assets: BigNumber;
     shares: BigNumber;
     virtualAssets?: BigNumber;
