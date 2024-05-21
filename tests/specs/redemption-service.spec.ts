@@ -37,9 +37,9 @@ describe('LBP Redemption Service', () => {
 
       expect(response).toBeDefined();
       expect(response).toBeInstanceOf(Array);
-      expect(response[0]).toBeInstanceOf(anchor.web3.TransactionInstruction);
-      expect(response[1]).toBeInstanceOf(anchor.web3.TransactionInstruction);
-      expect(response[2]).toBeInstanceOf(anchor.web3.TransactionInstruction);
+      for (const instruction of response) {
+        expect(instruction).toBeInstanceOf(anchor.web3.TransactionInstruction);
+      }
     });
 
     it('should call redeem and return the transaction instruction', async () => {

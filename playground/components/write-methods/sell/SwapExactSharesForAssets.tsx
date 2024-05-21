@@ -6,12 +6,13 @@ import {
   getPoolArgs,
   handleDialogClose,
   handleDialogOpen,
+  previewAssetsOutAmount,
   signAndSendSwapTransaction,
   swapExactSharesForAssets,
 } from '@/helpers';
 import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
-import { swapAssetsForSharesArgsSchema } from '@/types';
+import { swapAssetsForSharesArgsSchema, swapSharesForAssetsArgsSchema } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, FormControl, FormLabel, TextField, Button, Typography } from '@mui/material';
 import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
@@ -35,11 +36,19 @@ const SwapExactSharesForAssets = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
-    resolver: zodResolver(swapAssetsForSharesArgsSchema),
+  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapSharesForAssetsArgsSchema>>({
+    resolver: zodResolver(swapSharesForAssetsArgsSchema),
   });
 
   const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+  const [shareAmountIn, creator, poolPda, assetTokenMint, shareTokenMint, slippage] = watch([
+    'args.sharesAmountIn',
+    'args.creator',
+    'args.poolPda',
+    'args.assetTokenMint',
+    'args.shareTokenMint',
+    'args.slippage',
+  ]);
 
   useEffect(() => {
     if (!connectedWalletAddress) {
@@ -85,11 +94,47 @@ const SwapExactSharesForAssets = () => {
     },
   });
 
+  // Ideally would add debounce here
+  const { data: expectedMinAssetsOutUI, refetch: refetchPreview } = useQuery({
+    queryKey: ['assets-out-amount'],
+    queryFn: async () => {
+      if (
+        !sdkClient ||
+        !shareAmountIn ||
+        !creator ||
+        !poolPda ||
+        !assetTokenMint ||
+        !shareTokenMint ||
+        !provider ||
+        !connectedWalletAddress
+      )
+        return 'N/A';
+
+      const formData = {
+        args: {
+          creator,
+          userPublicKey: connectedWalletAddress,
+          shareTokenMint,
+          assetTokenMint,
+          poolPda,
+          sharesAmountIn: shareAmountIn,
+        },
+      };
+
+      const { expectedMinAssetsOutUI } = await previewAssetsOutAmount({ formData, provider, sdkClient });
+      return expectedMinAssetsOutUI;
+    },
+  });
+
+  useEffect(() => {
+    if (!shareAmountIn) return;
+    refetchPreview();
+  }, [shareAmountIn, refetchPreview]);
+
   const onSubmit = async (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
     }
-    console.log(data);
     swapExactSharesForAssetsMutation.mutate({ formData: data, connection, provider, sdkClient });
   };
   return (
@@ -108,13 +153,16 @@ const SwapExactSharesForAssets = () => {
               {connectedWalletAddress ?? 'Please connect your wallet '}
             </Typography>
           </FormControl>
-          <FormControl sx={{ mb: 2 }}>
-            <FormLabel htmlFor="shares-from-user">Asset quantity to use to pay</FormLabel>
+          <FormControl sx={{ mb: 2, gap: '5px' }}>
+            <FormLabel htmlFor="shares-from-user">Share quantity to use to pay</FormLabel>
             <TextField
               label="shares to sell"
               placeholder="shares to exchange for assets"
-              {...register('args.sharesAmountOut', { required: true })}
+              {...register('args.sharesAmountIn', { required: true })}
             />
+            <TextField label="Slippage Tolerance %" {...register('args.slippage')} type="number" value={slippage} />
+            <FormLabel htmlFor="assets-output">Asset token expected output</FormLabel>
+            <TextField label={expectedMinAssetsOutUI} disabled />
           </FormControl>
           {!wallet && <WalletNotConnected />}
           {!poolAddress && (

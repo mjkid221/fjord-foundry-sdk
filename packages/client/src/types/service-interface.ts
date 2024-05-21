@@ -1,7 +1,12 @@
 import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 
-import { SwapExactSharesForAssetsOperationParams, SwapSharesForExactAssetsOperationParams } from './lbp-buy-sell';
-import { InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
+import {
+  SwapAssetsForExactSharesOperationParams,
+  SwapExactAssetsForSharesOperationParams,
+  SwapExactSharesForAssetsOperationParams,
+  SwapSharesForExactAssetsOperationParams,
+} from './lbp-buy-sell';
+import { BigNumber, InitializePoolParams, InitializePoolResponse } from './lbp-initialization';
 import { NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from './lbp-management';
 import {
   CreatorTokenBalances,
@@ -42,11 +47,45 @@ export interface LbpInitializationServiceInterface {
 
 export interface LbpBuyServiceInterface {
   /**
+   * Creates a preview of the expected shares out for a "swap exact assets for shares" operation within a liquidity pool.
+   * This method calculates the expected shares out based on the provided assets in and the pool's current state.
+   * @returns expectedSharesOut - The expected quantity of shares to receive denoted in Lamports.
+   * @returns expectedSharesOutUI - The expected quantity of shares to receive in a user-friendly format (accounts decimals).
+   * @returns poolShareTokenAccount - The public key of the pool's share token account.
+   * @returns poolAssetTokenAccount - The public key of the pool's asset token account.
+   * @returns formattedAssetsAmountIn - The formatted quantity of assets to spend.
+   */
+  previewSharesOut({ keys, args }: SwapExactAssetsForSharesOperationParams): Promise<{
+    expectedSharesOut: BigNumber;
+    expectedSharesOutUI: string;
+    poolShareTokenAccount: PublicKey;
+    poolAssetTokenAccount: PublicKey;
+    formattedAssetsAmountIn: BigNumber;
+  }>;
+
+  /**
+   * Creates a preview of the max expected assets required for a "swap assets for exact shares" operation within a liquidity pool.
+   * This method calculates the expected assets in based on the provided shares out and the pool's current state.
+   * @returns expectedAssetsIn - The expected quantity of assets to spend denoted in Lamports.
+   * @returns expectedAssetsInUI - The expected quantity of assets to spend in a user-friendly format (accounts decimals).
+   * @returns poolShareTokenAccount - The public key of the pool's share token account.
+   * @returns poolAssetTokenAccount - The public key of the pool's asset token account.
+   * @returns formattedSharesAmountOut - The formatted quantity of shares to receive.
+   */
+  previewAssetsIn({ keys, args }: SwapAssetsForExactSharesOperationParams): Promise<{
+    expectedAssetsIn: BigNumber;
+    expectedAssetsInUI: string;
+    poolShareTokenAccount: PublicKey;
+    poolAssetTokenAccount: PublicKey;
+    formattedSharesAmountOut: BigNumber;
+  }>;
+
+  /**
    * Asynchronously creates a Solana TransactionInstruction for a "swap assets for exact shares"
    * operation within a liquidity pool. This instruction allows users to exchange an input asset
    * for a specified quantity of pool shares.
    *
-   * @param {SwapExactSharesForAssetsOperationParams} params - Parameters for the swap operation:
+   * @param {SwapAssetsForExactSharesOperationParams} params - Parameters for the swap operation:
    * @param {Object} params.keys - Solana PublicKeys:
    * @param {PublicKey} params.keys.userPublicKey - Public key of the user.
    * @param {PublicKey} params.keys.creator - Public key of the pool creator.
@@ -67,14 +106,14 @@ export interface LbpBuyServiceInterface {
   createSwapAssetsForExactSharesInstruction({
     keys,
     args,
-  }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction>;
+  }: SwapAssetsForExactSharesOperationParams): Promise<TransactionInstruction>;
 
   /**
    * Asynchronously creates a Solana TransactionInstruction for a "swap exact assets for shares"
    * operation within a liquidity pool. This instruction allows users to exchange a specified
    * quantity of an asset for pool shares.
    *
-   * @param {SwapSharesForExactAssetsOperationParams} params - Parameters for the swap operation:
+   * @param {SwapExactAssetsForSharesOperationParams} params - Parameters for the swap operation:
    * @param {Object} params.keys - Solana PublicKeys:
    * @param {PublicKey} params.keys.userPublicKey - Public key of the user.
    * @param {PublicKey} params.keys.creator - Public key of the pool creator.
@@ -95,10 +134,43 @@ export interface LbpBuyServiceInterface {
   createSwapExactAssetsForSharesInstruction({
     keys,
     args,
-  }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction>;
+  }: SwapExactAssetsForSharesOperationParams): Promise<TransactionInstruction>;
 }
 
 export interface LbpSellServiceInterface {
+  /**
+   * Creates a preview of the expected assets out for a "swap exact shares for assets" operation within a liquidity pool.
+   * This method calculates the expected assets out based on the provided shares in and the pool's current state.
+   * @returns expectedMinAssetsOut - The expected minimum quantity of assets to receive denoted in Lamports.
+   * @returns expectedMinAssetsOutUI - The expected minimum quantity of assets to receive in a user-friendly format (accounts decimals).
+   * @returns poolShareTokenAccount - The public key of the pool's share token account.
+   * @returns poolAssetTokenAccount - The public key of the pool's asset token account.
+   * @returns formattedSharesAmountIn - The formatted quantity of shares to sell denoted in Lamports.
+   */
+  previewAssetsOut({ keys, args }: SwapExactSharesForAssetsOperationParams): Promise<{
+    expectedMinAssetsOut: BigNumber;
+    expectedMinAssetsOutUI: string;
+    poolShareTokenAccount: PublicKey;
+    poolAssetTokenAccount: PublicKey;
+    formattedSharesAmountIn: BigNumber;
+  }>;
+
+  /**
+   * Creates a preview of the max expected shares required for a "swap shares for exact assets" operation within a liquidity pool.
+   * This method calculates the expected shares in based on the provided assets out and the pool's current state.
+   * @returns expectedMaxSharesIn - The expected maximum quantity of shares to spend denoted in Lamports.
+   * @returns expectedMaxSharesInUI - The expected maximum quantity of shares to spend in a user-friendly format (accounts decimals).
+   * @returns poolShareTokenAccount - The public key of the pool's share token account.
+   * @returns poolAssetTokenAccount - The public key of the pool's asset token account.
+   * @returns formattedAssetsOut - The formatted quantity of assets to receive denoted in Lamports.
+   */
+  previewSharesIn({ keys, args }: SwapSharesForExactAssetsOperationParams): Promise<{
+    expectedMaxSharesIn: BigNumber;
+    expectedMaxSharesInUI: string;
+    poolShareTokenAccount: PublicKey;
+    poolAssetTokenAccount: PublicKey;
+    formattedAssetsOut: BigNumber;
+  }>;
   /**
    * Asynchronously creates a Solana TransactionInstruction for a "swap exact shares for assets"
    * operation within a liquidity pool. This instruction allows users to exchange a precise quantity

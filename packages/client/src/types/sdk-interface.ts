@@ -1,7 +1,10 @@
+import { BN } from '@coral-xyz/anchor';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 
 import { RetrievePoolDataParams, RetrieveSinglePoolDataValueParams } from './client';
 import {
+  SwapAssetsForExactSharesInstructionClientParams,
+  SwapExactAssetsForSharesInstructionClientParams,
   SwapExactSharesForAssetsInstructionClientParams,
   SwapSharesForExactAssetsInstructionClientParams,
 } from './lbp-buy-sell';
@@ -63,7 +66,7 @@ export interface ClientSdkInterfaceSolana {
     keys,
     args,
     provider,
-  }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+  }: SwapAssetsForExactSharesInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain.
@@ -78,7 +81,7 @@ export interface ClientSdkInterfaceSolana {
     keys,
     args,
     provider,
-  }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction>;
+  }: SwapExactAssetsForSharesInstructionClientParams): Promise<TransactionInstruction>;
 
   /**
    * Creates a transaction for swapping an exact amount of assets for LBP shares on the Solana blockchain. This function
@@ -113,6 +116,58 @@ export interface ClientSdkInterfaceSolana {
     args,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction>;
+
+  /**
+   * Returns a preview shares amount given a set asset amount.
+   * @param {SwapExactAssetsForSharesInstructionClientParams} options - The options for previewing the shares amount.
+   * @param options.keys - The public keys required for previewing the shares amount.
+   * @param options.args - The arguments for previewing the shares amount.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<{ expectedSharesOut: BN; expectedSharesOutUI: string }>} - A promise that resolves with the expected shares amount.
+   */
+  previewSharesOut({ keys, args, provider }: SwapExactAssetsForSharesInstructionClientParams): Promise<{
+    expectedSharesOut: BN;
+    expectedSharesOutUI: string;
+  }>;
+
+  /**
+   * Returns a preview assets amount given a set shares amount.
+   * @param {SwapAssetsForExactSharesInstructionClientParams} options - The options for previewing the assets amount.
+   * @param options.keys - The public keys required for previewing the assets amount.
+   * @param options.args - The arguments for previewing the assets amount.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<{ expectedAssetsIn: BN; expectedAssetsInUI: string }>} - A promise that resolves with the expected assets amount.
+   */
+  previewAssetsIn({ keys, args, provider }: SwapAssetsForExactSharesInstructionClientParams): Promise<{
+    expectedAssetsIn: BN;
+    expectedAssetsInUI: string;
+  }>;
+
+  /**
+   * Returns a preview shares amount given a set asset amount.
+   * @param {SwapSharesForExactAssetsInstructionClientParams} options - The options for previewing the shares amount.
+   * @param options.keys - The public keys required for previewing the shares amount.
+   * @param options.args - The arguments for previewing the shares amount.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<{ expectedSharesIn: BN; expectedSharesInUI: string }>} - A promise that resolves with the expected shares amount.
+   */
+  previewAssetsOut({ keys, args, provider }: SwapExactSharesForAssetsInstructionClientParams): Promise<{
+    expectedMinAssetsOut: BN;
+    expectedMinAssetsOutUI: string;
+  }>;
+
+  /**
+   * Returns a preview assets amount given a set shares amount.
+   * @param {SwapExactSharesForAssetsInstructionClientParams} options - The options for previewing the assets amount.
+   * @param options.keys - The public keys required for previewing the assets amount.
+   * @param options.args - The arguments for previewing the assets amount.
+   * @param options.provider - The Anchor provider for the transaction.
+   * @returns {Promise<{ expectedMaxSharesIn: BN; expectedMaxSharesInUI: string }>} - A promise that resolves with the expected shares amount.
+   */
+  previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams): Promise<{
+    expectedMaxSharesIn: BN;
+    expectedMaxSharesInUI: string;
+  }>;
 
   /**
    * Pauses a liquidity bootstrapping pool (LBP) on the Solana blockchain.

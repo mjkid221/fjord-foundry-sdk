@@ -5,7 +5,6 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
-import { getPoolPda } from '../helpers/getPoolPda';
 import { LbpManagementServiceInterface, NewFeeParams, PausePoolParams, SetTreasuryFeeRecipientsParams } from '../types';
 
 import { LoggerLike, Logger } from './logger.service';
@@ -90,20 +89,6 @@ export class LbpManagementService implements LbpManagementServiceInterface {
         throw new Error('Asset token mint does not match pool state');
       }
 
-      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      const poolPdaFromParams = await getPoolPda({
-        shareTokenMint,
-        assetTokenMint,
-        creator,
-        programId: this.programId,
-      });
-
-      // Verify that the provided pool PDA matches the calculated pool PDA.
-      if (!poolPda.equals(poolPdaFromParams)) {
-        this.logger.error('Provided pool PDA does not match calculated pool PDA');
-        throw new Error('Provided pool PDA does not match calculated pool PDA');
-      }
-
       const transactionInstruction = await this.program.methods
         .togglePause()
         .accounts({ creator, pool: poolPda, assetTokenMint, shareTokenMint })
@@ -147,20 +132,6 @@ export class LbpManagementService implements LbpManagementServiceInterface {
       if (!assetTokenMint.equals(poolState.assetToken)) {
         this.logger.error('Asset token mint does not match pool state');
         throw new Error('Asset token mint does not match pool state');
-      }
-
-      // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
-      const poolPdaFromParams = await getPoolPda({
-        shareTokenMint,
-        assetTokenMint,
-        creator,
-        programId: this.programId,
-      });
-
-      // Verify that the provided pool PDA matches the calculated pool PDA.
-      if (!poolPda.equals(poolPdaFromParams)) {
-        this.logger.error('Provided pool PDA does not match calculated pool PDA');
-        throw new Error('Provided pool PDA does not match calculated pool PDA');
       }
 
       const transactionInstruction = await this.program.methods

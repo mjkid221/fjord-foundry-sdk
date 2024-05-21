@@ -68,6 +68,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
     const { creator, shareTokenMint, assetTokenMint } = keys;
 
     const {
+      salt,
       assets,
       shares,
       virtualAssets,
@@ -98,6 +99,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       const zeroBn = new anchor.BN(0);
 
       // Format the provided parameters to BN values.
+      const formattedSalt = salt ?? (new Date().getTime() / 1000).toString();
       const formattedAssets = assets.mul(new anchor.BN(assetTokenDivisor));
       const formattedShares = shares.mul(new anchor.BN(shareTokenDivisor));
       const formattedVirtualAssets = virtualAssets ? virtualAssets.mul(new anchor.BN(assetTokenDivisor)) : zeroBn;
@@ -113,7 +115,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
 
       // Find the pre-determined pool Program Derived Address (PDA) from the share token mint, asset token mint, and creator.
       const [poolPda] = findProgramAddressSync(
-        [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer()],
+        [shareTokenMint.toBuffer(), assetTokenMint.toBuffer(), creator.toBuffer(), Buffer.from(formattedSalt)],
         this.program.programId,
       );
 
@@ -154,9 +156,9 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       });
 
       // Initialize the pool with the provided parameters.
-
       const transactionInstruction = await this.program.methods
         .initializePool(
+          formattedSalt,
           formattedAssets,
           formattedShares,
           formattedVirtualAssets,

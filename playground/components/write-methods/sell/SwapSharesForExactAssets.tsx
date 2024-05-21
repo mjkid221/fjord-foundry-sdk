@@ -6,12 +6,13 @@ import {
   getPoolArgs,
   handleDialogClose,
   handleDialogOpen,
+  previewSharesInAmount,
   signAndSendSwapTransaction,
   swapSharesForExactAssets,
 } from '@/helpers';
 import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
 import { usePoolAddressStore } from '@/stores/usePoolAddressStore';
-import { swapAssetsForSharesArgsSchema } from '@/types';
+import { swapAssetsForSharesArgsSchema, swapSharesForAssetsArgsSchema } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, FormControl, FormLabel, TextField, Button, Typography } from '@mui/material';
 import { useWallet, useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
@@ -34,11 +35,19 @@ const SwapSharesForExactAssets = () => {
 
   const wallet = useAnchorWallet();
 
-  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapAssetsForSharesArgsSchema>>({
-    resolver: zodResolver(swapAssetsForSharesArgsSchema),
+  const { register, handleSubmit, setValue, watch } = useForm<z.infer<typeof swapSharesForAssetsArgsSchema>>({
+    resolver: zodResolver(swapSharesForAssetsArgsSchema),
   });
 
   const connectedWalletAddress = useConnectedWalletAddressStore((state) => state.connectedWalletAddress);
+  const [assetsAmountOut, creator, poolPda, assetTokenMint, shareTokenMint, slippage] = watch([
+    'args.assetsAmountOut',
+    'args.creator',
+    'args.poolPda',
+    'args.assetTokenMint',
+    'args.shareTokenMint',
+    'args.slippage',
+  ]);
 
   useEffect(() => {
     if (!connectedWalletAddress) {
@@ -84,6 +93,43 @@ const SwapSharesForExactAssets = () => {
     },
   });
 
+  // Ideally would add debounce here
+  const { data: expectedMaxSharesInUI, refetch: refetchPreview } = useQuery({
+    queryKey: ['assets-out-amount'],
+    queryFn: async () => {
+      if (
+        !sdkClient ||
+        !assetsAmountOut ||
+        !creator ||
+        !poolPda ||
+        !assetTokenMint ||
+        !shareTokenMint ||
+        !provider ||
+        !connectedWalletAddress
+      )
+        return 'N/A';
+
+      const formData = {
+        args: {
+          creator,
+          userPublicKey: connectedWalletAddress,
+          shareTokenMint,
+          assetTokenMint,
+          poolPda,
+          assetsAmountOut,
+        },
+      };
+
+      const { expectedMaxSharesInUI } = await previewSharesInAmount({ formData, provider, sdkClient });
+      return expectedMaxSharesInUI;
+    },
+  });
+
+  useEffect(() => {
+    if (!assetsAmountOut) return;
+    refetchPreview();
+  }, [assetsAmountOut, refetchPreview]);
+
   const onSubmit = async (data: z.infer<typeof swapAssetsForSharesArgsSchema>) => {
     if (!connection || !provider || !sdkClient) {
       throw new Error('Wallet not connected');
@@ -107,12 +153,15 @@ const SwapSharesForExactAssets = () => {
             </Typography>
           </FormControl>
           <FormControl sx={{ mb: 2 }}>
-            <FormLabel htmlFor="shares-from-user">Asset quantity to use to pay</FormLabel>
+            <FormLabel htmlFor="shares-from-user">Asset quantity to use to swap</FormLabel>
             <TextField
-              label="assets to receive"
+              label="Assets to receive"
               placeholder="user wants to recieve this amount of asset tokens"
-              {...register('args.assetsAmountIn', { required: true })}
+              {...register('args.assetsAmountOut', { required: true })}
             />
+            <TextField label="Slippage Tolerance %" {...register('args.slippage')} type="number" value={slippage} />
+            <FormLabel htmlFor="shares-input">Share token expected input</FormLabel>
+            <TextField label={expectedMaxSharesInUI} disabled />
           </FormControl>
           {!wallet && <WalletNotConnected />}
           {!poolAddress && (

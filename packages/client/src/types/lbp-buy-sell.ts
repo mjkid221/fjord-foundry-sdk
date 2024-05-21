@@ -25,39 +25,87 @@ export interface BuySellOperationPublicKeys {
 /**
  * Arguments for a "swap exact shares" operation.
  * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
- * @property {BigNumber} sharesAmountOut - The desired quantity of shares to receive.
+ * @property {BigNumber} sharesAmountIn - The set quantity of shares to spend.
+ * @property {number} slippage - (Optional) The maximum slippage percentage allowed for the swap.
  */
 export interface SwapExactSharesForAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
-    sharesAmountOut: BigNumber;
+    sharesAmountIn: BigNumber;
+    expectedMinAssetsOut?: BigNumber;
+    slippage?: number;
   };
 }
 
 /**
  * Arguments for a "swap shares with exact assets" operation.
  * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
- * @property {BigNumber} assetsAmountIn - The exact quantity of assets to use in the swap.
+ * @property {BigNumber} assetsAmountOut - The desired quantity of assets to receive.
+ * @property {number} slippage - (Optional) The maximum slippage percentage allowed for the swap.
  */
 export interface SwapSharesForExactAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
-    assetsAmountIn: BigNumber;
+    assetsAmountOut: BigNumber;
+    expectedMaxSharesIn?: BigNumber;
+    slippage?: number;
   };
 }
 
-export interface SwapExactSharesForAssetsOperationParams
-  extends BuySellOperationPublicKeys,
-    SwapExactSharesForAssetsOperationArgs {}
+/**
+ * Arguments for a "swap exact assets for shares" operation.
+ * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
+ * @property {BigNumber} assetsAmountIn - The set quantity of assets to swap for share token.
+ * @property {number} slippage - (Optional) The maximum slippage percentage allowed for the swap.
+ */
+export interface SwapExactAssetsForSharesOperationArgs {
+  args: {
+    poolPda: PublicKey;
+    assetsAmountIn: BigNumber;
+    expectedSharesOut?: BigNumber;
+    slippage?: number;
+  };
+}
 
+/**
+ * Arguments for a "swap assets with exact shares" operation.
+ * @property {PublicKey} poolPda - The Program Derived Address (PDA) of the pool.
+ * @property {BigNumber} sharesAmountOut - The desired quantity of shares to receive.
+ * @property {number} slippage - (Optional) The maximum slippage percentage allowed for the swap.
+ */
+export interface SwapAssetsForExactSharesOperationArgs {
+  args: {
+    poolPda: PublicKey;
+    sharesAmountOut: BigNumber;
+    expectedAssetsIn?: BigNumber;
+    slippage?: number;
+  };
+}
+
+// Sell
 export interface SwapSharesForExactAssetsOperationParams
   extends BuySellOperationPublicKeys,
     SwapSharesForExactAssetsOperationArgs {}
-
+export interface SwapExactSharesForAssetsOperationParams
+  extends BuySellOperationPublicKeys,
+    SwapExactSharesForAssetsOperationArgs {}
+export interface SwapSharesForExactAssetsInstructionClientParams extends SwapSharesForExactAssetsOperationParams {
+  provider: AnchorProvider;
+}
 export interface SwapExactSharesForAssetsInstructionClientParams extends SwapExactSharesForAssetsOperationParams {
   provider: AnchorProvider;
 }
 
-export interface SwapSharesForExactAssetsInstructionClientParams extends SwapSharesForExactAssetsOperationParams {
+// Buy
+export interface SwapAssetsForExactSharesOperationParams
+  extends BuySellOperationPublicKeys,
+    SwapAssetsForExactSharesOperationArgs {}
+export interface SwapExactAssetsForSharesOperationParams
+  extends BuySellOperationPublicKeys,
+    SwapExactAssetsForSharesOperationArgs {}
+export interface SwapAssetsForExactSharesInstructionClientParams extends SwapAssetsForExactSharesOperationParams {
+  provider: AnchorProvider;
+}
+export interface SwapExactAssetsForSharesInstructionClientParams extends SwapExactAssetsForSharesOperationParams {
   provider: AnchorProvider;
 }
