@@ -34,6 +34,8 @@ import {
   SolanaClientOptions,
   GetFeeRecipientsResponse,
   GetPoolFeesResponse,
+  GetPoolTransactionsAfterParams,
+  GetPoolLogsAfterParams,
   PoolTokenAccounts,
   PoolTokenBalances,
   CreatorTokenBalances,
@@ -43,6 +45,7 @@ import {
   PoolReservesAndWeights,
   SwapAssetsForExactSharesInstructionClientParams,
   SwapExactAssetsForSharesInstructionClientParams,
+  PoolTransaction
 } from './types';
 
 export class FjordClientSdk implements ClientSdkInterface {
@@ -658,5 +661,50 @@ export class FjordClientSdk implements ClientSdkInterface {
     const userBalances = await this.lbpReadService.getUserPoolStateBalances({ poolPda, userPublicKey });
 
     return userBalances;
+  }
+
+  public async readPoolTransactionsAfterSlot({
+    poolPda,
+    afterSlot,
+  }: GetPoolTransactionsAfterParams): Promise<PoolTransaction[]> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const transactions = await this.lbpReadService.getPoolTransactionsAfterSlot({ poolPda, afterSlot });
+
+    return transactions;
+  }
+
+  public async readPoolLogsAfterSlot({
+    poolPda,
+    afterSlot,
+    logName
+  }: GetPoolLogsAfterParams): Promise<anchor.Event[]> {
+    // Mock wallet for AnchorProvider as we are only reading data
+    const MockWallet = {
+      publicKey: Keypair.generate().publicKey,
+      signTransaction: () => Promise.reject(),
+      signAllTransactions: () => Promise.reject(),
+    };
+
+    const connection = this.clientService.getConnection();
+
+    const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
+
+    this.lbpReadService = await LbpReadService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+
+    const logs = await this.lbpReadService.getPoolLogsAfterSlot({ poolPda, afterSlot, logName });
+
+    return logs;
   }
 }
