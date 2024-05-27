@@ -696,7 +696,6 @@ export class FjordClientSdk implements ClientSdkInterface {
       signTransaction: () => Promise.reject(),
       signAllTransactions: () => Promise.reject(),
     };
-
     const connection = this.clientService.getConnection();
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
