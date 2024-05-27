@@ -128,17 +128,11 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-    const formattedAssetsAmountIn: BigNumber = assetsAmountIn.mul(new anchor.BN(assetTokenDivisor));
-
     try {
       const ix = await this.program.methods
         .previewSharesOut(
           // Assets In
-          formattedAssetsAmountIn,
+          assetsAmountIn,
         )
         .accounts({
           assetTokenMint,
@@ -153,10 +147,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
       return {
         expectedSharesOut,
-        expectedSharesOutUI: expectedSharesOut.div(new anchor.BN(shareTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedAssetsAmountIn,
+        assetsAmountIn,
       };
     } catch (error: any) {
       this.logger.error('Failed to create shares out preview', error);
@@ -182,18 +175,12 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
 
     try {
       const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
-          formattedSharesAmountOut,
+          sharesAmountOut,
         )
         .accounts({
           assetTokenMint,
@@ -208,10 +195,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
       return {
         expectedAssetsIn,
-        expectedAssetsInUI: expectedAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedSharesAmountOut,
+        sharesAmountOut,
       };
     } catch (error: any) {
       this.logger.error('Failed to create assets in preview', error);

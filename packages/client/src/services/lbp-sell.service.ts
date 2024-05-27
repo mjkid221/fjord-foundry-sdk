@@ -126,26 +126,18 @@ export class LbpSellService implements LbpSellServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedSharesAmountIn = sharesAmountIn.mul(new anchor.BN(shareTokenDivisor));
-
     try {
       const ix = await this.program.methods
-        .previewAssetsOut(formattedSharesAmountIn)
+        .previewAssetsOut(sharesAmountIn)
         .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
         .instruction();
 
       const expectedMinAssetsOut = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
       return {
         expectedMinAssetsOut,
-        expectedMinAssetsOutUI: expectedMinAssetsOut.div(new anchor.BN(assetTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedSharesAmountIn,
+        sharesAmountIn,
       };
     } catch (error: any) {
       this.logger.error('Failed to create swap exact shares for assets instruction preview.', error);
@@ -168,26 +160,18 @@ export class LbpSellService implements LbpSellServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedAssetsOut = assetsAmountOut.mul(new anchor.BN(assetTokenDivisor));
-
     try {
       const ix = await this.program.methods
-        .previewSharesIn(formattedAssetsOut)
+        .previewSharesIn(assetsAmountOut)
         .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
         .instruction();
 
       const expectedMaxSharesIn = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
       return {
         expectedMaxSharesIn,
-        expectedMaxSharesInUI: expectedMaxSharesIn.div(new anchor.BN(shareTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedAssetsOut,
+        assetsAmountOut,
       };
     } catch (error: any) {
       this.logger.error('Failed to create swap shares for exact assets instruction preview.', error);
