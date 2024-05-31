@@ -3,7 +3,7 @@ import { base64 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey, Connection, VersionedTransaction, TransactionMessage } from '@solana/web3.js';
+import { PublicKey, Connection, VersionedTransaction, TransactionMessage, ParsedMessageAccount, ConfirmedSignatureInfo } from '@solana/web3.js';
 import * as borsh from 'borsh';
 
 import { FjordLbp, IDL } from '../constants';
@@ -20,6 +20,9 @@ import {
   PoolTokenBalances,
   ReservesAndWeightSchema,
   UserPoolStateBalances,
+  PoolTransaction,
+  GetPoolTransactionsAfterParams,
+  GetPoolLogsAfterParams
 } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -311,6 +314,87 @@ export class LbpReadService implements LbpReadServiceInterface {
       };
     } catch (error: any) {
       this.logger.error('Pool reserves and weights not found', error);
+      throw new Error(error);
+    }
+  }
+
+  public async getPoolTransactionsAfterSlot({ poolPda, afterSlot }: GetPoolTransactionsAfterParams): Promise<PoolTransaction[]> {
+    try {
+      let before: string | undefined = undefined;
+      const transactions: PoolTransaction[] = [];
+
+      const eventParser = new anchor.EventParser(poolPda, new anchor.BorshCoder(IDL));
+
+      // We will fetch transactions in batches of 1000 until we hit the target `afterSlot`
+      batchLoop: while (true) {
+        const transactionSigList: anchor.web3.ConfirmedSignatureInfo[] = await this.connection.getSignaturesForAddress(
+          poolPda,
+          {
+            limit: 1000, //maximum
+            before
+          }
+        );
+
+        // If no more transactions are available, break the loop
+        if (transactionSigList.length === 0) {
+          break;
+        }
+
+        // Update the before option to the signature of the oldest transaction in the current batch
+        before = transactionSigList[transactionSigList.length - 1].signature;
+
+        // Fetch the parsed confirmed transaction for each transaction and add the log messages to the transaction object
+        for (const transactionSig of transactionSigList) {
+          // We stop scanning once we hit the previously latest scanned slot number
+          if (transactionSig.slot <= afterSlot) {
+            break batchLoop;
+          }
+          const parsedTransaction = await this.connection.getParsedTransaction(
+            transactionSig.signature,
+            { commitment: 'finalized', maxSupportedTransactionVersion: 0 }
+          );
+          if (parsedTransaction?.meta?.logMessages) {
+            const parsedLogs = [
+              ...eventParser.parseLogs(parsedTransaction.meta.logMessages)
+            ];
+            transactions.push({
+              transaction: transactionSig,
+              accounts: parsedTransaction.transaction.message.accountKeys,
+              logs: parsedLogs
+            });
+          } else {
+            transactions.push({ transaction: transactionSig });
+          }
+        }
+      }
+
+      return transactions;
+    } catch (error: any) {
+      this.logger.error('Pool transactions not found', error);
+      throw new Error(error);
+    }
+  }
+
+  public async getPoolLogsAfterSlot({ poolPda, afterSlot, logName }: GetPoolLogsAfterParams): Promise<anchor.Event[]> {
+    try {
+      const transactions = await this.getPoolTransactionsAfterSlot({ poolPda, afterSlot });
+      const filteredLogs = transactions
+      .flatMap(transaction => {
+          if (!transaction.logs) {
+              return [];
+          }
+          // all logs if no log name is defined
+          if(!logName) {
+            return transaction.logs;
+          }
+
+          return transaction.logs.filter(log => logName === log.name)
+      })
+      .filter(Boolean);
+
+      return filteredLogs;
+    } catch (error: any) {
+      this.logger.error('Pool logs not found', error);
       throw new Error(error);
     }
   }
