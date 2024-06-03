@@ -21,7 +21,7 @@ describe('LBP Management Service', () => {
 
     describe('pause/unpause operations', () => {
       beforeEach(async () => {
-        service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+        service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
       });
 
       it('should create an instance of LbpManagementService', () => {
@@ -69,7 +69,7 @@ describe('LBP Management Service', () => {
       });
       describe('new owner operations', () => {
         beforeEach(async () => {
-          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
         });
         it('should call createNewOwnerNomination and return a transaction instruction', async () => {
           const params = {
@@ -106,7 +106,7 @@ describe('LBP Management Service', () => {
 
       describe('pool fees operations', () => {
         beforeEach(async () => {
-          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
         });
         it("should throw an error when the creator does not match the pool's owner", async () => {
           const params = {
@@ -122,7 +122,7 @@ describe('LBP Management Service', () => {
 
       describe('set treasury fee operations', () => {
         beforeEach(async () => {
-          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+          service = new LbpManagementService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
         });
 
         it('should call setTreasuryFeeRecipients and return a transaction instruction', async () => {

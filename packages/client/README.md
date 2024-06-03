@@ -82,6 +82,8 @@ Then, you need to initialize the client using the `create` method.
 
 - `solanaNetwork` (WalletAdapterNetwork):
   - Specifies the Solana network (e.g., 'mainnet-beta', 'devnet', or 'testnet').
+- `rpcUrl` (string):
+  - Specify a custom rpcUrl, otherwise fallback to default RPC specified by solanaNetwork.
 - `programId` (string):
   - This is the program id of the LBP Solana program.
 - `enableLogging` (boolean)
