@@ -2,8 +2,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { base64 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey, Connection, VersionedTransaction, TransactionMessage, ParsedMessageAccount, ConfirmedSignatureInfo } from '@solana/web3.js';
+import { PublicKey, Connection, VersionedTransaction, TransactionMessage } from '@solana/web3.js';
 import * as borsh from 'borsh';
 
 import { FjordLbp, IDL } from '../constants';
@@ -22,7 +21,7 @@ import {
   UserPoolStateBalances,
   PoolTransaction,
   GetPoolTransactionsAfterParams,
-  GetPoolLogsAfterParams
+  GetPoolLogsAfterParams,
 } from '../types';
 
 import { Logger, LoggerLike } from './logger.service';
@@ -34,39 +33,31 @@ export class LbpReadService implements LbpReadServiceInterface {
 
   private connection: Connection;
 
-  private network: WalletAdapterNetwork;
-
   private logger: LoggerLike;
 
-  constructor(
-    programId: PublicKey,
-    provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
-    loggerEnabled: boolean,
-  ) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection, loggerEnabled: boolean) {
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpManagementService', loggerEnabled);
     this.logger.debug('LbpManagementService initialized');
   }
 
   /**
    * Asynchronously creates an instance of LbpManagementService.
-   * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
    * @param {anchor.AnchorProvider} provider - The Anchor provider object.
+   * @param {Connection} connection - The Solana connection object.
    * @param {WalletAdapterNetwork} network - The Solana network.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpManagementService.
    */
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
     loggerEnabled: boolean,
   ): Promise<LbpReadService> {
-    const service = await Promise.resolve(new LbpReadService(programId, provider, network, loggerEnabled));
+    const service = await Promise.resolve(new LbpReadService(programId, provider, connection, loggerEnabled));
 
     return service;
   }
@@ -318,7 +309,10 @@ export class LbpReadService implements LbpReadServiceInterface {
     }
   }
 
-  public async getPoolTransactionsAfterSlot({ poolPda, afterSlot }: GetPoolTransactionsAfterParams): Promise<PoolTransaction[]> {
+  public async getPoolTransactionsAfterSlot({
+    poolPda,
+    afterSlot,
+  }: GetPoolTransactionsAfterParams): Promise<PoolTransaction[]> {
     try {
       let before: string | undefined = undefined;
       const transactions: PoolTransaction[] = [];
@@ -331,8 +325,8 @@ export class LbpReadService implements LbpReadServiceInterface {
           poolPda,
           {
             limit: 1000, //maximum
-            before
-          }
+            before,
+          },
         );
 
         // If no more transactions are available, break the loop
@@ -349,18 +343,16 @@ export class LbpReadService implements LbpReadServiceInterface {
           if (transactionSig.slot <= afterSlot) {
             break batchLoop;
           }
-          const parsedTransaction = await this.connection.getParsedTransaction(
-            transactionSig.signature,
-            { commitment: 'finalized', maxSupportedTransactionVersion: 0 }
-          );
+          const parsedTransaction = await this.connection.getParsedTransaction(transactionSig.signature, {
+            commitment: 'finalized',
+            maxSupportedTransactionVersion: 0,
+          });
           if (parsedTransaction?.meta?.logMessages) {
-            const parsedLogs = [
-              ...eventParser.parseLogs(parsedTransaction.meta.logMessages)
-            ];
+            const parsedLogs = [...eventParser.parseLogs(parsedTransaction.meta.logMessages)];
             transactions.push({
               transaction: transactionSig,
               accounts: parsedTransaction.transaction.message.accountKeys,
-              logs: parsedLogs
+              logs: parsedLogs,
             });
           } else {
             transactions.push({ transaction: transactionSig });
@@ -379,18 +371,18 @@ export class LbpReadService implements LbpReadServiceInterface {
     try {
       const transactions = await this.getPoolTransactionsAfterSlot({ poolPda, afterSlot });
       const filteredLogs = transactions
-      .flatMap(transaction => {
+        .flatMap((transaction) => {
           if (!transaction.logs) {
-              return [];
+            return [];
           }
           // all logs if no log name is defined
-          if(!logName) {
+          if (!logName) {
             return transaction.logs;
           }
 
-          return transaction.logs.filter(log => logName === log.name)
-      })
-      .filter(Boolean);
+          return transaction.logs.filter((log) => logName === log.name);
+        })
+        .filter(Boolean);
 
       return filteredLogs;
     } catch (error: any) {

@@ -12,7 +12,7 @@ describe('LBP Read Service', () => {
   beforeEach(async () => {
     connection = new Connection(clusterApiUrl(WalletAdapterNetwork.Devnet), 'confirmed');
     provider = new anchor.AnchorProvider(connection, MOCK_WALLET, anchor.AnchorProvider.defaultOptions());
-    service = new LbpReadService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+    service = new LbpReadService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
   });
 
   describe('read operations for governing program', () => {

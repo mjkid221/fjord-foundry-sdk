@@ -1,7 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { MAX_FEE_BASIS_POINTS, getAssociatedTokenAddress } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
   Connection,
   PublicKey,
@@ -31,21 +30,13 @@ export class LbpSellService implements LbpSellServiceInterface {
 
   private connection: Connection;
 
-  private network: WalletAdapterNetwork;
-
   private logger: LoggerLike;
 
-  constructor(
-    programId: PublicKey,
-    provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
-    loggerEnabled: boolean,
-  ) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection, loggerEnabled: boolean) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpBuyService', loggerEnabled);
     this.logger.debug('LbpBuyService initialized');
   }
@@ -54,16 +45,16 @@ export class LbpSellService implements LbpSellServiceInterface {
    * Asynchronously creates an instance of LbpSellService.
    * @param {Connection} connection - The Solana connection object.
    * @param {PublicKey} programId - The public key of the program governing the LBP.
-   * @param {WalletAdapterNetwork} network - The Solana network to use.
+   * @param {Connection} connection - The Solana network to use.
    * @returns {Promise<LbpBuyService>} - A promise that resolves with an instance of LbpSellService.
    */
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
     loggerEnabled: boolean,
   ): Promise<LbpSellService> {
-    const service = await Promise.resolve(new LbpSellService(programId, provider, network, loggerEnabled));
+    const service = await Promise.resolve(new LbpSellService(programId, provider, connection, loggerEnabled));
 
     return service;
   }

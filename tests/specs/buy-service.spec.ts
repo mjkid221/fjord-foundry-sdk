@@ -19,7 +19,7 @@ describe('LBP Buy Service', () => {
   describe('buy operations', () => {
     let service: LbpBuyService;
     beforeEach(async () => {
-      service = new LbpBuyService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+      service = new LbpBuyService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
     });
 
     it('should create an instance of LbpBuyService', () => {

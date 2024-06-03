@@ -1,7 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { MAX_FEE_BASIS_POINTS } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, TransactionInstruction } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
@@ -18,21 +17,13 @@ export class LbpManagementService implements LbpManagementServiceInterface {
 
   private connection: Connection;
 
-  private network: WalletAdapterNetwork;
-
   private logger: LoggerLike;
 
-  constructor(
-    programId: PublicKey,
-    provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
-    loggerEnabled: boolean,
-  ) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection, loggerEnabled: boolean) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpManagementService', loggerEnabled);
     this.logger.debug('LbpManagementService initialized');
   }
@@ -48,10 +39,10 @@ export class LbpManagementService implements LbpManagementServiceInterface {
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
     loggerEnabled: boolean,
   ): Promise<LbpManagementService> {
-    const service = await Promise.resolve(new LbpManagementService(programId, provider, network, loggerEnabled));
+    const service = await Promise.resolve(new LbpManagementService(programId, provider, connection, loggerEnabled));
 
     return service;
   }
