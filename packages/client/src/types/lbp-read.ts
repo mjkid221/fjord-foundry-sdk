@@ -1,5 +1,5 @@
+import { Event } from '@coral-xyz/anchor';
 import { PublicKey, ConfirmedSignatureInfo, ParsedMessageAccount } from '@solana/web3.js';
-import { Event } from '@coral-xyz/anchor'
 
 export interface GetPoolFeesResponse {
   platformFee: number;
@@ -87,7 +87,7 @@ export interface PoolReservesAndWeightsResponse {
 }
 
 export interface PoolTransaction {
-      transaction: ConfirmedSignatureInfo;
-      accounts?: ParsedMessageAccount[] | undefined;
-      logs?: Event[] | undefined;
+  transaction: ConfirmedSignatureInfo;
+  accounts?: ParsedMessageAccount[] | undefined;
+  logs?: Event[] | undefined;
 }

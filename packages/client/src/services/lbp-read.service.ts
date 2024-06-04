@@ -317,7 +317,7 @@ export class LbpReadService implements LbpReadServiceInterface {
       let before: string | undefined = undefined;
       const transactions: PoolTransaction[] = [];
 
-      const eventParser = new anchor.EventParser(poolPda, new anchor.BorshCoder(IDL));
+      const eventParser = new anchor.EventParser(this.program.programId, new anchor.BorshCoder(IDL));
 
       // We will fetch transactions in batches of 1000 until we hit the target `afterSlot`
       batchLoop: while (true) {
