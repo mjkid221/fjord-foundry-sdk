@@ -162,37 +162,33 @@ export class FjordClientSdk implements ClientSdkInterface {
 
   public async previewSharesOut({ keys, args, provider }: SwapExactAssetsForSharesInstructionClientParams) {
     this.lbpBuyService = await LbpBuyService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
-    const { expectedSharesOut, expectedSharesOutUI } = await this.lbpBuyService.previewSharesOut({ keys, args });
+    const { expectedSharesOut } = await this.lbpBuyService.previewSharesOut({ keys, args });
     return {
       expectedSharesOut,
-      expectedSharesOutUI,
     };
   }
 
   public async previewAssetsIn({ keys, args, provider }: SwapAssetsForExactSharesInstructionClientParams) {
     this.lbpBuyService = await LbpBuyService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
-    const { expectedAssetsIn, expectedAssetsInUI } = await this.lbpBuyService.previewAssetsIn({ keys, args });
+    const { expectedAssetsIn } = await this.lbpBuyService.previewAssetsIn({ keys, args });
     return {
       expectedAssetsIn,
-      expectedAssetsInUI,
     };
   }
 
   public async previewAssetsOut({ keys, args, provider }: SwapExactSharesForAssetsInstructionClientParams) {
     this.lbpSellService = await LbpSellService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
-    const { expectedMinAssetsOut, expectedMinAssetsOutUI } = await this.lbpSellService.previewAssetsOut({ keys, args });
+    const { expectedMinAssetsOut } = await this.lbpSellService.previewAssetsOut({ keys, args });
     return {
       expectedMinAssetsOut,
-      expectedMinAssetsOutUI,
     };
   }
 
   public async previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams) {
     this.lbpSellService = await LbpSellService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
-    const { expectedMaxSharesIn, expectedMaxSharesInUI } = await this.lbpSellService.previewSharesIn({ keys, args });
+    const { expectedMaxSharesIn } = await this.lbpSellService.previewSharesIn({ keys, args });
     return {
       expectedMaxSharesIn,
-      expectedMaxSharesInUI,
     };
   }
 

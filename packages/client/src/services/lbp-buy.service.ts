@@ -128,17 +128,11 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-    const formattedAssetsAmountIn: BigNumber = assetsAmountIn.mul(new anchor.BN(assetTokenDivisor));
-
     try {
       const ix = await this.program.methods
         .previewSharesOut(
           // Assets In
-          formattedAssetsAmountIn,
+          assetsAmountIn,
         )
         .accounts({
           assetTokenMint,
@@ -153,10 +147,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
       return {
         expectedSharesOut,
-        expectedSharesOutUI: expectedSharesOut.div(new anchor.BN(shareTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedAssetsAmountIn,
+        assetsAmountIn,
       };
     } catch (error: any) {
       this.logger.error('Failed to create shares out preview', error);
@@ -182,18 +175,12 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedSharesAmountOut: BigNumber = sharesAmountOut.mul(new anchor.BN(shareTokenDivisor));
 
     try {
       const ix = await this.program.methods
         .previewAssetsIn(
           // Shares Out
-          formattedSharesAmountOut,
+          sharesAmountOut,
         )
         .accounts({
           assetTokenMint,
@@ -208,10 +195,9 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
       return {
         expectedAssetsIn,
-        expectedAssetsInUI: expectedAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedSharesAmountOut,
+        sharesAmountOut,
       };
     } catch (error: any) {
       this.logger.error('Failed to create assets in preview', error);
@@ -226,7 +212,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Destructure the provided keys and arguments.
     const { userPublicKey, referrer, shareTokenMint, assetTokenMint } = keys;
 
-    const { poolPda, slippage, expectedAssetsIn: expectedAssetsInOverride } = args;
+    const { poolPda, expectedAssetsIn, sharesAmountOut } = args;
 
     let userPoolPda: PublicKey;
 
@@ -238,43 +224,28 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get user PDA for the pool.', error);
     }
 
-    let userShareTokenAccount: PublicKey;
-    let userAssetTokenAccount: PublicKey;
-
-    try {
-      // Get the user's associated token accounts for the pool.
-      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    } catch (error: any) {
-      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
-      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
-    }
-
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
 
-    const {
-      poolAssetTokenAccount,
-      poolShareTokenAccount,
-      formattedSharesAmountOut,
-      expectedAssetsIn: assetsIn,
-    } = await this.previewAssetsIn({
-      keys,
-      args,
-    });
+    const [
+      userShareTokenAccount, 
+      userAssetTokenAccount, 
+      poolShareTokenAccount, 
+      poolAssetTokenAccount
+    ] = await Promise.all([
+      getAssociatedTokenAddress(shareTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(assetTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(shareTokenMint, poolPda, true),
+      getAssociatedTokenAddress(assetTokenMint, poolPda, true)
+    ])
 
-    const expectedAssetsInWithoutSlippage = expectedAssetsInOverride ? expectedAssetsInOverride : assetsIn;
-    const expectedAssetsIn = slippage
-      ? expectedAssetsInWithoutSlippage
-          .mul(new anchor.BN(MAX_FEE_BASIS_POINTS + slippage * 100))
-          .div(new anchor.BN(MAX_FEE_BASIS_POINTS))
-      : expectedAssetsInWithoutSlippage;
 
+    
     // Create the program instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapAssetsForExactShares(formattedSharesAmountOut, expectedAssetsIn, null, referrer ?? null)
+        .swapAssetsForExactShares(sharesAmountOut, expectedAssetsIn, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
@@ -302,7 +273,7 @@ export class LbpBuyService implements LbpBuyServiceInterface {
     // Destructure the provided keys and arguments.
     const { userPublicKey, referrer, shareTokenMint, assetTokenMint } = keys;
 
-    const { poolPda, slippage, expectedSharesOut: expectedSharesOutOverride } = args;
+    const { poolPda, assetsAmountIn, expectedSharesOut } = args;
 
     let userPoolPda: PublicKey;
 
@@ -314,42 +285,25 @@ export class LbpBuyService implements LbpBuyServiceInterface {
       throw new Error('Failed to get user PDA for the pool.', error);
     }
 
-    let userShareTokenAccount: PublicKey;
-    let userAssetTokenAccount: PublicKey;
-
-    try {
-      // Get the user's associated token accounts for the pool.
-      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    } catch (error: any) {
-      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
-      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
-    }
-
     const referrerPda = referrer
       ? findProgramAddressSync([(referrer as PublicKey).toBuffer(), poolPda.toBuffer()], this.program.programId)[0]
       : null;
 
-    const {
-      poolAssetTokenAccount,
-      poolShareTokenAccount,
-      formattedAssetsAmountIn,
-      expectedSharesOut: sharesOut,
-    } = await this.previewSharesOut({
-      keys,
-      args,
-    });
-
-    const expectedSharesOutWithoutSlippage = expectedSharesOutOverride ? expectedSharesOutOverride : sharesOut;
-    const expectedSharesOut = slippage
-      ? expectedSharesOutWithoutSlippage
-          .mul(new anchor.BN(MAX_FEE_BASIS_POINTS - slippage * 100))
-          .div(new anchor.BN(MAX_FEE_BASIS_POINTS))
-      : expectedSharesOutWithoutSlippage;
+    const [ 
+      userShareTokenAccount, 
+      userAssetTokenAccount, 
+      poolShareTokenAccount, 
+      poolAssetTokenAccount
+    ] = await Promise.all([
+      getAssociatedTokenAddress(shareTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(assetTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(shareTokenMint, poolPda, true),
+      getAssociatedTokenAddress(assetTokenMint, poolPda, true)
+    ])
 
     try {
       const swapInstruction = await this.program.methods
-        .swapExactAssetsForShares(formattedAssetsAmountIn, expectedSharesOut, null, referrer ?? null)
+        .swapExactAssetsForShares(assetsAmountIn, expectedSharesOut, null, referrer ?? null)
         .accounts({
           assetTokenMint,
           shareTokenMint,

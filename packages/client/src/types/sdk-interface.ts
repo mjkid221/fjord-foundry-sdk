@@ -123,11 +123,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.keys - The public keys required for previewing the shares amount.
    * @param options.args - The arguments for previewing the shares amount.
    * @param options.provider - The Anchor provider for the transaction.
-   * @returns {Promise<{ expectedSharesOut: BN; expectedSharesOutUI: string }>} - A promise that resolves with the expected shares amount.
+   * @returns {Promise<{ expectedSharesOut: BN }>} - A promise that resolves with the expected shares amount.
    */
   previewSharesOut({ keys, args, provider }: SwapExactAssetsForSharesInstructionClientParams): Promise<{
     expectedSharesOut: BN;
-    expectedSharesOutUI: string;
   }>;
 
   /**
@@ -136,11 +135,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.keys - The public keys required for previewing the assets amount.
    * @param options.args - The arguments for previewing the assets amount.
    * @param options.provider - The Anchor provider for the transaction.
-   * @returns {Promise<{ expectedAssetsIn: BN; expectedAssetsInUI: string }>} - A promise that resolves with the expected assets amount.
+   * @returns {Promise<{ expectedAssetsIn: BN }>} - A promise that resolves with the expected assets amount.
    */
   previewAssetsIn({ keys, args, provider }: SwapAssetsForExactSharesInstructionClientParams): Promise<{
     expectedAssetsIn: BN;
-    expectedAssetsInUI: string;
   }>;
 
   /**
@@ -149,11 +147,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.keys - The public keys required for previewing the shares amount.
    * @param options.args - The arguments for previewing the shares amount.
    * @param options.provider - The Anchor provider for the transaction.
-   * @returns {Promise<{ expectedSharesIn: BN; expectedSharesInUI: string }>} - A promise that resolves with the expected shares amount.
+   * @returns {Promise<{ expectedSharesIn: BN; }>} - A promise that resolves with the expected shares amount.
    */
   previewAssetsOut({ keys, args, provider }: SwapExactSharesForAssetsInstructionClientParams): Promise<{
     expectedMinAssetsOut: BN;
-    expectedMinAssetsOutUI: string;
   }>;
 
   /**
@@ -162,11 +159,10 @@ export interface ClientSdkInterfaceSolana {
    * @param options.keys - The public keys required for previewing the assets amount.
    * @param options.args - The arguments for previewing the assets amount.
    * @param options.provider - The Anchor provider for the transaction.
-   * @returns {Promise<{ expectedMaxSharesIn: BN; expectedMaxSharesInUI: string }>} - A promise that resolves with the expected shares amount.
+   * @returns {Promise<{ expectedMaxSharesIn: BN;  }>} - A promise that resolves with the expected shares amount.
    */
   previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams): Promise<{
     expectedMaxSharesIn: BN;
-    expectedMaxSharesInUI: string;
   }>;
 
   /**
