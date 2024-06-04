@@ -36,7 +36,7 @@ describe('LBP Read Service', () => {
 
         expect(poolEvents.length).toBeGreaterThan(0);
         poolEvents.map((event) => {
-          expect(event).toBeInstanceOf(eventName);
+          expect(event.name).toEqual(eventName);
         });
       });
     });
