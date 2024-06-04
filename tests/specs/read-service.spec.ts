@@ -1,16 +1,14 @@
 import * as anchor from '@coral-xyz/anchor';
 import { LbpReadService } from '@fjord-foundry/solana-sdk-client';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 
 import { BUY_SELL_POOL_PDA, DEFAULT_PROGRAM_ADDRESS, MOCK_WALLET } from '../mocks/constants';
-
 describe('LBP Read Service', () => {
   let connection: Connection;
   let provider: anchor.AnchorProvider;
   let service: LbpReadService;
   beforeEach(async () => {
-    connection = new Connection(clusterApiUrl(WalletAdapterNetwork.Devnet), 'confirmed');
+    connection = new Connection('https://api.devnet.solana.com', 'confirmed');
     provider = new anchor.AnchorProvider(connection, MOCK_WALLET, anchor.AnchorProvider.defaultOptions());
     service = new LbpReadService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
   });
@@ -27,6 +25,19 @@ describe('LBP Read Service', () => {
         expect(typeof response.platformFee).toBe('number');
         expect(typeof response.referralFee).toBe('number');
         expect(typeof response.swapFee).toBe('number');
+      });
+      it('Should be able to get pool events', async () => {
+        const eventName = 'Buy';
+        const poolEvents = await service.getPoolLogsAfterSlot({
+          poolPda: new PublicKey('7neo6rTQDuFBxaUspda6UVBEXxk3VAFRdvu73f4oot44'),
+          afterSlot: 303401446,
+          logName: eventName,
+        });
+
+        expect(poolEvents.length).toBeGreaterThan(0);
+        poolEvents.map((event) => {
+          expect(event.name).toEqual(eventName);
+        });
       });
     });
     describe('getPoolOwner', () => {

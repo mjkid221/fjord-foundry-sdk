@@ -1,12 +1,12 @@
 import { SolanaConnectionService } from '@fjord-foundry/solana-sdk-client';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Connection } from '@solana/web3.js';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
 
 describe('Solana Connection Service', () => {
   const network = WalletAdapterNetwork.Devnet;
   let service: SolanaConnectionService;
   beforeEach(() => {
-    service = new SolanaConnectionService(network);
+    service = new SolanaConnectionService(new Connection(clusterApiUrl(network)));
   });
 
   it('should create an instance of SolanaConnectionService', () => {
