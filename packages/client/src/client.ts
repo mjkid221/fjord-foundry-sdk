@@ -194,7 +194,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewSharesOut({ keys, args, provider }: SwapExactAssetsForSharesInstructionClientParams) {
-    this.lbpBuyService = await LbpBuyService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+    this.lbpBuyService = await LbpBuyService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
     const { expectedSharesOut } = await this.lbpBuyService.previewSharesOut({ keys, args });
     return {
       expectedSharesOut,
@@ -202,7 +207,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewAssetsIn({ keys, args, provider }: SwapAssetsForExactSharesInstructionClientParams) {
-    this.lbpBuyService = await LbpBuyService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+    this.lbpBuyService = await LbpBuyService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
     const { expectedAssetsIn } = await this.lbpBuyService.previewAssetsIn({ keys, args });
     return {
       expectedAssetsIn,
@@ -210,7 +220,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewAssetsOut({ keys, args, provider }: SwapExactSharesForAssetsInstructionClientParams) {
-    this.lbpSellService = await LbpSellService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+    this.lbpSellService = await LbpSellService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
     const { expectedMinAssetsOut } = await this.lbpSellService.previewAssetsOut({ keys, args });
     return {
       expectedMinAssetsOut,
@@ -218,7 +233,12 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams) {
-    this.lbpSellService = await LbpSellService.create(this.programId, provider, this.solanaNetwork, this.loggerEnabled);
+    this.lbpSellService = await LbpSellService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
     const { expectedMaxSharesIn } = await this.lbpSellService.previewSharesIn({ keys, args });
     return {
       expectedMaxSharesIn,
