@@ -16,7 +16,7 @@ describe('LBP Redemption Service', () => {
   describe('close operations', () => {
     let service: LbpRedemptionService;
     beforeEach(async () => {
-      service = new LbpRedemptionService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet, true);
+      service = new LbpRedemptionService(DEFAULT_PROGRAM_ADDRESS, provider, connection, true);
     });
 
     it('should create an instance of LbpRedemptionService', () => {

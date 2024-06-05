@@ -1,7 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { MAX_FEE_BASIS_POINTS, getAssociatedTokenAddress } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import {
   Connection,
   PublicKey,
@@ -10,7 +9,7 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 
-import { FjordLbp, IDL, SOLANA_RPC } from '../constants';
+import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
 import {
   BigNumber,
@@ -31,21 +30,13 @@ export class LbpBuyService implements LbpBuyServiceInterface {
 
   private connection: Connection;
 
-  private network: WalletAdapterNetwork;
-
   private logger: LoggerLike;
 
-  constructor(
-    programId: PublicKey,
-    provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
-    loggerEnabled: boolean,
-  ) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection, loggerEnabled: boolean) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.connection = new anchor.web3.Connection(SOLANA_RPC || anchor.web3.clusterApiUrl(network));
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpBuyService', loggerEnabled);
     this.logger.debug('LbpBuyService initialized');
   }
@@ -60,10 +51,10 @@ export class LbpBuyService implements LbpBuyServiceInterface {
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
     loggerEnabled: boolean,
   ): Promise<LbpBuyService> {
-    const service = await Promise.resolve(new LbpBuyService(programId, provider, network, loggerEnabled));
+    const service = await Promise.resolve(new LbpBuyService(programId, provider, connection, loggerEnabled));
 
     return service;
   }

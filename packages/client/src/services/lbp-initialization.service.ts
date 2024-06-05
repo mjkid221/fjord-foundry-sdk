@@ -1,8 +1,7 @@
 import * as anchor from '@coral-xyz/anchor';
 import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pubkey';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
 import { getTokenDivisor } from '../helpers';
@@ -21,7 +20,7 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
 
   private program: anchor.Program<FjordLbp>;
 
-  private network: WalletAdapterNetwork;
+  private connection: Connection;
 
   private logger: LoggerLike;
 
@@ -34,11 +33,11 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
    * @constructor
    * @returns {LbpInitializationService} - An instance of LbpInitializationService.
    */
-  constructor(programId: PublicKey, provider: anchor.AnchorProvider, network: WalletAdapterNetwork) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpInitializationService', true);
     this.logger.debug('LbpInitializationService initialized');
   }
@@ -52,17 +51,15 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
   ): Promise<LbpInitializationService> {
-    const service = await Promise.resolve(new LbpInitializationService(programId, provider, network));
+    const service = await Promise.resolve(new LbpInitializationService(programId, provider, connection));
 
     return service;
   }
 
   public async initializePool({ keys, args }: InitializePoolParams): Promise<InitializePoolResponse> {
-    // Fetch the Solana network URL based on the provided network.
-    const solanaNetwork = anchor.web3.clusterApiUrl(this.network);
-    const connection = new anchor.web3.Connection(solanaNetwork);
+    const connection = this.connection;
 
     // Destructure the provided keys and arguments.
     const { creator, shareTokenMint, assetTokenMint } = keys;

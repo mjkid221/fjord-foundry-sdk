@@ -1,4 +1,5 @@
-import { PublicKey } from '@solana/web3.js';
+import { Event } from '@coral-xyz/anchor';
+import { PublicKey, ConfirmedSignatureInfo, ParsedMessageAccount } from '@solana/web3.js';
 
 export interface GetPoolFeesResponse {
   platformFee: number;
@@ -33,6 +34,15 @@ export interface GetUserTokenBalanceParams {
 
 export interface GetPoolWeightsAndReserves {
   poolPda: PublicKey;
+}
+
+export interface GetPoolTransactionsAfterParams {
+  poolPda: PublicKey;
+  afterSlot: number;
+}
+
+export interface GetPoolLogsAfterParams extends GetPoolTransactionsAfterParams {
+  logName: string;
 }
 
 export interface UserPoolStateBalances {
@@ -74,4 +84,10 @@ export interface PoolReservesAndWeightsResponse {
   share_reserve: bigint;
   asset_weight: bigint;
   share_weight: bigint;
+}
+
+export interface PoolTransaction {
+  transaction: ConfirmedSignatureInfo;
+  accounts?: ParsedMessageAccount[] | undefined;
+  logs?: Event[] | undefined;
 }

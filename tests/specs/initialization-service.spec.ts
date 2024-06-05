@@ -27,7 +27,7 @@ describe('LBP Initialization Service', () => {
   describe('initializePool', () => {
     let service: LbpInitializationService;
     beforeEach(async () => {
-      service = new LbpInitializationService(DEFAULT_PROGRAM_ADDRESS, provider, WalletAdapterNetwork.Devnet);
+      service = new LbpInitializationService(DEFAULT_PROGRAM_ADDRESS, provider, connection);
     });
 
     // Test if the class is defined

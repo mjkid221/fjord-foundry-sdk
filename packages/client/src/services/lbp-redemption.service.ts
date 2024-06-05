@@ -6,7 +6,6 @@ import {
   getAssociatedTokenAddress,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PublicKey, Connection, Transaction, AccountMeta } from '@solana/web3.js';
 
 import { FjordLbp, IDL } from '../constants';
@@ -23,21 +22,13 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
 
   private connection: Connection;
 
-  private network: WalletAdapterNetwork;
-
   private logger: LoggerLike;
 
-  constructor(
-    programId: PublicKey,
-    provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
-    loggerEnabled: boolean,
-  ) {
+  constructor(programId: PublicKey, provider: anchor.AnchorProvider, connection: Connection, loggerEnabled: boolean) {
     this.provider = provider;
     this.programId = programId;
     this.program = new anchor.Program(IDL, programId, provider);
-    this.connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl(network));
-    this.network = network;
+    this.connection = connection;
     this.logger = Logger('LbpRedemptionService', loggerEnabled);
     this.logger.debug('LbpRedemptionService initialized');
   }
@@ -52,10 +43,10 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
   static async create(
     programId: PublicKey,
     provider: anchor.AnchorProvider,
-    network: WalletAdapterNetwork,
+    connection: Connection,
     loggerEnabled: boolean,
   ): Promise<LbpRedemptionService> {
-    const service = await Promise.resolve(new LbpRedemptionService(programId, provider, network, loggerEnabled));
+    const service = await Promise.resolve(new LbpRedemptionService(programId, provider, connection, loggerEnabled));
 
     return service;
   }
