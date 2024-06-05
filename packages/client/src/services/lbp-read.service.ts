@@ -163,7 +163,7 @@ export class LbpReadService implements LbpReadServiceInterface {
     const poolAssetTokenAccountInfo = await this.connection.getTokenAccountBalance(poolAssetTokenAccount);
 
     const poolShareTokenAccountInfo = await this.connection.getTokenAccountBalance(poolShareTokenAccount);
-    if (!poolAssetTokenAccountInfo.value.uiAmount === undefined) {
+    if (poolAssetTokenAccountInfo.value.uiAmount === null) {
       this.logger.error('Pool asset token account not found');
       throw new Error('Pool asset token account not found');
     }
