@@ -409,9 +409,6 @@ export class FjordClientSdk implements ClientSdkInterface {
     const formattedMaxSharesOut: string = poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
     const formattedMaxAssetsIn: string = poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
 
-    const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
-    const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
-
     return {
       ...poolData,
       assetToken: poolData.assetToken.toBase58(),
@@ -422,8 +419,8 @@ export class FjordClientSdk implements ClientSdkInterface {
       maxSharesOut: formattedMaxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
       maxAssetsIn: formattedMaxAssetsIn,
-      saleEndTime: formattedSaleEndTime,
-      saleStartTime: formattedSaleStartTime,
+      saleEndTime: poolData.saleEndTime,
+      saleStartTime: poolData.saleStartTime,
       totalPurchased: poolData.totalPurchased.toString(),
       totalReferred: poolData.totalReferred.toString(),
       totalSwapFeesAsset: poolData.totalSwapFeesAsset.toString(),
