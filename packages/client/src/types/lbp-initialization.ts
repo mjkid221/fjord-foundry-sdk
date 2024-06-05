@@ -96,8 +96,8 @@ export interface GetPoolDataResponse {
   maxAssetsIn: string;
   maxSharePrice: string;
   maxSharesOut: string;
-  saleEndTime: string;
-  saleStartTime: string;
+  saleEndTime: anchor.BN;
+  saleStartTime: anchor.BN;
   sellingAllowed: string;
   shareToken: string;
   startWeightBasisPoints: number;
