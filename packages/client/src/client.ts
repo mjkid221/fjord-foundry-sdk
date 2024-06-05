@@ -419,16 +419,6 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     this.logger.debug('Pool data retrieved', poolData);
 
-    // Format pool data
-    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
-    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
-
-    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-    const formattedMaxSharesOut: string = poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
-    const formattedMaxAssetsIn: string = poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
-
     return {
       ...poolData,
       assetToken: poolData.assetToken.toBase58(),
@@ -436,9 +426,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       closed: poolData.closed.toString(),
       paused: poolData.paused.toString(),
       shareToken: poolData.shareToken.toBase58(),
-      maxSharesOut: formattedMaxSharesOut,
+      maxSharesOut: poolData.maxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
-      maxAssetsIn: formattedMaxAssetsIn,
+      maxAssetsIn: poolData.maxAssetsIn,
       saleEndTime: poolData.saleEndTime,
       saleStartTime: poolData.saleStartTime,
       totalPurchased: poolData.totalPurchased.toString(),
