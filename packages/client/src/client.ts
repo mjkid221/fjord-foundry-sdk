@@ -109,12 +109,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     provider,
   }: CreatePoolClientParams): Promise<InitializePoolResponse> {
-    // Create a new instance of the LbpInitializationService
-    this.lbpInitializationService = await LbpInitializationService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-    );
+    // Create a new instance of the LbpInitializationService if it doesn't exist
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+      );
+    }
 
     // Call the initializePool method from the LbpInitializationService
     const transaction = await this.lbpInitializationService.initializePool({ keys, args });
@@ -129,12 +131,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     provider,
   }: SwapAssetsForExactSharesInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpBuyService = await LbpBuyService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpBuyService) {
+      this.lbpBuyService = await LbpBuyService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpBuyService.createSwapAssetsForExactSharesInstruction({ keys, args });
 
@@ -146,12 +150,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     provider,
   }: SwapExactAssetsForSharesInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpBuyService = await LbpBuyService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpBuyService) {
+      this.lbpBuyService = await LbpBuyService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpBuyService.createSwapExactAssetsForSharesInstruction({ keys, args });
 
@@ -164,12 +170,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     provider,
   }: SwapSharesForExactAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpSellService = await LbpSellService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpSellService) {
+      this.lbpSellService = await LbpSellService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpSellService.createSwapSharesForExactAssetsInstruction({ keys, args });
 
@@ -181,12 +189,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     args,
     provider,
   }: SwapExactSharesForAssetsInstructionClientParams): Promise<TransactionInstruction> {
-    this.lbpSellService = await LbpSellService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpSellService) {
+      this.lbpSellService = await LbpSellService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpSellService.createSwapExactSharesForAssetsInstruction({ keys, args });
 
@@ -233,6 +243,7 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams) {
+
     this.lbpSellService = await LbpSellService.create(
       this.programId,
       provider,
@@ -247,13 +258,15 @@ export class FjordClientSdk implements ClientSdkInterface {
 
   // Close Pool Function
   public async closePoolTransaction({ keys, args, provider }: CloseOperationPublicKeys) {
-    // Create a new instance of the LbpInitializationService
-    this.lbpRedemptionService = await LbpRedemptionService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpRedemptionService) {
+      // Create a new instance of the LbpInitializationService
+      this.lbpRedemptionService = await LbpRedemptionService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     // Call the closePool method from the LbpInitializationService
     const transaction = await this.lbpRedemptionService.closeLbpPool({ keys, args });
@@ -268,12 +281,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
   }: RedeemOperationPublicKeys): Promise<TransactionInstruction> {
     // Create a new instance of the LbpInitializationService
-    this.lbpRedemptionService = await LbpRedemptionService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpRedemptionService) {
+      this.lbpRedemptionService = await LbpRedemptionService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     // Call the closePool method from the LbpInitializationService
     const transaction = await this.lbpRedemptionService.redeemLbpTokens({ keys, args });
@@ -282,12 +297,14 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async pausePool({ args, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
 
@@ -297,12 +314,14 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async unPausePool({ args, provider }: PausePoolClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const { poolPda, creator, shareTokenMint, assetTokenMint } = args;
 
@@ -325,12 +344,14 @@ export class FjordClientSdk implements ClientSdkInterface {
       throw new Error('Creator public key is required');
     }
 
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpManagementService.createNewOwnerNomination({ newOwnerPublicKey, creator });
 
@@ -341,12 +362,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
     newOwnerPublicKey,
   }: CreateNewOwnerNominationClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transaction = await this.lbpManagementService.acceptOwnerNomination({ newOwnerPublicKey });
 
@@ -354,12 +377,14 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async setNewPoolFees({ feeParams, provider }: SetNewPoolFeesClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const { platformFee, referralFee, swapFee, ownerPublicKey } = feeParams;
 
@@ -377,12 +402,14 @@ export class FjordClientSdk implements ClientSdkInterface {
     provider,
     feeParams,
   }: SetTreasuryFeeRecipientsClientParams): Promise<TransactionInstruction> {
-    this.lbpManagementService = await LbpManagementService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpManagementService) {
+      this.lbpManagementService = await LbpManagementService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const { swapFeeRecipient, feeRecipients, creator } = feeParams;
 
@@ -408,11 +435,13 @@ export class FjordClientSdk implements ClientSdkInterface {
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
     // Create a new instance of the LbpInitializationService
-    this.lbpInitializationService = await LbpInitializationService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-    );
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+      );
+    }
 
     // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
@@ -459,11 +488,13 @@ export class FjordClientSdk implements ClientSdkInterface {
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
     // Create a new instance of the LbpInitializationService
-    this.lbpInitializationService = await LbpInitializationService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-    );
+    if (!this.lbpInitializationService) {
+      this.lbpInitializationService = await LbpInitializationService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+      );
+    }
 
     // Fetch pool data
     const poolData = await this.lbpInitializationService.getPoolData(poolPda);
@@ -544,13 +575,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
-
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
     const poolFees = await this.lbpReadService.getPoolFees();
 
     return poolFees;
@@ -568,12 +600,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const poolOwner = await this.lbpReadService.getPoolOwner();
 
@@ -592,12 +626,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const feeRecipients = await this.lbpReadService.getFeeRecipients();
 
@@ -616,12 +652,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const swapFeeRecipient = await this.lbpReadService.getSwapFeeRecipient();
 
@@ -640,12 +678,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const poolTokenAccounts = await this.lbpReadService.getPoolTokenAccounts({ poolPda });
 
@@ -664,12 +704,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const poolBalances = await this.lbpReadService.getPoolTokenBalances({ poolPda });
 
@@ -688,12 +730,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     return this.lbpReadService.getPoolReservesAndWeights({ poolPda });
   }
@@ -710,12 +754,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const creatorBalances = await this.lbpReadService.getCreatorTokenBalances({ poolPda });
 
@@ -737,12 +783,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const userBalances = await this.lbpReadService.getUserPoolStateBalances({ poolPda, userPublicKey });
 
@@ -764,12 +812,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const transactions = await this.lbpReadService.getPoolTransactionsAfterSlot({ poolPda, afterSlot });
 
@@ -787,12 +837,14 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     const provider = new anchor.AnchorProvider(connection, MockWallet, anchor.AnchorProvider.defaultOptions());
 
-    this.lbpReadService = await LbpReadService.create(
-      this.programId,
-      provider,
-      this.solanaConnection,
-      this.loggerEnabled,
-    );
+    if (!this.lbpReadService) {
+      this.lbpReadService = await LbpReadService.create(
+        this.programId,
+        provider,
+        this.solanaConnection,
+        this.loggerEnabled,
+      );
+    }
 
     const logs = await this.lbpReadService.getPoolLogsAfterSlot({ poolPda, afterSlot, logName });
 
