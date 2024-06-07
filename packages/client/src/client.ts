@@ -200,10 +200,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.solanaConnection,
       this.loggerEnabled,
     );
-    const { expectedSharesOut, expectedSharesOutUI } = await this.lbpBuyService.previewSharesOut({ keys, args });
+    const { expectedSharesOut } = await this.lbpBuyService.previewSharesOut({ keys, args });
     return {
       expectedSharesOut,
-      expectedSharesOutUI,
     };
   }
 
@@ -214,10 +213,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.solanaConnection,
       this.loggerEnabled,
     );
-    const { expectedAssetsIn, expectedAssetsInUI } = await this.lbpBuyService.previewAssetsIn({ keys, args });
+    const { expectedAssetsIn } = await this.lbpBuyService.previewAssetsIn({ keys, args });
     return {
       expectedAssetsIn,
-      expectedAssetsInUI,
     };
   }
 
@@ -228,10 +226,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.solanaConnection,
       this.loggerEnabled,
     );
-    const { expectedMinAssetsOut, expectedMinAssetsOutUI } = await this.lbpSellService.previewAssetsOut({ keys, args });
+    const { expectedMinAssetsOut } = await this.lbpSellService.previewAssetsOut({ keys, args });
     return {
       expectedMinAssetsOut,
-      expectedMinAssetsOutUI,
     };
   }
 
@@ -242,10 +239,9 @@ export class FjordClientSdk implements ClientSdkInterface {
       this.solanaConnection,
       this.loggerEnabled,
     );
-    const { expectedMaxSharesIn, expectedMaxSharesInUI } = await this.lbpSellService.previewSharesIn({ keys, args });
+    const { expectedMaxSharesIn } = await this.lbpSellService.previewSharesIn({ keys, args });
     return {
       expectedMaxSharesIn,
-      expectedMaxSharesInUI,
     };
   }
 
@@ -423,19 +419,6 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     this.logger.debug('Pool data retrieved', poolData);
 
-    // Format pool data
-    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
-    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
-
-    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-    const formattedMaxSharesOut: string = poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
-    const formattedMaxAssetsIn: string = poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
-
-    const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
-    const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
-
     return {
       ...poolData,
       assetToken: poolData.assetToken.toBase58(),
@@ -443,11 +426,11 @@ export class FjordClientSdk implements ClientSdkInterface {
       closed: poolData.closed.toString(),
       paused: poolData.paused.toString(),
       shareToken: poolData.shareToken.toBase58(),
-      maxSharesOut: formattedMaxSharesOut,
+      maxSharesOut: poolData.maxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
-      maxAssetsIn: formattedMaxAssetsIn,
-      saleEndTime: formattedSaleEndTime,
-      saleStartTime: formattedSaleStartTime,
+      maxAssetsIn: poolData.maxAssetsIn,
+      saleEndTime: poolData.saleEndTime,
+      saleStartTime: poolData.saleStartTime,
       totalPurchased: poolData.totalPurchased.toString(),
       totalReferred: poolData.totalReferred.toString(),
       totalSwapFeesAsset: poolData.totalSwapFeesAsset.toString(),
