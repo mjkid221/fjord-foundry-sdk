@@ -32,8 +32,7 @@ export interface SwapExactSharesForAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
     sharesAmountIn: BigNumber;
-    expectedMinAssetsOut?: BigNumber;
-    slippage?: number;
+    expectedMinAssetsOut: BigNumber;
   };
 }
 
@@ -47,8 +46,7 @@ export interface SwapSharesForExactAssetsOperationArgs {
   args: {
     poolPda: PublicKey;
     assetsAmountOut: BigNumber;
-    expectedMaxSharesIn?: BigNumber;
-    slippage?: number;
+    expectedMaxSharesIn: BigNumber;
   };
 }
 
@@ -62,8 +60,7 @@ export interface SwapExactAssetsForSharesOperationArgs {
   args: {
     poolPda: PublicKey;
     assetsAmountIn: BigNumber;
-    expectedSharesOut?: BigNumber;
-    slippage?: number;
+    expectedSharesOut: BigNumber;
   };
 }
 
@@ -77,8 +74,7 @@ export interface SwapAssetsForExactSharesOperationArgs {
   args: {
     poolPda: PublicKey;
     sharesAmountOut: BigNumber;
-    expectedAssetsIn?: BigNumber;
-    slippage?: number;
+    expectedAssetsIn: BigNumber;
   };
 }
 
