@@ -68,7 +68,6 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
 
     // Get the user pool account
     const treasury = await this.program.account.treasury.fetch(treasuryPda);
-
     // Get fee recipient informations.
     // !NOTE - There are two types of fee recipients in the treasury.
     // 1. Swap fee recipient - This is a single user who will receive the swap fees in asset and share token.
@@ -86,12 +85,12 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
     ] = await Promise.all([
       getAssociatedTokenAddressSync(shareTokenMint, poolPda, true),
       getAssociatedTokenAddressSync(assetTokenMint, poolPda, true),
-      getAssociatedTokenAddressSync(assetTokenMint, swapFeeRecipient),
-      getAssociatedTokenAddressSync(shareTokenMint, swapFeeRecipient),
+      getAssociatedTokenAddressSync(assetTokenMint, swapFeeRecipient, true),
+      getAssociatedTokenAddressSync(shareTokenMint, swapFeeRecipient, true),
       getAssociatedTokenAddressSync(assetTokenMint, treasuryPda, true),
       getAssociatedTokenAddressSync(shareTokenMint, treasuryPda, true),
-      getAssociatedTokenAddressSync(assetTokenMint, creator),
-      getAssociatedTokenAddressSync(shareTokenMint, creator),
+      getAssociatedTokenAddressSync(assetTokenMint, creator, true),
+      getAssociatedTokenAddressSync(shareTokenMint, creator, true),
     ]);
 
     // Add instructions to create asset token accounts for recipient atas if they dont exist

@@ -7,6 +7,6 @@ interface SolanaNetworkStore {
 }
 
 export const useSolanaNetworkStore = create<SolanaNetworkStore>((set) => ({
-  solanaNetwork: WalletAdapterNetwork.Devnet,
+  solanaNetwork: WalletAdapterNetwork.Mainnet,
   setSolanaNetwork: (solanaNetwork) => set({ solanaNetwork }),
 }));
