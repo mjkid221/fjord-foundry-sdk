@@ -180,8 +180,8 @@ export class LbpRedemptionService implements LbpRedemptionServiceInterface {
       await Promise.all([
         getAssociatedTokenAddressSync(shareTokenMint, poolPda, true),
         getAssociatedTokenAddressSync(assetTokenMint, poolPda, true),
-        getAssociatedTokenAddressSync(assetTokenMint, userPublicKey),
-        getAssociatedTokenAddressSync(shareTokenMint, userPublicKey),
+        getAssociatedTokenAddressSync(assetTokenMint, userPublicKey, true),
+        getAssociatedTokenAddressSync(shareTokenMint, userPublicKey, true),
       ]);
 
     try {
