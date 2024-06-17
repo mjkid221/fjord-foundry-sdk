@@ -11,4 +11,4 @@ export const DEFAULT_SALE_START_TIME_BN = new BN(new Date().getTime() / 1000 + T
 
 export const DEFAULT_SALE_END_TIME_BN = DEFAULT_SALE_START_TIME_BN.add(new BN(ONE_DAY_SECONDS));
 
-export const INITIALIZE_LBP_ADDRESS = '7UTvQUzE1iThaXhXDg1FsVoqcv3MBAgwUCW7PEKzNbPH';
+export const INITIALIZE_LBP_ADDRESS = 'w4cy1r9U7ag99RfBjb3Mz69oiANFeQystgQXerwUWLM';

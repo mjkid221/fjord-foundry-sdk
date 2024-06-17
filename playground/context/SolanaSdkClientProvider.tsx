@@ -33,6 +33,7 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
       solanaNetwork: network,
       programId: programAddressPublicKey,
       enableLogging: true,
+      rpcUrl: 'https://devnet.helius-rpc.com/?api-key=ef8c270a-dce9-4069-92f5-cd687823d1d7',
     }); // enable logging
   }, [setSolanaNetwork, solanaNetwork]);
 

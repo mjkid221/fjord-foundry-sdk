@@ -185,8 +185,8 @@ export class LbpReadService implements LbpReadServiceInterface {
     // Get the creator of the pool
     const { creator, assetToken, shareToken } = await this.getPool(poolPda);
 
-    const creatorPoolShareTokenAccount = await getAssociatedTokenAddress(shareToken, creator);
-    const creatorPoolAssetTokenAccount = await getAssociatedTokenAddress(assetToken, creator);
+    const creatorPoolShareTokenAccount = await getAssociatedTokenAddress(shareToken, creator, true);
+    const creatorPoolAssetTokenAccount = await getAssociatedTokenAddress(assetToken, creator, true);
 
     const creatorShareTokenBalance = await this.connection.getTokenAccountBalance(creatorPoolShareTokenAccount);
     const creatorAssetTokenBalance = await this.connection.getTokenAccountBalance(creatorPoolAssetTokenAccount);
