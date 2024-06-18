@@ -77,7 +77,7 @@ const createToken = async ({
   );
 
   // Pre-compute the address of our token account which will hold the tokens.
-  const tokenAccountAddress = await getAssociatedTokenAddress(tokenMint.publicKey, payer.publicKey);
+  const tokenAccountAddress = await getAssociatedTokenAddress(tokenMint.publicKey, payer.publicKey, true);
 
   // getAccount throws an error if the account doesn't exist,
   // so we need to create it if an error is thrown.

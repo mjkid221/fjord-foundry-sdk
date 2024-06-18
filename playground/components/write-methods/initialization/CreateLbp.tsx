@@ -14,7 +14,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { useAnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Transaction, TransactionInstruction } from '@solana/web3.js';
+import { ComputeBudgetProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { useMutation } from '@tanstack/react-query';
 import { Dayjs } from 'dayjs';
 import { useContext, useEffect, useState } from 'react';
@@ -25,7 +25,7 @@ import { SolanaSdkClientContext } from '@/context/SolanaSdkClientContext';
 import { createPool } from '@/helpers/pool-initialization';
 import { initializePoolArgsSchema } from '@/types';
 import WalletNotConnected from '../../WalletNotConnected';
-import { handleDialogClose, handleDialogOpen } from '@/helpers';
+import { getPriorityFeeEstimate, handleDialogClose, handleDialogOpen } from '@/helpers';
 import FeedbackDialog from '@/components/FeedbackDialog';
 import SuccessFeedback from '@/components/FeedbackDialog/SuccessFeedback';
 import { useConnectedWalletAddressStore } from '@/stores/useConnectedWalletAddressStore';
@@ -60,8 +60,12 @@ const CreateLbp = () => {
   }, [connectedWalletAddress, setValue]);
 
   const signAndSendCreatePoolTransaction = async (transactionInstruction: TransactionInstruction) => {
-    const transaction = new Transaction().add(transactionInstruction);
-
+    const transaction = new Transaction().add(transactionInstruction).add(
+      // Adds the prioritization fee to the transaction
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: await getPriorityFeeEstimate(connection, transactionInstruction),
+      }),
+    );
     if (!wallet) {
       throw new Error('Wallet not connected');
     }

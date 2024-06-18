@@ -120,8 +120,8 @@ export class LbpInitializationService implements LbpInitializationServiceInterfa
       const poolShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, poolPda, true);
       const poolAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, poolPda, true);
 
-      const creatorShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, creator);
-      const creatorAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, creator);
+      const creatorShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, creator, true);
+      const creatorAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, creator, true);
 
       // Define the accounts to be used in the transaction.
       const accounts: Accounts = {
