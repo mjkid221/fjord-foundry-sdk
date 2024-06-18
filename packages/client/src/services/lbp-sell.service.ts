@@ -117,26 +117,18 @@ export class LbpSellService implements LbpSellServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedSharesAmountIn = sharesAmountIn.mul(new anchor.BN(shareTokenDivisor));
-
     try {
       const ix = await this.program.methods
-        .previewAssetsOut(formattedSharesAmountIn)
+        .previewAssetsOut(sharesAmountIn)
         .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
         .instruction();
 
       const expectedMinAssetsOut = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
       return {
         expectedMinAssetsOut,
-        expectedMinAssetsOutUI: expectedMinAssetsOut.div(new anchor.BN(assetTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedSharesAmountIn,
+        sharesAmountIn,
       };
     } catch (error: any) {
       this.logger.error('Failed to create swap exact shares for assets instruction preview.', error);
@@ -159,26 +151,18 @@ export class LbpSellService implements LbpSellServiceInterface {
       throw new Error('Failed to get associated token accounts for the pool and creator.', error);
     }
 
-    const [assetTokenDivisor, shareTokenDivisor] = await Promise.all([
-      this.getTokenDivisorFromSupply(assetTokenMint, this.connection),
-      this.getTokenDivisorFromSupply(shareTokenMint, this.connection),
-    ]);
-
-    const formattedAssetsOut = assetsAmountOut.mul(new anchor.BN(assetTokenDivisor));
-
     try {
       const ix = await this.program.methods
-        .previewSharesIn(formattedAssetsOut)
+        .previewSharesIn(assetsAmountOut)
         .accounts({ assetTokenMint, shareTokenMint, pool: poolPda, poolAssetTokenAccount, poolShareTokenAccount })
         .instruction();
 
       const expectedMaxSharesIn = await this.simulatePreviewsAndReturnValue(ix, userPublicKey);
       return {
         expectedMaxSharesIn,
-        expectedMaxSharesInUI: expectedMaxSharesIn.div(new anchor.BN(shareTokenDivisor)).toString(),
         poolShareTokenAccount,
         poolAssetTokenAccount,
-        formattedAssetsOut,
+        assetsAmountOut,
       };
     } catch (error: any) {
       this.logger.error('Failed to create swap shares for exact assets instruction preview.', error);
@@ -192,7 +176,7 @@ export class LbpSellService implements LbpSellServiceInterface {
   }: SwapExactSharesForAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
     const { userPublicKey, shareTokenMint, assetTokenMint } = keys;
-    const { poolPda, slippage, expectedMinAssetsOut: expectedAssetsOutOverride } = args;
+    const { poolPda, expectedMinAssetsOut, sharesAmountIn } = args;
 
     let userPoolPda: PublicKey;
 
@@ -203,40 +187,22 @@ export class LbpSellService implements LbpSellServiceInterface {
       this.logger.error('Failed to get user PDA for the pool.', error);
       throw new Error('Failed to get user PDA for the pool.', error);
     }
-
-    let userShareTokenAccount: PublicKey;
-    let userAssetTokenAccount: PublicKey;
-
-    try {
-      // Get the user's associated token accounts for the pool.
-      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    } catch (error: any) {
-      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
-      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
-    }
-
-    const {
-      poolShareTokenAccount,
-      poolAssetTokenAccount,
-      formattedSharesAmountIn,
-      expectedMinAssetsOut: assetsOut,
-    } = await this.previewAssetsOut({
-      keys,
-      args,
-    });
-
-    const expectedAssetsOutWithoutSlippage = expectedAssetsOutOverride ? expectedAssetsOutOverride : assetsOut;
-    const expectedAssetsOut = slippage
-      ? expectedAssetsOutWithoutSlippage
-          .mul(new anchor.BN(MAX_FEE_BASIS_POINTS - slippage * 100))
-          .div(new anchor.BN(MAX_FEE_BASIS_POINTS))
-      : expectedAssetsOutWithoutSlippage;
+    const [ 
+      userShareTokenAccount, 
+      userAssetTokenAccount, 
+      poolShareTokenAccount, 
+      poolAssetTokenAccount
+    ] = await Promise.all([
+      getAssociatedTokenAddress(shareTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(assetTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(shareTokenMint, poolPda, true),
+      getAssociatedTokenAddress(assetTokenMint, poolPda, true)
+    ])
 
     // Create the instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapExactSharesForAssets(formattedSharesAmountIn, expectedAssetsOut, null, null)
+        .swapExactSharesForAssets(sharesAmountIn, expectedMinAssetsOut, null, null)
         .accounts({
           assetTokenMint,
           shareTokenMint,
@@ -264,7 +230,7 @@ export class LbpSellService implements LbpSellServiceInterface {
   }: SwapSharesForExactAssetsOperationParams): Promise<TransactionInstruction> {
     // Destructure the provided keys and arguments.
     const { userPublicKey, shareTokenMint, assetTokenMint } = keys;
-    const { poolPda, slippage, expectedMaxSharesIn: expectedSharesInOverride } = args;
+    const { poolPda, expectedMaxSharesIn, assetsAmountOut } = args;
 
     // Get the user PDA for the pool.
     const [userPoolPda] = findProgramAddressSync(
@@ -272,41 +238,21 @@ export class LbpSellService implements LbpSellServiceInterface {
       this.program.programId,
     );
 
-    // Get the user's associated token accounts for the pool.
-    let userShareTokenAccount: PublicKey;
-    let userAssetTokenAccount: PublicKey;
+    const [ 
+      userShareTokenAccount, 
+      userAssetTokenAccount, 
+      poolShareTokenAccount, 
+      poolAssetTokenAccount
+    ] = await Promise.all([
+      getAssociatedTokenAddress(shareTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(assetTokenMint, userPublicKey, true),
+      getAssociatedTokenAddress(shareTokenMint, poolPda, true),
+      getAssociatedTokenAddress(assetTokenMint, poolPda, true)
+    ])
 
-    try {
-      // Get the user's associated token accounts for the pool.
-      userShareTokenAccount = await getAssociatedTokenAddress(shareTokenMint, userPublicKey, true);
-      userAssetTokenAccount = await getAssociatedTokenAddress(assetTokenMint, userPublicKey, true);
-    } catch (error: any) {
-      this.logger.error('Failed to get associated token accounts for the pool and creator.', error);
-      throw new Error('Failed to get associated token accounts for the pool and creator.', error);
-    }
-
-    const {
-      poolShareTokenAccount,
-      poolAssetTokenAccount,
-      formattedAssetsOut,
-      expectedMaxSharesIn: sharesIn,
-    } = await this.previewSharesIn({
-      keys,
-      args,
-    });
-
-    this.logger.log('slippage: ', slippage);
-    const expectedSharesInWithoutSlippage = expectedSharesInOverride ? expectedSharesInOverride : sharesIn;
-    const expectedSharesIn = slippage
-      ? expectedSharesInWithoutSlippage
-          .mul(new anchor.BN(MAX_FEE_BASIS_POINTS + slippage * 100))
-          .div(new anchor.BN(MAX_FEE_BASIS_POINTS))
-      : expectedSharesInWithoutSlippage;
-
-    // Create the instruction.
     try {
       const swapInstruction = await this.program.methods
-        .swapSharesForExactAssets(formattedAssetsOut, expectedSharesIn, null, null)
+        .swapSharesForExactAssets(assetsAmountOut, expectedMaxSharesIn, null, null)
         .accounts({
           assetTokenMint,
           shareTokenMint,

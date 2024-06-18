@@ -204,70 +204,55 @@ export class FjordClientSdk implements ClientSdkInterface {
   }
 
   public async previewSharesOut({ keys, args, provider }: SwapExactAssetsForSharesInstructionClientParams) {
-    if (!this.lbpBuyService) {
-      this.lbpBuyService = await LbpBuyService.create(
-        this.programId,
-        provider,
-        this.solanaConnection,
-        this.loggerEnabled,
-      );
-    }
-
-    const { expectedSharesOut, expectedSharesOutUI } = await this.lbpBuyService.previewSharesOut({ keys, args });
+    this.lbpBuyService = await LbpBuyService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
+    const { expectedSharesOut } = await this.lbpBuyService.previewSharesOut({ keys, args });
     return {
       expectedSharesOut,
-      expectedSharesOutUI,
     };
   }
 
   public async previewAssetsIn({ keys, args, provider }: SwapAssetsForExactSharesInstructionClientParams) {
-    if (!this.lbpBuyService) {
-      this.lbpBuyService = await LbpBuyService.create(
-        this.programId,
-        provider,
-        this.solanaConnection,
-        this.loggerEnabled,
-      );
-    }
-
-    const { expectedAssetsIn, expectedAssetsInUI } = await this.lbpBuyService.previewAssetsIn({ keys, args });
+    this.lbpBuyService = await LbpBuyService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
+    const { expectedAssetsIn } = await this.lbpBuyService.previewAssetsIn({ keys, args });
     return {
       expectedAssetsIn,
-      expectedAssetsInUI,
     };
   }
 
   public async previewAssetsOut({ keys, args, provider }: SwapExactSharesForAssetsInstructionClientParams) {
-    if (!this.lbpSellService) {
-      this.lbpSellService = await LbpSellService.create(
-        this.programId,
-        provider,
-        this.solanaConnection,
-        this.loggerEnabled,
-      );
-    }
-
-    const { expectedMinAssetsOut, expectedMinAssetsOutUI } = await this.lbpSellService.previewAssetsOut({ keys, args });
+    this.lbpSellService = await LbpSellService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
+    const { expectedMinAssetsOut } = await this.lbpSellService.previewAssetsOut({ keys, args });
     return {
       expectedMinAssetsOut,
-      expectedMinAssetsOutUI,
     };
   }
 
   public async previewSharesIn({ keys, args, provider }: SwapSharesForExactAssetsInstructionClientParams) {
-    if (!this.lbpSellService) {
-      this.lbpSellService = await LbpSellService.create(
-        this.programId,
-        provider,
-        this.solanaConnection,
-        this.loggerEnabled,
-      );
-    }
 
-    const { expectedMaxSharesIn, expectedMaxSharesInUI } = await this.lbpSellService.previewSharesIn({ keys, args });
+    this.lbpSellService = await LbpSellService.create(
+      this.programId,
+      provider,
+      this.solanaConnection,
+      this.loggerEnabled,
+    );
+    const { expectedMaxSharesIn } = await this.lbpSellService.previewSharesIn({ keys, args });
     return {
       expectedMaxSharesIn,
-      expectedMaxSharesInUI,
     };
   }
 
@@ -463,19 +448,6 @@ export class FjordClientSdk implements ClientSdkInterface {
 
     this.logger.debug('Pool data retrieved', poolData);
 
-    // Format pool data
-    const assetTokenData = await connection.getTokenSupply(poolData.assetToken);
-    const shareTokenData = await connection.getTokenSupply(poolData.shareToken);
-
-    const shareTokenDivisor = getTokenDivisor(shareTokenData.value.decimals);
-    const assetTokenDivisor = getTokenDivisor(assetTokenData.value.decimals);
-
-    const formattedMaxSharesOut: string = poolData.maxSharesOut.div(new anchor.BN(shareTokenDivisor)).toString();
-    const formattedMaxAssetsIn: string = poolData.maxAssetsIn.div(new anchor.BN(assetTokenDivisor)).toString();
-
-    const formattedSaleStartTime = formatEpochDate(poolData.saleStartTime);
-    const formattedSaleEndTime = formatEpochDate(poolData.saleEndTime);
-
     return {
       ...poolData,
       assetToken: poolData.assetToken.toBase58(),
@@ -483,11 +455,11 @@ export class FjordClientSdk implements ClientSdkInterface {
       closed: poolData.closed.toString(),
       paused: poolData.paused.toString(),
       shareToken: poolData.shareToken.toBase58(),
-      maxSharesOut: formattedMaxSharesOut,
+      maxSharesOut: poolData.maxSharesOut,
       maxSharePrice: poolData.maxSharePrice.toString(),
-      maxAssetsIn: formattedMaxAssetsIn,
-      saleEndTime: formattedSaleEndTime,
-      saleStartTime: formattedSaleStartTime,
+      maxAssetsIn: poolData.maxAssetsIn,
+      saleEndTime: poolData.saleEndTime,
+      saleStartTime: poolData.saleStartTime,
       totalPurchased: poolData.totalPurchased.toString(),
       totalReferred: poolData.totalReferred.toString(),
       totalSwapFeesAsset: poolData.totalSwapFeesAsset.toString(),
