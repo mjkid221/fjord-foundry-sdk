@@ -1,4 +1,4 @@
-import { FjordClientSdk } from '@fjord-foundry/solana-sdk-client';
+import { FjordClientSdk, SOLANA_RPC } from '@fjord-foundry/solana-sdk-client';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
@@ -33,7 +33,7 @@ export const SolanaSdkClientProvider = ({ children, solanaNetwork }: SolanaSdkCl
       solanaNetwork: network,
       programId: programAddressPublicKey,
       enableLogging: true,
-      rpcUrl: 'https://devnet.helius-rpc.com/?api-key=ef8c270a-dce9-4069-92f5-cd687823d1d7',
+      rpcUrl: SOLANA_RPC,
     }); // enable logging
   }, [setSolanaNetwork, solanaNetwork]);
 
